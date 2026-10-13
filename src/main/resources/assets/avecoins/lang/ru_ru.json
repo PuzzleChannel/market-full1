@@ -25,7 +25,7 @@
   "gui.avecoins.player_market.new_listing": "ОБЪЯВЛЕНИЯ",
   "gui.avecoins.player_market.empty": "Объявлений пока нет. Вы можете выставить первый предмет.",
   "gui.avecoins.player_market.hold_item": "Выберите предмет в инвентаре. Он будет зарезервирован до покупки или снятия объявления.",
-  "gui.avecoins.player_market.price": "Цена за весь лот (ВМуткоин)",
+  "gui.avecoins.player_market.price": "Цена лота",
   "gui.avecoins.player_market.quantity": "Количество предметов",
   "gui.avecoins.player_market.limit": "До 40 объявлений одновременно. Цена одного лота — от 1 до 1728 ВМуткоинов.",
   "gui.avecoins.player_market.wallet": "Баланс кошелька: %s ВМуткоинов",
@@ -385,9 +385,9 @@
   "gui.avecoins.player_market.price_short": "Цена:",
   "message.avecoins.market_listing_updated": "Цена объявления обновлена.",
   "message.avecoins.market_updated": "Рынок игроков обновлён.",
-  "gui.avecoins.player_market.manage_summary": "Лотов: %s · Предметов: %s · Стоимость всех лотов: %s ВМуткоинов",
-  "gui.avecoins.player_market.current_price": "Цена за весь лот: %s ВМуткоинов",
-  "gui.avecoins.player_market.price_edit_help": "Введите новую цену за одну штуку и нажмите «Сохранить».",
+  "gui.avecoins.player_market.manage_summary": "Лотов: %s · Предметов: %s",
+  "gui.avecoins.player_market.current_price": "Стоимость:",
+  "gui.avecoins.player_market.price_edit_help": "Введите новую стоимость всего лота и нажмите «Сохранить».",
   "gui.avecoins.player_market.confirm_remove": "Подтвердить",
   "gui.avecoins.player_market.keep_listing": "Не снимать",
   "gui.avecoins.player_market.filter": "Фильтр: %s",
@@ -400,5 +400,6 @@
   "gui.avecoins.player_market.sort_cheapest": "Цена ↑",
   "gui.avecoins.player_market.sort_expensive": "Цена ↓",
   "gui.avecoins.player_market.sort_quantity": "Больше шт.",
-  "gui.avecoins.player_market.sort_unit": "Цена/шт. ↑"
+  "gui.avecoins.player_market.sort_unit": "Цена/шт. ↑",
+  "gui.avecoins.player_market.manage_total_value": "Общая стоимость:"
 }
