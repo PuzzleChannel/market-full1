@@ -2,7 +2,6 @@ package net.sundggs.avecoins.client.gui;
 
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.sundggs.avecoins.network.ClientNetworking;
@@ -10,8 +9,10 @@ import net.sundggs.avecoins.network.ServerboundAvecoinsPayload;
 import net.sundggs.avecoins.shop.PlayerMarketService;
 import net.sundggs.avecoins.shop.ShopService;
 
-/** Inventory-based player listing editor. Items are only removed after server-side validation. */
+/** Inventory-based player listing editor. The server validates the selected slot before removing anything. */
 public final class PlayerMarketCreateScreen extends AvecoinsScreen {
+    private static final int INVENTORY_WIDTH = 9 * 18;
+
     private final PlayerMarketService.MarketSnapshot snapshot;
     private String resultCode;
     private String savedPrice;
@@ -64,22 +65,23 @@ public final class PlayerMarketCreateScreen extends AvecoinsScreen {
         this.addRenderableWidget(new PanelButton(this.panelLeft + this.panelWidth - 28, headerY, 18, 20,
                 Component.literal("×"), PanelButton.Variant.DANGER, button -> this.onClose()));
 
-        int formX = this.panelLeft + 242;
-        this.priceBox = new net.minecraft.client.gui.components.EditBox(this.font, formX, this.panelTop + 174, 244, 20,
+        int fieldsX = this.panelLeft + (this.panelWidth - 400) / 2;
+        int fieldsY = this.panelTop + 222;
+        this.priceBox = new net.minecraft.client.gui.components.EditBox(this.font, fieldsX, fieldsY, 190, 20,
                 Component.translatable("gui.avecoins.player_market.price"));
         this.priceBox.setMaxLength(6);
         this.priceBox.setValue(this.savedPrice);
         this.priceBox.setHint(Component.literal("Например, 12"));
         this.addRenderableWidget(this.priceBox);
 
-        this.quantityBox = new net.minecraft.client.gui.components.EditBox(this.font, formX, this.panelTop + 222, 244, 20,
+        this.quantityBox = new net.minecraft.client.gui.components.EditBox(this.font, fieldsX + 210, fieldsY, 190, 20,
                 Component.translatable("gui.avecoins.player_market.quantity"));
         this.quantityBox.setMaxLength(3);
         this.quantityBox.setValue(this.savedQuantity);
         this.quantityBox.setHint(Component.literal("Например, 16"));
         this.addRenderableWidget(this.quantityBox);
 
-        this.addRenderableWidget(new PanelButton(formX, this.panelTop + 278, 244, 25,
+        this.addRenderableWidget(new PanelButton(this.panelLeft + (this.panelWidth - 230) / 2, this.panelTop + 273, 230, 25,
                 Component.translatable("gui.avecoins.player_market.create"), PanelButton.Variant.SUCCESS,
                 button -> this.createListing()));
     }
@@ -134,22 +136,24 @@ public final class PlayerMarketCreateScreen extends AvecoinsScreen {
         if (event.buttonInfo().button() == 0) {
             int mouseX = this.virtualMouseX(event.x());
             int mouseY = this.virtualMouseY(event.y());
-            int inventoryX = this.panelLeft + 24;
-            int mainTop = this.panelTop + 126;
-            int hotbarTop = this.panelTop + 190;
-            if (mouseX >= inventoryX && mouseX < inventoryX + 9 * 18) {
+            int inventoryX = this.inventoryX();
+            int mainTop = this.mainInventoryTop();
+            int hotbarTop = this.hotbarTop();
+            if (mouseX >= inventoryX && mouseX < inventoryX + INVENTORY_WIDTH) {
                 int column = (mouseX - inventoryX) / 18;
                 if (mouseY >= mainTop && mouseY < mainTop + 3 * 18) {
                     int row = (mouseY - mainTop) / 18;
                     int slot = 9 + row * 9 + column;
                     if (this.minecraft.player != null && !this.minecraft.player.getInventory().getItem(slot).isEmpty()) {
                         this.selectedSlot = slot;
+                        this.resultCode = "";
                         return true;
                     }
                 } else if (mouseY >= hotbarTop && mouseY < hotbarTop + 18) {
                     int slot = column;
                     if (this.minecraft.player != null && !this.minecraft.player.getInventory().getItem(slot).isEmpty()) {
                         this.selectedSlot = slot;
+                        this.resultCode = "";
                         return true;
                     }
                 }
@@ -158,60 +162,91 @@ public final class PlayerMarketCreateScreen extends AvecoinsScreen {
         return super.mouseClicked(event, doubled);
     }
 
+    private int inventoryX() {
+        return this.panelLeft + (this.panelWidth - INVENTORY_WIDTH) / 2;
+    }
+
+    private int mainInventoryTop() {
+        return this.panelTop + 86;
+    }
+
+    private int hotbarTop() {
+        return this.panelTop + 142;
+    }
+
     @Override
     protected void renderPanel(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         this.renderHeader(graphics, Component.translatable("gui.avecoins.player_market.create_subtitle"));
         this.drawSectionTitleAt(graphics, Component.translatable("gui.avecoins.player_market.inventory"),
-                this.panelLeft + 105, this.panelTop + 72);
-        this.drawCenteredWrappedAt(graphics, Component.translatable("gui.avecoins.player_market.inventory_help"),
-                this.panelLeft + 105, this.panelTop + 88, 190, this.theme().MUTED);
+                this.panelLeft + this.panelWidth / 2, this.panelTop + 68);
 
-        int inventoryX = this.panelLeft + 24;
-        int mainTop = this.panelTop + 126;
-        int hotbarTop = this.panelTop + 190;
+        int inventoryX = this.inventoryX();
+        int mainTop = this.mainInventoryTop();
+        int hotbarTop = this.hotbarTop();
+
         for (int row = 0; row < 3; row++) {
             for (int column = 0; column < 9; column++) {
                 int slot = 9 + row * 9 + column;
                 drawInventorySlot(graphics, slot, inventoryX + column * 18, mainTop + row * 18);
             }
         }
-        this.drawSectionTitleAt(graphics, Component.translatable("gui.avecoins.player_market.hotbar"),
-                this.panelLeft + 105, this.panelTop + 174);
         for (int column = 0; column < 9; column++) {
             drawInventorySlot(graphics, column, inventoryX + column * 18, hotbarTop);
         }
 
-        int dividerX = this.panelLeft + 210;
-        graphics.fill(dividerX, this.panelTop + 78, dividerX + 1, this.panelTop + 360, this.theme().DIVIDER);
-
-        int formX = this.panelLeft + 242;
-        this.drawSectionTitleAt(graphics, Component.translatable("gui.avecoins.player_market.selected_item"),
-                formX + 122, this.panelTop + 72);
-        graphics.fill(formX, this.panelTop + 88, formX + 376, this.panelTop + 143, this.theme().BORDER);
-        graphics.fill(formX + 1, this.panelTop + 89, formX + 375, this.panelTop + 142, this.theme().SURFACE);
+        int fieldsX = this.panelLeft + (this.panelWidth - 400) / 2;
+        int selectedPanelX = this.panelLeft + (this.panelWidth - 400) / 2;
+        int selectedPanelY = this.panelTop + 164;
+        graphics.fill(selectedPanelX, selectedPanelY, selectedPanelX + 400, selectedPanelY + 34, this.theme().BORDER);
+        graphics.fill(selectedPanelX + 1, selectedPanelY + 1, selectedPanelX + 399, selectedPanelY + 33, this.theme().SURFACE);
 
         ItemStack selected = this.minecraft.player == null || this.selectedSlot < 0
                 ? ItemStack.EMPTY : this.minecraft.player.getInventory().getItem(this.selectedSlot);
         if (!selected.isEmpty()) {
-            graphics.item(selected, formX + 9, this.panelTop + 105);
-            String name = this.font.plainSubstrByWidth(selected.getHoverName().getString(), 300);
-            graphics.text(this.font, Component.literal(name), formX + 31, this.panelTop + 102,
-                    this.theme().TEXT, !this.theme().custom);
-            graphics.text(this.font, Component.translatable("gui.avecoins.player_market.selected_count", selected.getCount()),
-                    formX + 31, this.panelTop + 119, this.theme().MUTED, !this.theme().custom);
+            graphics.item(selected, selectedPanelX + 9, selectedPanelY + 9);
+            graphics.text(this.font,
+                    Component.literal(this.font.plainSubstrByWidth(selected.getHoverName().getString(), 300)),
+                    selectedPanelX + 32, selectedPanelY + 8, this.theme().TEXT, !this.theme().custom);
+            graphics.text(this.font,
+                    Component.translatable("gui.avecoins.player_market.selected_count", selected.getCount()),
+                    selectedPanelX + 32, selectedPanelY + 21, this.theme().MUTED, !this.theme().custom);
         } else {
-            this.drawWrapped(graphics, Component.translatable("gui.avecoins.player_market.no_selected_item"),
-                    formX + 10, this.panelTop + 108, 350, this.theme().MUTED);
+            this.drawCenteredWrappedAt(graphics, Component.translatable("gui.avecoins.player_market.no_selected_item"),
+                    selectedPanelX + 200, selectedPanelY + 12, 370, this.theme().MUTED);
         }
 
         graphics.text(this.font, Component.translatable("gui.avecoins.player_market.price"),
-                formX, this.panelTop + 158, this.theme().TEXT, !this.theme().custom);
+                fieldsX, this.panelTop + 208, this.theme().TEXT, !this.theme().custom);
         graphics.text(this.font, Component.translatable("gui.avecoins.player_market.quantity"),
-                formX, this.panelTop + 206, this.theme().TEXT, !this.theme().custom);
-        graphics.text(this.font, Component.translatable("gui.avecoins.player_market.wallet", this.snapshot.walletBalance),
-                formX, this.panelTop + 255, this.theme().TEXT, !this.theme().custom);
-        this.drawWrapped(graphics, Component.translatable("gui.avecoins.player_market.limit"),
-                formX, this.panelTop + 314, 370, this.theme().MUTED);
+                fieldsX + 210, this.panelTop + 208, this.theme().TEXT, !this.theme().custom);
+
+        GuiTextLayout.drawCentered(graphics, this.font,
+                Component.translatable("gui.avecoins.player_market.wallet", this.snapshot.walletBalance),
+                this.panelLeft + this.panelWidth / 2, this.panelTop + 252, this.theme().TEXT, !this.theme().custom);
+
+        this.drawCenteredWrappedAt(graphics, Component.translatable("gui.avecoins.player_market.limit"),
+                this.panelLeft + this.panelWidth / 2, this.panelTop + 309, 640, this.theme().MUTED);
+
+        for (int slot = 0; slot < 36; slot++) {
+            int x;
+            int y;
+            if (slot < 9) {
+                x = inventoryX + slot * 18;
+                y = hotbarTop;
+            } else {
+                int local = slot - 9;
+                x = inventoryX + local % 9 * 18;
+                y = mainTop + local / 9 * 18;
+            }
+            if (mouseX >= x && mouseX < x + 16 && mouseY >= y && mouseY < y + 16
+                    && this.minecraft.player != null) {
+                ItemStack hovered = this.minecraft.player.getInventory().getItem(slot);
+                if (!hovered.isEmpty()) {
+                    graphics.setTooltipForNextFrame(this.font, hovered, mouseX, mouseY);
+                }
+                break;
+            }
+        }
 
         if (!this.resultCode.isBlank()) {
             this.renderStatusBoxAt(graphics, this.resultCode, this.panelTop + this.panelHeight - 24);

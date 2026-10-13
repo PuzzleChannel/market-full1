@@ -39,7 +39,7 @@ public final class GuiPalette {
 
     private GuiPalette() {
         this.custom = false;
-        this.BACKGROUND = -1744830464;
+        this.BACKGROUND = 0xFF101318;
         this.PANEL = -15263203;
         this.HEADER = -14407636;
         this.SURFACE = -14670808;
@@ -71,7 +71,7 @@ public final class GuiPalette {
 
     private GuiPalette(int base) {
         this.custom = true;
-        this.BACKGROUND = -1744830464;
+        this.BACKGROUND = 0xFF101318;
         this.PANEL = base;
         int foreground = GuiPalette.contrast(-16777216, base) >= GuiPalette.contrast(-1, base) ? -16777216 : -1;
         int blackEndpoint = GuiPalette.surface(-16777216, foreground);
