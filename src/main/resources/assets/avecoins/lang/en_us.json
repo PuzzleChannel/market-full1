@@ -404,12 +404,11 @@
   "gui.avecoins.player_market.category_all": "ALL",
   "gui.avecoins.player_market.category_blocks": "BLOCKS",
   "gui.avecoins.player_market.category_tools": "TOOLS",
-  "gui.avecoins.player_market.category_combat": "COMBAT",
+  "gui.avecoins.player_market.category_combat": "WEAPONS",
   "gui.avecoins.player_market.category_materials": "MATERIALS",
   "gui.avecoins.player_market.category_food": "FOOD",
   "gui.avecoins.player_market.category_potions": "POTIONS",
-  "gui.avecoins.player_market.category_redstone": "REDSTONE",
-  "gui.avecoins.player_market.category_transport": "TRANSPORT",
+  "gui.avecoins.player_market.category_redstone": "MECHANISMS",
   "gui.avecoins.player_market.category_decoration": "DECOR",
   "gui.avecoins.player_market.category_other": "OTHER"
 }
