@@ -14,9 +14,9 @@ public final class PlayerMarketStore {
                 .resolve("data").resolve("avecoins").resolve("player_market.json");
         store = new AtomicJsonStore<>(path, PlayerMarketData.class,
                 PlayerMarketData::defaults, PlayerMarketData::validate);
-        if (!store.load()) {
-            throw new IllegalStateException("Could not load player market data");
-        }
+        // Keep the server available if this optional feature file is damaged;
+        // AtomicJsonStore retains its last valid in-memory state on load failure.
+        store.load();
     }
 
     public static synchronized PlayerMarketData get() {
