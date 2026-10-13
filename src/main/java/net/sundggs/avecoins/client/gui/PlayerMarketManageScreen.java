@@ -125,7 +125,7 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
         int listX = this.panelLeft + 12;
         int rowWidth = this.panelWidth - 24;
         int cardWidth = (rowWidth - (COLUMNS - 1) * 8) / COLUMNS;
-        int listTop = this.panelTop + 80;
+        int listTop = this.panelTop + 84;
         int start = this.page * PAGE_SIZE;
         int end = Math.min(listings.size(), start + PAGE_SIZE);
 
@@ -137,7 +137,7 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
 
             EditBox priceBox = new EditBox(this.font, cardX + 8, cardY + 53, 50, 18,
                     Component.translatable("gui.avecoins.player_market.price"));
-            priceBox.setMaxLength(4);
+            priceBox.setMaxLength(10);
             priceBox.setValue(this.priceDrafts.getOrDefault(listing.id, Integer.toString(listing.totalPrice)));
             priceBox.setHint(Component.literal(Integer.toString(listing.totalPrice)));
             priceBox.setTooltip(net.minecraft.client.gui.components.Tooltip.create(
@@ -260,8 +260,8 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
             graphics.pose().scale(this.responsiveLayout.scale(), this.responsiveLayout.scale());
             int listX = this.panelLeft + 12;
             int rowWidth = this.panelWidth - 24;
-            int cardWidth = (rowWidth - 8) / COLUMNS;
-            int listTop = this.panelTop + 80;
+            int cardWidth = (rowWidth - (COLUMNS - 1) * 8) / COLUMNS;
+            int listTop = this.panelTop + 84;
             int start = this.page * PAGE_SIZE;
             List<PlayerMarketService.MarketListing> listings = this.ownListings();
             int end = Math.min(listings.size(), start + PAGE_SIZE);
