@@ -12,6 +12,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.sundggs.avecoins.config.CraftingConfig;
+import net.sundggs.avecoins.config.ModConfigManager;
 
 /** Server-authoritative player marketplace. All prices are VMcoin and payouts go to wallets. */
 public final class PlayerMarketService {
@@ -21,6 +22,7 @@ public final class PlayerMarketService {
         PlayerMarketData data = PlayerMarketStore.get();
         MarketSnapshot snapshot = new MarketSnapshot();
         snapshot.viewerId = player.getUUID().toString();
+        snapshot.shopColor = ModConfigManager.general().shopColor;
         snapshot.walletBalance = WalletStore.get().balance(player.getUUID(), CraftingConfig.CURRENCY);
         for (PlayerMarketData.Listing listing : data.listings) {
             MarketListing entry = new MarketListing();
@@ -124,7 +126,6 @@ public final class PlayerMarketService {
         if (template.isEmpty()) {
             return Result.fail("market_item_unavailable");
         }
-        ItemStack delivery = template.copyWithCount(listing.quantity);
         List<ItemStack> inventoryBackup = copyInventory(buyer.getInventory());
         if (!insertCompletely(buyer.getInventory(), template, listing.quantity)) {
             restoreInventory(buyer.getInventory(), inventoryBackup);
@@ -236,6 +237,7 @@ public final class PlayerMarketService {
 
     public static final class MarketSnapshot {
         public String viewerId = "";
+        public String shopColor = "";
         public long walletBalance;
         public List<MarketListing> listings = new ArrayList<>();
     }
@@ -252,8 +254,8 @@ public final class PlayerMarketService {
     }
 
     public record Result(boolean success, String code) {
-        static Result ok(String code) { return new Result(true, code); }
-        static Result fail(String code) { return new Result(false, code); }
+        public static Result ok(String code) { return new Result(true, code); }
+        public static Result fail(String code) { return new Result(false, code); }
     }
 
     private PlayerMarketService() {
