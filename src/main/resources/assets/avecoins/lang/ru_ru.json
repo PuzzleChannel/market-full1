@@ -61,5 +61,6 @@
   "gui.avecoins.player_market.selected_item": "ПРЕДМЕТ НА ПРОДАЖУ",
   "gui.avecoins.player_market.selected_count": "В выбранной ячейке: %s шт.",
   "gui.avecoins.player_market.no_selected_item": "Выберите предмет в инвентаре слева.",
-  "message.avecoins.market_select_item": "Выбери предмет в инвентаре."
+  "message.avecoins.market_select_item": "Выбери предмет в инвентаре.",
+  "gui.avecoins.player_market.wallet_label": "Баланс кошелька:"
 }

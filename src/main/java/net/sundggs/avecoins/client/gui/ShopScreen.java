@@ -60,7 +60,7 @@ extends AvecoinsScreen {
     private static final Identifier WALLET_ICON = Identifier.fromNamespaceAndPath((String)"avecoins", (String)"textures/gui/icons/coin_wallet.png");
     private static final Identifier ADMIN_ICON = Identifier.fromNamespaceAndPath((String)"avecoins", (String)"textures/gui/icons/admin_button.png");
     private static final Identifier ALL_CATEGORY_ICON = Identifier.withDefaultNamespace((String)"chest");
-    private static final List<String> BALANCE_ORDER = List.of("avecoins:coppercoin", "avecoins:ironcoin", "avecoins:goldcoin", "avecoins:diamondcoin", "avecoins:netheritecoin", "avecoins:goldticket", "avecoins:diamondticket", "avecoins:netheriteticket");
+    private static final List<String> BALANCE_ORDER = List.of("vmtrade:vmcoin", "avecoins:coppercoin", "avecoins:ironcoin", "avecoins:goldcoin", "avecoins:diamondcoin", "avecoins:netheritecoin", "avecoins:goldticket", "avecoins:diamondticket", "avecoins:netheriteticket");
     private final ShopService.ShopSnapshot snapshot;
     private String selectedCategory = "all";
     private String search = "";

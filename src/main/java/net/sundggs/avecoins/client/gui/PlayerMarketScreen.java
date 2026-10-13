@@ -151,10 +151,26 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
                     listX + rowWidth / 2, this.panelTop + 378, this.theme().MUTED, !this.theme().custom);
         }
 
-        graphics.text(this.font, Component.translatable("gui.avecoins.player_market.wallet", this.snapshot.walletBalance),
-                this.panelLeft + 14, this.panelTop + 390, this.theme().TEXT, !this.theme().custom);
+        this.renderVmcoinBalance(graphics, this.panelLeft + this.panelWidth / 2, this.panelTop + 386);
         if (!this.resultCode.isBlank()) {
             this.renderStatusBoxAt(graphics, this.resultCode, this.panelTop + this.panelHeight - 24);
         }
+    }
+
+    private void renderVmcoinBalance(GuiGraphicsExtractor graphics, int centerX, int iconY) {
+        Component label = Component.translatable("gui.avecoins.player_market.wallet_label");
+        String amount = Long.toString(this.snapshot.walletBalance);
+        Identifier currencyId = Identifier.tryParse("vmtrade:vmcoin");
+        boolean hasIcon = currencyId != null && BuiltInRegistries.ITEM.containsKey(currencyId);
+        int iconSpace = hasIcon ? 20 : 0;
+        int totalWidth = this.font.width(label) + 8 + iconSpace + this.font.width(amount);
+        int x = centerX - totalWidth / 2;
+        graphics.text(this.font, label, x, iconY + 4, this.theme().TEXT, !this.theme().custom);
+        x += this.font.width(label) + 8;
+        if (hasIcon) {
+            graphics.item(new ItemStack((Item) BuiltInRegistries.ITEM.getValue(currencyId)), x, iconY);
+            x += 20;
+        }
+        graphics.text(this.font, Component.literal(amount), x, iconY + 4, this.theme().TEXT, !this.theme().custom);
     }
 }
