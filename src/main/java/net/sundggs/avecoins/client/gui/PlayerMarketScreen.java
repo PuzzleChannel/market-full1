@@ -181,7 +181,7 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
             String seller = listing.sellerName + (listing.sellerId.equals(this.snapshot.viewerId) ? " · Вы" : "");
             String details = seller + "  |  " + listing.unitPrice + " ВМуткоин/шт.  |  Итого: "
                     + ((long) listing.unitPrice * listing.quantity);
-            graphics.text(this.font, Component.literal(this.font.plainSubstrByWidth(details, 395)),
+            graphics.text(this.font, Component.literal(this.font.plainSubstrByWidth(details, 380)),
                     listX + 31, rowY + 26, this.theme().MUTED, !this.theme().custom);
         }
 
