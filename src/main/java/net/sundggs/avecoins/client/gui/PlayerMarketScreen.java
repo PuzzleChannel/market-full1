@@ -246,8 +246,7 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
         Item item = (Item) BuiltInRegistries.ITEM.getValue(id);
         String path = id.getPath();
         int category;
-        if (item instanceof BlockItem) category = 1;
-        else if (path.contains("sword") || path.contains("bow") || path.contains("crossbow") || path.contains("trident")
+        if (path.contains("sword") || path.contains("bow") || path.contains("crossbow") || path.contains("trident")
                 || path.contains("shield") || path.contains("mace") || path.contains("helmet") || path.contains("chestplate")
                 || path.contains("leggings") || path.contains("boots") || path.contains("horse_armor") || path.contains("wolf_armor")
                 || path.equals("arrow") || path.endsWith("_arrow") || path.contains("spear")) category = 3;
@@ -284,6 +283,7 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
                 || path.contains("armor_stand") || path.contains("lantern") || path.contains("torch") || path.contains("carpet")
                 || path.contains("music_disc") || path.contains("coral") || path.contains("sapling") || path.contains("leaves")
                 || path.contains("hanging_sign")) category = 9;
+        else if (item instanceof BlockItem) category = 1;
         else category = 10;
         return this.categoryMode == category;
     }
