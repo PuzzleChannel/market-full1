@@ -57,10 +57,10 @@ extends AvecoinsScreen {
         this.idBox.setHint((Component)Component.translatable((String)"gui.avecoins.recipe.selector.hint"));
         this.idBox.setValue(this.initialId);
         this.idBox.setResponder(this::updateSearch);
-        this.addRenderableWidget((GuiEventListener)this.idBox);
+        this.addRenderableWidget(this.idBox);
         this.updateSearch(this.initialId);
-        this.setInitialFocus((GuiEventListener)this.idBox);
-        this.addRenderableWidget((GuiEventListener)new PanelButton(this.panelLeft + (this.panelWidth - 110) / 2, this.panelTop + 238, 110, 22, (Component)Component.translatable((String)"gui.avecoins.recipe.selector.confirm"), PanelButton.Variant.PRIMARY, button -> this.confirmSelection()));
+        this.setInitialFocus(this.idBox);
+        this.addRenderableWidget(new PanelButton(this.panelLeft + (this.panelWidth - 110) / 2, this.panelTop + 238, 110, 22, (Component)Component.translatable((String)"gui.avecoins.recipe.selector.confirm"), PanelButton.Variant.PRIMARY, button -> this.confirmSelection()));
     }
 
     private void updateSearch(String value) {
@@ -99,7 +99,7 @@ extends AvecoinsScreen {
             this.resultCode = "invalid_item_id";
             return;
         }
-        Identifier id = BuiltInRegistries.ITEM.getKey((Object)this.preview.getItem());
+        Identifier id = BuiltInRegistries.ITEM.getKey(this.preview.getItem());
         this.selected.accept(id.toString());
         this.minecraft.gui.setScreen((Screen)this.parent);
     }

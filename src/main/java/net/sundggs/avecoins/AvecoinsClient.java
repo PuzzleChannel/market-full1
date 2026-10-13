@@ -51,7 +51,7 @@ implements ClientModInitializer {
     }
 
     private void appendTooltip(ItemStack stack, List<Component> tooltip) {
-        Identifier itemId = BuiltInRegistries.ITEM.getKey((Object)stack.getItem());
+        Identifier itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
         if (!itemId.getNamespace().equals("avecoins") || !TOOLTIP_ITEMS.contains(itemId.getPath())) {
             return;
         }

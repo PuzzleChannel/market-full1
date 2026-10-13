@@ -31,7 +31,7 @@ public final class ClientPayloadRouter {
                 ClientScreenDispatcher.handle(payload.action(), payload.data());
             }
             catch (RuntimeException exception) {
-                AvecoinsMod.LOGGER.error("Could not handle client payload {}", (Object)payload.action(), (Object)exception);
+                AvecoinsMod.LOGGER.error("Could not handle client payload {}", payload.action(), exception);
             }
         });
     }

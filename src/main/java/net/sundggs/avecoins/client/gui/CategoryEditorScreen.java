@@ -63,16 +63,16 @@ extends AvecoinsScreen {
         int iconX = this.panelLeft + 115;
         this.iconAutocomplete = new AutocompleteField(this.font, iconX, this.panelTop + 202, columnWidth, 128, this.existing == null ? "" : this.existing.iconItem, CategoryEditorScreen.itemIds(), AutocompleteField::registeredItem, value -> {});
         this.iconBox = this.iconAutocomplete.box();
-        this.addRenderableWidget((GuiEventListener)this.iconBox);
-        this.addRenderableWidget((GuiEventListener)new PanelButton(iconX + columnWidth + 6, this.panelTop + 202, 84, 20, (Component)Component.translatable((String)"gui.avecoins.use_held_item_short"), PanelButton.Variant.HEADER, button -> this.useHeldIcon()));
-        this.addRenderableWidget((GuiEventListener)new PanelButton(this.panelLeft + this.panelWidth / 2 - 74, this.panelTop + 330, 148, 22, (Component)Component.translatable((String)"gui.avecoins.save"), PanelButton.Variant.SELECTED, button -> this.save()));
+        this.addRenderableWidget(this.iconBox);
+        this.addRenderableWidget(new PanelButton(iconX + columnWidth + 6, this.panelTop + 202, 84, 20, (Component)Component.translatable((String)"gui.avecoins.use_held_item_short"), PanelButton.Variant.HEADER, button -> this.useHeldIcon()));
+        this.addRenderableWidget(new PanelButton(this.panelLeft + this.panelWidth / 2 - 74, this.panelTop + 330, 148, 22, (Component)Component.translatable((String)"gui.avecoins.save"), PanelButton.Variant.SELECTED, button -> this.save()));
     }
 
     private EditBox field(int x, int y, int width, int max, String value) {
         EditBox box = new EditBox(this.font, x, y, width, 20, (Component)Component.empty());
         box.setMaxLength(max);
         box.setValue(value);
-        this.addRenderableWidget((GuiEventListener)box);
+        this.addRenderableWidget(box);
         return box;
     }
 
@@ -82,7 +82,7 @@ extends AvecoinsScreen {
 
     private void useHeldIcon() {
         if (this.minecraft.player != null && !this.minecraft.player.getMainHandItem().isEmpty()) {
-            this.iconAutocomplete.setValue(BuiltInRegistries.ITEM.getKey((Object)this.minecraft.player.getMainHandItem().getItem()).toString());
+            this.iconAutocomplete.setValue(BuiltInRegistries.ITEM.getKey(this.minecraft.player.getMainHandItem().getItem()).toString());
         }
     }
 
@@ -122,7 +122,7 @@ extends AvecoinsScreen {
         category.description = this.descriptionBox.getValue();
         category.iconItem = iconValue;
         category.sortOrder = this.existing == null ? 0 : this.existing.sortOrder;
-        ClientNetworking.send(new ServerboundAvecoinsPayload("save_category", AtomicJsonStore.gson().toJson((Object)category)));
+        ClientNetworking.send(new ServerboundAvecoinsPayload("save_category", AtomicJsonStore.gson().toJson(category)));
     }
 
     @Override

@@ -83,7 +83,7 @@ extends AvecoinsScreen {
         int gridTop = this.panelTop + (this.hasDowngrade() ? 95 : 116);
         for (int index = 0; index < 9; ++index) {
             int slot = index;
-            this.addRenderableWidget((GuiEventListener)new GhostIngredientButton(gridLeft + index % 3 * 42, gridTop + index / 3 * 42, this.grid.get(index), () -> this.openIngredientSelector(slot), () -> this.clearSlot(slot)));
+            this.addRenderableWidget(new GhostIngredientButton(gridLeft + index % 3 * 42, gridTop + index / 3 * 42, this.grid.get(index), () -> this.openIngredientSelector(slot), () -> this.clearSlot(slot)));
         }
         this.countBox = new EditBox(this.font, infoCenterX - 26, this.panelTop + 122, 52, 20, (Component)Component.translatable((String)"gui.avecoins.recipe.count"));
         this.countBox.setMaxLength(2);
@@ -91,16 +91,16 @@ extends AvecoinsScreen {
         this.countBox.setResponder(value -> {
             this.countValue = value;
         });
-        this.addRenderableWidget((GuiEventListener)this.countBox);
-        this.addRenderableWidget((GuiEventListener)new PanelButton(infoCenterX - 80, this.panelTop + 205, 160, 20, (Component)Component.translatable((String)"gui.avecoins.save"), PanelButton.Variant.PRIMARY, button -> this.saveRecipe()));
-        this.addRenderableWidget((GuiEventListener)new PanelButton(infoCenterX - 80, this.panelTop + 235, 160, 20, (Component)Component.translatable((String)"gui.avecoins.recipe.restore"), PanelButton.Variant.DANGER, button -> this.restoreRecipe()));
-        this.addRenderableWidget((GuiEventListener)new PanelButton(gridLeft + -7, this.panelTop + (this.hasDowngrade() ? 229 : 254), 136, 22, (Component)Component.translatable((String)"gui.avecoins.recipe.clear_grid"), PanelButton.Variant.SECONDARY, button -> {
+        this.addRenderableWidget(this.countBox);
+        this.addRenderableWidget(new PanelButton(infoCenterX - 80, this.panelTop + 205, 160, 20, (Component)Component.translatable((String)"gui.avecoins.save"), PanelButton.Variant.PRIMARY, button -> this.saveRecipe()));
+        this.addRenderableWidget(new PanelButton(infoCenterX - 80, this.panelTop + 235, 160, 20, (Component)Component.translatable((String)"gui.avecoins.recipe.restore"), PanelButton.Variant.DANGER, button -> this.restoreRecipe()));
+        this.addRenderableWidget(new PanelButton(gridLeft + -7, this.panelTop + (this.hasDowngrade() ? 229 : 254), 136, 22, (Component)Component.translatable((String)"gui.avecoins.recipe.clear_grid"), PanelButton.Variant.SECONDARY, button -> {
             Collections.fill(this.grid, "");
             this.resultCode = "recipe_grid_cleared";
             this.rebuildWidgets();
         }));
         if (this.hasDowngrade()) {
-            this.addRenderableWidget((GuiEventListener)new PanelButton(gridLeft + -7, this.panelTop + 261, 136, 20, (Component)Component.translatable((String)"gui.avecoins.recipe.downgrade.edit"), PanelButton.Variant.SECONDARY, button -> this.minecraft.gui.setScreen((Screen)new DowngradeRecipeScreen(this, this.recipes, this.resultId))));
+            this.addRenderableWidget(new PanelButton(gridLeft + -7, this.panelTop + 261, 136, 20, (Component)Component.translatable((String)"gui.avecoins.recipe.downgrade.edit"), PanelButton.Variant.SECONDARY, button -> this.minecraft.gui.setScreen((Screen)new DowngradeRecipeScreen(this, this.recipes, this.resultId))));
         }
     }
 
@@ -130,7 +130,7 @@ extends AvecoinsScreen {
             this.resultCode = "";
             JsonObject request = new JsonObject();
             request.addProperty("resultId", this.resultId);
-            request.add("recipe", AtomicJsonStore.gson().toJsonTree((Object)this.pendingRecipe));
+            request.add("recipe", AtomicJsonStore.gson().toJsonTree(this.pendingRecipe));
             ClientNetworking.send(new ServerboundAvecoinsPayload("save_custom_recipe", request.toString()));
         }
         catch (RuntimeException exception) {

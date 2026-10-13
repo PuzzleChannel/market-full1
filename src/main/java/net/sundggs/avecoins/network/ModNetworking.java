@@ -54,9 +54,9 @@ public final class ModNetworking {
 
     private static JsonObject dashboardData(ServerPlayer player, String resultCode) {
         JsonObject root = new JsonObject();
-        root.add("general", AtomicJsonStore.gson().toJsonTree((Object)ModConfigManager.general()));
-        root.add("crafting", AtomicJsonStore.gson().toJsonTree((Object)ModConfigManager.crafting()));
-        root.add("recipes", AtomicJsonStore.gson().toJsonTree((Object)ModConfigManager.recipes()));
+        root.add("general", AtomicJsonStore.gson().toJsonTree(ModConfigManager.general()));
+        root.add("crafting", AtomicJsonStore.gson().toJsonTree(ModConfigManager.crafting()));
+        root.add("recipes", AtomicJsonStore.gson().toJsonTree(ModConfigManager.recipes()));
         root.addProperty("result", resultCode);
         root.addProperty("activeCustomAlias", ModCommands.activeCustomAlias());
         root.addProperty("aliasRestartRequired", Boolean.valueOf(!ModCommands.activeCustomAlias().equals(ModConfigManager.general().customShopCommand)));
@@ -76,7 +76,7 @@ public final class ModNetworking {
 
     public static void openWallet(final ServerPlayer player) {
         final ShopService.ShopSnapshot snapshot = ShopService.snapshot(player, false, 0);
-        final String json = AtomicJsonStore.gson().toJson((Object)snapshot);
+        final String json = AtomicJsonStore.gson().toJson(snapshot);
         player.openMenu((MenuProvider)new ExtendedMenuProvider<String>(){
 
             public String getScreenOpeningData(ServerPlayer ignored) {
@@ -95,7 +95,7 @@ public final class ModNetworking {
 
     public static void openSellBox(ServerPlayer player) {
         final ShopService.ShopSnapshot snapshot = ShopService.snapshot(player, false, 0);
-        final String json = AtomicJsonStore.gson().toJson((Object)snapshot);
+        final String json = AtomicJsonStore.gson().toJson(snapshot);
         player.openMenu((MenuProvider)new ExtendedMenuProvider<String>(){
 
             public String getScreenOpeningData(ServerPlayer ignored) {
@@ -116,21 +116,21 @@ public final class ModNetworking {
         JsonObject response = new JsonObject();
         response.addProperty("success", Boolean.valueOf(result.success()));
         response.addProperty("code", result.code());
-        response.add("snapshot", AtomicJsonStore.gson().toJsonTree((Object)ShopService.snapshot(player, false, 0)));
+        response.add("snapshot", AtomicJsonStore.gson().toJsonTree(ShopService.snapshot(player, false, 0)));
         ModNetworking.send(player, "sale_result", AtomicJsonStore.gson().toJson((JsonElement)response));
     }
 
     public static void syncShop(ServerPlayer player, boolean administration, int historyPage, String result) {
         JsonObject response = new JsonObject();
         response.addProperty("result", result);
-        response.add("snapshot", AtomicJsonStore.gson().toJsonTree((Object)ShopService.snapshot(player, administration && PermissionService.isAdministrator(player), historyPage)));
+        response.add("snapshot", AtomicJsonStore.gson().toJsonTree(ShopService.snapshot(player, administration && PermissionService.isAdministrator(player), historyPage)));
         ModNetworking.send(player, "shop_sync", AtomicJsonStore.gson().toJson((JsonElement)response));
     }
 
     public static void send(ServerPlayer player, String action, String data) {
         int payloadBytes = data.getBytes(StandardCharsets.UTF_8).length;
         if (payloadBytes > 0x200000) {
-            AvecoinsMod.LOGGER.error("Refused oversized AVECOINS payload '{}' ({} bytes)", (Object)action, (Object)payloadBytes);
+            AvecoinsMod.LOGGER.error("Refused oversized AVECOINS payload '{}' ({} bytes)", action, payloadBytes);
             ModMessages.send(player, "message.avecoins.payload_too_large", new Object[0]);
             return;
         }

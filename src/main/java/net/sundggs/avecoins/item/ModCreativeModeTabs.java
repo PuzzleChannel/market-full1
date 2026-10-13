@@ -16,7 +16,7 @@ import net.sundggs.avecoins.AvecoinsMod;
 import net.sundggs.avecoins.item.ModItems;
 
 public final class ModCreativeModeTabs {
-    private static final ResourceKey<CreativeModeTab> TAB_KEY = ResourceKey.create((ResourceKey)BuiltInRegistries.CREATIVE_MODE_TAB.key(), (Identifier)Identifier.fromNamespaceAndPath((String)"avecoins", (String)"avecoins_items_tab"));
+    private static final ResourceKey<CreativeModeTab> TAB_KEY = ResourceKey.create(BuiltInRegistries.CREATIVE_MODE_TAB.key(), (Identifier)Identifier.fromNamespaceAndPath((String)"avecoins", (String)"avecoins_items_tab"));
     public static final CreativeModeTab AVECOINS_ITEMS_TAB = FabricCreativeModeTab.builder().icon(() -> new ItemStack((ItemLike)ModItems.GOLDTICKET)).title((Component)Component.translatable((String)"creativetab.avecoinsmod.items")).displayItems((parameters, output) -> {
         output.accept((ItemLike)ModItems.GOLDTICKET);
         output.accept((ItemLike)ModItems.DIAMONDTICKET);
@@ -24,7 +24,7 @@ public final class ModCreativeModeTabs {
     }).build();
 
     public static void register() {
-        Registry.register((Registry)BuiltInRegistries.CREATIVE_MODE_TAB, TAB_KEY, (Object)AVECOINS_ITEMS_TAB);
+        Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, TAB_KEY, AVECOINS_ITEMS_TAB);
         AvecoinsMod.LOGGER.info("Registered AVECOINS creative tab");
     }
 

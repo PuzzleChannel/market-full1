@@ -56,7 +56,7 @@ extends AvecoinsScreen {
         this.layoutPanel(410, 266 + items.size() * 34);
         this.addHeaderBackButton(new DashboardScreen(this.dashboardSnapshot, ""));
         int masterWidth = 86;
-        this.addRenderableWidget((GuiEventListener)new PanelButton(this.panelLeft + this.panelWidth - masterWidth - 62, this.panelTop + 127, masterWidth, 20, CraftingConfigScreen.toggleLabel(this.masterEnabled()), PanelButton.Variant.PRIMARY, CraftingConfigScreen.toggleColor(this.masterEnabled()), button -> {
+        this.addRenderableWidget(new PanelButton(this.panelLeft + this.panelWidth - masterWidth - 62, this.panelTop + 127, masterWidth, 20, CraftingConfigScreen.toggleLabel(this.masterEnabled()), PanelButton.Variant.PRIMARY, CraftingConfigScreen.toggleColor(this.masterEnabled()), button -> {
             this.setMaster(!this.masterEnabled());
             this.resultCode = "";
             this.rebuildWidgets();
@@ -69,15 +69,15 @@ extends AvecoinsScreen {
         for (String itemId : items) {
             int currentY = rowY;
             PanelButton editButton = new PanelButton(editX, currentY, 86, 20, (Component)Component.translatable((String)"gui.avecoins.recipe.edit"), PanelButton.Variant.SECONDARY, button -> this.editRecipe(itemId));
-            this.addRenderableWidget((GuiEventListener)editButton);
+            this.addRenderableWidget(editButton);
             boolean enabled = toggles.getOrDefault(itemId, true);
             PanelButton toggleButton = new PanelButton(toggleX, currentY, 80, 20, CraftingConfigScreen.toggleLabel(enabled), PanelButton.Variant.PRIMARY, CraftingConfigScreen.toggleColor(enabled), button -> this.toggleRecipe(itemId));
             toggleButton.setVisuallyDisabled(!individualControlsEnabled);
-            this.addRenderableWidget((GuiEventListener)toggleButton);
+            this.addRenderableWidget(toggleButton);
             rowY += 34;
         }
         int saveY = rowY + 16;
-        this.addRenderableWidget((GuiEventListener)new PanelButton(this.panelLeft + (this.panelWidth - 140) / 2, saveY, 140, 22, (Component)Component.translatable((String)"gui.avecoins.save"), PanelButton.Variant.PRIMARY, button -> ClientNetworking.send(new ServerboundAvecoinsPayload(this.mode == Mode.COINS ? "save_crafting_coins" : "save_crafting_tickets", AtomicJsonStore.gson().toJson((Object)this.config)))));
+        this.addRenderableWidget(new PanelButton(this.panelLeft + (this.panelWidth - 140) / 2, saveY, 140, 22, (Component)Component.translatable((String)"gui.avecoins.save"), PanelButton.Variant.PRIMARY, button -> ClientNetworking.send(new ServerboundAvecoinsPayload(this.mode == Mode.COINS ? "save_crafting_coins" : "save_crafting_tickets", AtomicJsonStore.gson().toJson(this.config)))));
     }
 
     @Override

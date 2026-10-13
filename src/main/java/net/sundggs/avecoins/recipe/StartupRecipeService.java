@@ -56,7 +56,7 @@ public final class StartupRecipeService {
 
     private static void captureDefaults() {
         defaults = server.getRecipeManager().getRecipes().stream().filter(holder -> MANAGED_DEFAULT_RECIPE_IDS.contains(holder.id().identifier())).toList();
-        AvecoinsMod.LOGGER.info("Loaded {} AVECOINS recipe definitions for this server start", (Object)defaults.size());
+        AvecoinsMod.LOGGER.info("Loaded {} AVECOINS recipe definitions for this server start", defaults.size());
     }
 
     private static boolean applyAtStartup() {
@@ -146,7 +146,7 @@ public final class StartupRecipeService {
         ShapedRecipePattern pattern = new ShapedRecipePattern(normalized.width(), normalized.height(), ingredients, Optional.empty());
         ShapedRecipe recipe = new ShapedRecipe(new Recipe.CommonInfo(true), new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, "avecoins_custom"), pattern, new ItemStackTemplate(resultItem, definition.count));
         Identifier recipeId = Identifier.fromNamespaceAndPath((String)"avecoins", (String)("custom/" + resultLocation.getPath()));
-        ResourceKey recipeKey = ResourceKey.create((ResourceKey)Registries.RECIPE, (Identifier)recipeId);
+        ResourceKey recipeKey = ResourceKey.create(Registries.RECIPE, (Identifier)recipeId);
         return new RecipeHolder(recipeKey, (Recipe)recipe);
     }
 
@@ -158,7 +158,7 @@ public final class StartupRecipeService {
     }
 
     private static boolean isPrimaryRecipe(RecipeHolder<?> holder, String resultId) {
-        return holder.id().identifier().equals((Object)Identifier.tryParse((String)resultId));
+        return holder.id().identifier().equals(Identifier.tryParse((String)resultId));
     }
 
     private static Map<Identifier, String> downgradeSources() {

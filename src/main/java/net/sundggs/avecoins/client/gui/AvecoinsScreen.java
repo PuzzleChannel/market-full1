@@ -168,7 +168,7 @@ implements ThemedScreen {
 
     protected void addHeaderBackButton(Screen destination) {
         this.themeDestinations.add(destination);
-        this.addRenderableWidget((GuiEventListener)new PanelButton(this.panelLeft + 8, this.panelTop + 6, 64, 18, (Component)Component.literal((String)"< ").append((Component)Component.translatable((String)"gui.avecoins.back")), PanelButton.Variant.DANGER, button -> this.minecraft.gui.setScreen(destination)));
+        this.addRenderableWidget(new PanelButton(this.panelLeft + 8, this.panelTop + 6, 64, 18, (Component)Component.literal((String)"< ").append((Component)Component.translatable((String)"gui.avecoins.back")), PanelButton.Variant.DANGER, button -> this.minecraft.gui.setScreen(destination)));
     }
 
     protected int drawCenteredWrapped(GuiGraphicsExtractor graphics, Component text, int y, int maxWidth, int color) {
@@ -176,7 +176,7 @@ implements ThemedScreen {
     }
 
     protected int drawCenteredWrappedAt(GuiGraphicsExtractor graphics, Component text, int centerX, int y, int maxWidth, int color) {
-        List lines = this.font.split((FormattedText)text, maxWidth);
+        List<FormattedCharSequence> lines = this.font.split((FormattedText)text, maxWidth);
         int lineY = y;
         for (FormattedCharSequence line : lines) {
             graphics.text(this.font, line, centerX - this.font.width(line) / 2, lineY, color, !this.theme().custom);
@@ -186,7 +186,7 @@ implements ThemedScreen {
     }
 
     protected int drawWrapped(GuiGraphicsExtractor graphics, Component text, int x, int y, int maxWidth, int color) {
-        List lines = this.font.split((FormattedText)text, maxWidth);
+        List<FormattedCharSequence> lines = this.font.split((FormattedText)text, maxWidth);
         int lineY = y;
         for (FormattedCharSequence line : lines) {
             graphics.text(this.font, line, x, lineY, color, !this.theme().custom);
@@ -211,7 +211,7 @@ implements ThemedScreen {
     }
 
     protected int drawScaledWrapped(GuiGraphicsExtractor graphics, Component text, int x, int y, int maxWidth, float scale, int color) {
-        List lines = this.font.split((FormattedText)text, Math.round((float)maxWidth / scale));
+        List<FormattedCharSequence> lines = this.font.split((FormattedText)text, Math.round((float)maxWidth / scale));
         int lineY = y;
         for (FormattedCharSequence line : lines) {
             graphics.pose().pushMatrix();
@@ -224,7 +224,7 @@ implements ThemedScreen {
     }
 
     protected int drawCenteredScaledWrappedAt(GuiGraphicsExtractor graphics, Component text, int centerX, int y, int maxWidth, float scale, int color) {
-        List lines = this.font.split((FormattedText)text, Math.round((float)maxWidth / scale));
+        List<FormattedCharSequence> lines = this.font.split((FormattedText)text, Math.round((float)maxWidth / scale));
         int lineY = y;
         for (FormattedCharSequence line : lines) {
             int lineWidth = this.font.width(line);

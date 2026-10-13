@@ -56,11 +56,11 @@ extends AvecoinsScreen {
         this.layoutPanel(440, 532);
         this.addHeaderBackButton(new DashboardScreen(this.dashboardSnapshot, ""));
         int masterWidth = 86;
-        this.addRenderableWidget((GuiEventListener)new PanelButton(this.panelLeft + this.panelWidth - masterWidth - 96, this.panelTop + 129, masterWidth, 20, this.masterToggleLabel(), PanelButton.Variant.PRIMARY, this.toggleColor(), button -> {
+        this.addRenderableWidget(new PanelButton(this.panelLeft + this.panelWidth - masterWidth - 96, this.panelTop + 129, masterWidth, 20, this.masterToggleLabel(), PanelButton.Variant.PRIMARY, this.toggleColor(), button -> {
             this.config.shopEnabled = !this.config.shopEnabled;
             this.rebuildWidgets();
         }));
-        this.addRenderableWidget((GuiEventListener)new PanelButton(this.panelLeft + this.panelWidth - masterWidth - 96, this.panelTop + 196, masterWidth, 20, this.conversionToggleLabel(), PanelButton.Variant.PRIMARY, this.conversionToggleColor(), button -> {
+        this.addRenderableWidget(new PanelButton(this.panelLeft + this.panelWidth - masterWidth - 96, this.panelTop + 196, masterWidth, 20, this.conversionToggleLabel(), PanelButton.Variant.PRIMARY, this.conversionToggleColor(), button -> {
             this.config.automaticCoinConversion = !this.config.automaticCoinConversion;
             this.rebuildWidgets();
         }));
@@ -78,11 +78,11 @@ extends AvecoinsScreen {
         this.colorBox.setMaxLength(32);
         this.colorBox.setValue(this.colorDraft);
         this.colorBox.setResponder(this::updateColorDraft);
-        this.addRenderableWidget((GuiEventListener)this.colorBox);
+        this.addRenderableWidget(this.colorBox);
         PanelButton resetColor = new PanelButton(fieldX + 90, this.panelTop + 402, 60, 20, (Component)Component.translatable((String)"gui.avecoins.shop_settings.color_reset_short"), PanelButton.Variant.SECONDARY, button -> this.colorBox.setValue(""));
         resetColor.setTooltip(Tooltip.create((Component)Component.translatable((String)"gui.avecoins.shop_settings.color_reset")));
-        this.addRenderableWidget((GuiEventListener)resetColor);
-        this.saveButton = (PanelButton)this.addRenderableWidget((GuiEventListener)new PanelButton(this.panelLeft + (this.panelWidth - 140) / 2, this.panelTop + 464, 140, 22, (Component)Component.translatable((String)"gui.avecoins.save"), PanelButton.Variant.PRIMARY, button -> this.save()));
+        this.addRenderableWidget(resetColor);
+        this.saveButton = (PanelButton)this.addRenderableWidget(new PanelButton(this.panelLeft + (this.panelWidth - 140) / 2, this.panelTop + 464, 140, 22, (Component)Component.translatable((String)"gui.avecoins.save"), PanelButton.Variant.PRIMARY, button -> this.save()));
         this.saveButton.active = ShopColor.isValid(this.colorDraft);
     }
 
@@ -101,7 +101,7 @@ extends AvecoinsScreen {
         EditBox box = new EditBox(this.font, x, y, width, 20, (Component)Component.empty());
         box.setMaxLength(maxLength);
         box.setValue(value);
-        this.addRenderableWidget((GuiEventListener)box);
+        this.addRenderableWidget(box);
         return box;
     }
 
@@ -112,7 +112,7 @@ extends AvecoinsScreen {
         this.config.customShopCommand = ShopSettingsScreen.normalizeCommand(this.commandBox.getValue());
         this.config.shopName = this.nameBox.getValue();
         this.config.shopColor = ShopColor.normalize(this.colorDraft);
-        ClientNetworking.send(new ServerboundAvecoinsPayload("save_general", AtomicJsonStore.gson().toJson((Object)this.config)));
+        ClientNetworking.send(new ServerboundAvecoinsPayload("save_general", AtomicJsonStore.gson().toJson(this.config)));
     }
 
     private static String displayCommand(String command) {

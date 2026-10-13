@@ -37,16 +37,16 @@ extends AvecoinsScreen {
         int y = this.panelTop + 105;
         PanelButton coins = new PanelButton(x, y, buttonWidth, 24, (Component)Component.translatable((String)"gui.avecoins.dashboard.coins"), PanelButton.Variant.PRIMARY, button -> this.minecraft.gui.setScreen((Screen)new CraftingConfigScreen(this.snapshot, CraftingConfigScreen.Mode.COINS)));
         coins.active = this.snapshot.get("canConfigureCoins").getAsBoolean();
-        this.addRenderableWidget((GuiEventListener)coins);
+        this.addRenderableWidget(coins);
         PanelButton tickets = new PanelButton(x, y + 30, buttonWidth, 24, (Component)Component.translatable((String)"gui.avecoins.dashboard.tickets"), PanelButton.Variant.PRIMARY, button -> this.minecraft.gui.setScreen((Screen)new CraftingConfigScreen(this.snapshot, CraftingConfigScreen.Mode.TICKETS)));
         tickets.active = this.snapshot.get("canConfigureTickets").getAsBoolean();
-        this.addRenderableWidget((GuiEventListener)tickets);
+        this.addRenderableWidget(tickets);
         PanelButton shop = new PanelButton(x, y + 60, buttonWidth, 24, (Component)Component.translatable((String)"gui.avecoins.dashboard.shop"), PanelButton.Variant.PRIMARY, button -> this.minecraft.gui.setScreen((Screen)new ShopSettingsScreen(this.snapshot)));
         shop.active = this.snapshot.get("canConfigureShop").getAsBoolean();
-        this.addRenderableWidget((GuiEventListener)shop);
+        this.addRenderableWidget(shop);
         PanelButton reload = new PanelButton(x, this.panelTop + 278, buttonWidth, 24, (Component)Component.translatable((String)"gui.avecoins.dashboard.reload"), PanelButton.Variant.PRIMARY, button -> ClientNetworking.send(new ServerboundAvecoinsPayload("reload_config", "{}")));
         reload.active = this.snapshot.get("canReloadConfig").getAsBoolean();
-        this.addRenderableWidget((GuiEventListener)reload);
+        this.addRenderableWidget(reload);
     }
 
     @Override

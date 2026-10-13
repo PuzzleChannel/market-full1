@@ -32,8 +32,8 @@ extends AvecoinsScreen {
         int buttonWidth = 128;
         int gap = 18;
         int buttonLeft = this.panelLeft + (this.panelWidth - buttonWidth * 2 - gap) / 2;
-        this.addRenderableWidget((GuiEventListener)new PanelButton(buttonLeft, this.panelTop + 152, buttonWidth, 22, (Component)Component.translatable((String)"gui.avecoins.sale.back_shop"), PanelButton.Variant.SECONDARY, button -> this.backToShop()));
-        this.addRenderableWidget((GuiEventListener)new PanelButton(buttonLeft + buttonWidth + gap, this.panelTop + 152, buttonWidth, 22, (Component)Component.translatable((String)"gui.avecoins.close"), PanelButton.Variant.DANGER, button -> this.onClose()));
+        this.addRenderableWidget(new PanelButton(buttonLeft, this.panelTop + 152, buttonWidth, 22, (Component)Component.translatable((String)"gui.avecoins.sale.back_shop"), PanelButton.Variant.SECONDARY, button -> this.backToShop()));
+        this.addRenderableWidget(new PanelButton(buttonLeft + buttonWidth + gap, this.panelTop + 152, buttonWidth, 22, (Component)Component.translatable((String)"gui.avecoins.close"), PanelButton.Variant.DANGER, button -> this.onClose()));
     }
 
     private void backToShop() {

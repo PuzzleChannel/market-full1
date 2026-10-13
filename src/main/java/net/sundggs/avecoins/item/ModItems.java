@@ -22,8 +22,8 @@ public final class ModItems {
     public static final Item NETHERITETICKET = ModItems.register("netheriteticket");
 
     private static Item register(String name) {
-        ResourceKey key = ResourceKey.create((ResourceKey)Registries.ITEM, (Identifier)Identifier.fromNamespaceAndPath((String)"avecoins", (String)name));
-        return (Item)Registry.register((Registry)BuiltInRegistries.ITEM, (ResourceKey)key, (Object)new Item(new Item.Properties().setId(key)));
+        ResourceKey key = ResourceKey.create(Registries.ITEM, (Identifier)Identifier.fromNamespaceAndPath((String)"avecoins", (String)name));
+        return (Item)Registry.register(BuiltInRegistries.ITEM, key, new Item(new Item.Properties().setId(key)));
     }
 
     public static void register() {

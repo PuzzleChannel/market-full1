@@ -1,10 +1,6 @@
-/*
- * Decompiled with CFR 0.152.
- */
 package net.sundggs.avecoins.shop;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.serialization.DynamicOps;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import net.minecraft.core.HolderLookup;
@@ -22,8 +18,8 @@ public final class ShopItemStacks {
             return "";
         }
         ItemStack single = source.copyWithCount(1);
-        RegistryOps ops = RegistryOps.create((DynamicOps)NbtOps.INSTANCE, (HolderLookup.Provider)registries);
-        return ((Tag)ItemStack.CODEC.encodeStart((DynamicOps)ops, (Object)single).getOrThrow()).toString();
+        RegistryOps<Tag> ops = RegistryOps.create(NbtOps.INSTANCE, registries);
+        return ItemStack.CODEC.encodeStart(ops, single).getOrThrow().toString();
     }
 
     public static Optional<ItemStack> decode(HolderLookup.Provider registries, String encoded) {
@@ -34,20 +30,23 @@ public final class ShopItemStacks {
             return Optional.empty();
         }
         try {
-            RegistryOps ops = RegistryOps.create((DynamicOps)NbtOps.INSTANCE, (HolderLookup.Provider)registries);
-            CompoundTag tag = TagParser.parseCompoundFully((String)encoded);
-            return ItemStack.CODEC.parse((DynamicOps)ops, (Object)tag).result().filter(stack -> !stack.isEmpty()).map(stack -> stack.copyWithCount(1));
-        }
-        catch (CommandSyntaxException | RuntimeException exception) {
+            RegistryOps<Tag> ops = RegistryOps.create(NbtOps.INSTANCE, registries);
+            CompoundTag tag = TagParser.parseCompoundFully(encoded);
+            return ItemStack.CODEC.parse(ops, tag)
+                    .result()
+                    .filter(stack -> !stack.isEmpty())
+                    .map(stack -> stack.copyWithCount(1));
+        } catch (CommandSyntaxException | RuntimeException exception) {
             return Optional.empty();
         }
     }
 
     public static Optional<ItemStack> decodeExpected(HolderLookup.Provider registries, String encoded, Item expected) {
-        return ShopItemStacks.decode(registries, encoded).filter(stack -> stack.is((Object)expected)).map(stack -> stack.copyWithCount(1));
+        return ShopItemStacks.decode(registries, encoded)
+                .filter(stack -> stack.is(expected))
+                .map(stack -> stack.copyWithCount(1));
     }
 
     private ShopItemStacks() {
     }
 }
-

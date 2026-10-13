@@ -73,7 +73,7 @@ public final class ShopService {
     }
 
     public static String snapshotJson(ServerPlayer player, boolean includeAdministration, int historyPage) {
-        return AtomicJsonStore.gson().toJson((Object)ShopService.snapshot(player, includeAdministration, historyPage));
+        return AtomicJsonStore.gson().toJson(ShopService.snapshot(player, includeAdministration, historyPage));
     }
 
     public static OperationResult setCartQuantity(ServerPlayer player, String productId, int quantity) {
@@ -589,7 +589,7 @@ public final class ShopService {
             return true;
         }
         ItemStack held = player.getMainHandItem();
-        Identifier identifier = heldId = held.isEmpty() ? null : BuiltInRegistries.ITEM.getKey((Object)held.getItem());
+        Identifier identifier = heldId = held.isEmpty() ? null : BuiltInRegistries.ITEM.getKey(held.getItem());
         if (heldId == null || !heldId.toString().equals(product.itemId)) {
             return false;
         }
@@ -620,7 +620,7 @@ public final class ShopService {
             remaining = debit.getValue();
             for (ItemStack stack : simulated) {
                 if (remaining == 0L) continue block0;
-                if (!stack.is((Object)currency)) continue;
+                if (!stack.is(currency)) continue;
                 int removed = (int)Math.min(remaining, (long)stack.getCount());
                 stack.shrink(removed);
                 remaining -= (long)removed;
@@ -717,7 +717,7 @@ public final class ShopService {
         long remaining = amount;
         for (ItemStack stack : stacks) {
             if (remaining == 0L) break;
-            if (!stack.is((Object)item)) continue;
+            if (!stack.is(item)) continue;
             int removed = (int)Math.min(remaining, (long)stack.getCount());
             stack.shrink(removed);
             remaining -= (long)removed;

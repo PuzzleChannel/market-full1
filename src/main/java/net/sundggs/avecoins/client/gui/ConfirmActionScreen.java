@@ -43,8 +43,8 @@ extends AvecoinsScreen {
 
     protected void init() {
         this.layoutPanel(420, 240);
-        this.addRenderableWidget((GuiEventListener)new PanelButton(this.panelLeft + 34, this.panelTop + 172, 140, 22, (Component)Component.translatable((String)"gui.avecoins.cancel"), PanelButton.Variant.SECONDARY, button -> this.minecraft.gui.setScreen(this.parent)));
-        this.addRenderableWidget((GuiEventListener)new PanelButton(this.panelLeft + this.panelWidth - 174, this.panelTop + 172, 140, 22, (Component)Component.translatable((String)"gui.avecoins.confirm"), PanelButton.Variant.DANGER, button -> this.confirmed.run()));
+        this.addRenderableWidget(new PanelButton(this.panelLeft + 34, this.panelTop + 172, 140, 22, (Component)Component.translatable((String)"gui.avecoins.cancel"), PanelButton.Variant.SECONDARY, button -> this.minecraft.gui.setScreen(this.parent)));
+        this.addRenderableWidget(new PanelButton(this.panelLeft + this.panelWidth - 174, this.panelTop + 172, 140, 22, (Component)Component.translatable((String)"gui.avecoins.confirm"), PanelButton.Variant.DANGER, button -> this.confirmed.run()));
     }
 
     @Override

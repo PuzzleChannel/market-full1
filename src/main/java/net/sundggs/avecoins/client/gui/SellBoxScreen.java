@@ -91,14 +91,14 @@ implements ThemedScreen {
     @Override
     protected void init() {
         super.init();
-        this.addRenderableWidget((GuiEventListener)new PanelButton(this.leftPos + 8, this.topPos + 6, 64, 18, (Component)Component.literal((String)"< ").append((Component)Component.translatable((String)"gui.avecoins.back")), PanelButton.Variant.DANGER, button -> this.backToShop()));
+        this.addRenderableWidget(new PanelButton(this.leftPos + 8, this.topPos + 6, 64, 18, (Component)Component.literal((String)"< ").append((Component)Component.translatable((String)"gui.avecoins.back")), PanelButton.Variant.DANGER, button -> this.backToShop()));
         this.inventoryDestinationButton = new PanelButton(this.leftPos + 245, this.topPos + 231, 140, 22, (Component)Component.literal((String)"\u25c6 ").append((Component)Component.translatable((String)"gui.avecoins.sell_box.inventory")), PanelButton.Variant.SELECTED, button -> this.selectDestination(false));
         this.walletDestinationButton = new PanelButton(this.leftPos + 245 + 154, this.topPos + 231, 140, 22, (Component)Component.literal((String)"\u00a4 ").append((Component)Component.translatable((String)"gui.avecoins.sell_box.wallet")), PanelButton.Variant.SECONDARY, button -> this.selectDestination(true));
-        this.addRenderableWidget((GuiEventListener)this.inventoryDestinationButton);
-        this.addRenderableWidget((GuiEventListener)this.walletDestinationButton);
+        this.addRenderableWidget(this.inventoryDestinationButton);
+        this.addRenderableWidget(this.walletDestinationButton);
         this.confirmButton = new PanelButton(this.leftPos + 392 - 70, this.topPos + 268, 140, 22, (Component)Component.translatable((String)"gui.avecoins.sell_box.confirm"), PanelButton.Variant.SUCCESS, button -> this.confirmSale());
         this.confirmButton.active = !this.totals().isEmpty();
-        this.addRenderableWidget((GuiEventListener)this.confirmButton);
+        this.addRenderableWidget(this.confirmButton);
     }
 
     private void selectDestination(boolean wallet) {

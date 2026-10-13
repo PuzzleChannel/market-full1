@@ -112,7 +112,7 @@ extends AvecoinsScreen {
         this.addHeaderBackButton(new ShopScreen(this.snapshot, this.shopCategory, this.shopSearch, this.shopPage, this.shopCategoryPage));
         PanelButton wallet = new PanelButton(this.panelLeft + this.panelWidth - 38, this.panelTop + this.panelHeight - 27, 26, 22, (Component)Component.empty(), PanelButton.Variant.HEADER, button -> ClientNetworking.send(new ServerboundAvecoinsPayload("request_wallet", "{}"))).withIcon(Identifier.fromNamespaceAndPath((String)"avecoins", (String)"textures/gui/icons/coin_wallet.png"), 16);
         wallet.setTooltip(Tooltip.create((Component)Component.translatable((String)"gui.avecoins.wallet.open")));
-        this.addRenderableWidget((GuiEventListener)wallet);
+        this.addRenderableWidget(wallet);
         List<Map.Entry<String, Integer>> lines = this.cartLines();
         int pages = Math.max(1, (lines.size() + 5 - 1) / 5);
         this.page = Math.min(this.page, pages - 1);
@@ -125,10 +125,10 @@ extends AvecoinsScreen {
             int rowY = this.panelTop + 83 + (index - start) * 34;
             int quantity = entry.getValue();
             int controlsX = this.panelLeft + this.panelWidth - 134;
-            this.addRenderableWidget((GuiEventListener)new PanelButton(controlsX, rowY, 22, 20, (Component)Component.literal((String)"\u2212"), PanelButton.Variant.SECONDARY, button -> this.changeQuantity(product, quantity, -1)));
-            this.addRenderableWidget((GuiEventListener)new PanelButton(controlsX + 26, rowY, 30, 20, (Component)Component.literal((String)Integer.toString(quantity)), PanelButton.Variant.HEADER, button -> {}));
-            this.addRenderableWidget((GuiEventListener)new PanelButton(controlsX + 60, rowY, 22, 20, (Component)Component.literal((String)"+"), PanelButton.Variant.SECONDARY, button -> this.changeQuantity(product, quantity, 1)));
-            this.addRenderableWidget((GuiEventListener)new PanelButton(controlsX + 86, rowY, 24, 20, (Component)Component.literal((String)"\u00d7"), PanelButton.Variant.DANGER, button -> this.setQuantity(product.id, 0)));
+            this.addRenderableWidget(new PanelButton(controlsX, rowY, 22, 20, (Component)Component.literal((String)"\u2212"), PanelButton.Variant.SECONDARY, button -> this.changeQuantity(product, quantity, -1)));
+            this.addRenderableWidget(new PanelButton(controlsX + 26, rowY, 30, 20, (Component)Component.literal((String)Integer.toString(quantity)), PanelButton.Variant.HEADER, button -> {}));
+            this.addRenderableWidget(new PanelButton(controlsX + 60, rowY, 22, 20, (Component)Component.literal((String)"+"), PanelButton.Variant.SECONDARY, button -> this.changeQuantity(product, quantity, 1)));
+            this.addRenderableWidget(new PanelButton(controlsX + 86, rowY, 24, 20, (Component)Component.literal((String)"\u00d7"), PanelButton.Variant.DANGER, button -> this.setQuantity(product.id, 0)));
         }
         if (pages > 1) {
             PanelButton previous = new PanelButton(this.panelLeft + this.panelWidth / 2 - 82, this.panelTop + this.pagerY, 34, 18, (Component)Component.literal((String)"\u2039"), PanelButton.Variant.SECONDARY, button -> {
@@ -136,20 +136,20 @@ extends AvecoinsScreen {
                 this.rebuildWidgets();
             });
             previous.active = this.page > 0;
-            this.addRenderableWidget((GuiEventListener)previous);
+            this.addRenderableWidget(previous);
             PanelButton next = new PanelButton(this.panelLeft + this.panelWidth / 2 + 48, this.panelTop + this.pagerY, 34, 18, (Component)Component.literal((String)"\u203a"), PanelButton.Variant.SECONDARY, button -> {
                 this.page = Math.min(pages - 1, this.page + 1);
                 this.rebuildWidgets();
             });
             next.active = this.page + 1 < pages;
-            this.addRenderableWidget((GuiEventListener)next);
+            this.addRenderableWidget(next);
         }
         if (lines.isEmpty()) {
             return;
         }
         PanelButton confirm = new PanelButton(this.panelLeft + this.panelWidth / 2 - 82, this.panelTop + this.confirmY, 164, 22, (Component)Component.translatable((String)"gui.avecoins.cart.confirm"), PanelButton.Variant.SELECTED, button -> ClientNetworking.send(new ServerboundAvecoinsPayload("checkout", "{}")));
         confirm.active = !this.snapshot.cart.isEmpty() && (this.snapshot.paymentQuote == null || this.snapshot.paymentQuote.payable);
-        this.addRenderableWidget((GuiEventListener)confirm);
+        this.addRenderableWidget(confirm);
     }
 
     @Override

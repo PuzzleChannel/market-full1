@@ -53,7 +53,7 @@ public final class ServerPayloadHandler {
             ServerPayloadHandler.dispatch(player, server, payload.action(), payload.data());
         }
         catch (SecurityException exception) {
-            AvecoinsMod.LOGGER.warn("Denied AVECOINS action '{}' from {}", (Object)payload.action(), (Object)player.getScoreboardName());
+            AvecoinsMod.LOGGER.warn("Denied AVECOINS action '{}' from {}", payload.action(), player.getScoreboardName());
             ModNetworking.send(player, "operation_result", ServerPayloadHandler.resultJson(false, "permission_denied"));
         }
         catch (RuntimeException exception) {
@@ -228,7 +228,7 @@ public final class ServerPayloadHandler {
                     JsonObject response = new JsonObject();
                     response.addProperty("success", Boolean.valueOf(false));
                     response.addProperty("code", "rate_limited");
-                    response.add("snapshot", AtomicJsonStore.gson().toJsonTree((Object)ShopService.snapshot(player, false, 0)));
+                    response.add("snapshot", AtomicJsonStore.gson().toJsonTree(ShopService.snapshot(player, false, 0)));
                     ModNetworking.send(player, "purchase_result", AtomicJsonStore.gson().toJson((JsonElement)response));
                     return;
                 }
@@ -237,7 +237,7 @@ public final class ServerPayloadHandler {
                 JsonObject response = new JsonObject();
                 response.addProperty("success", Boolean.valueOf(result.success()));
                 response.addProperty("code", result.code());
-                response.add("snapshot", AtomicJsonStore.gson().toJsonTree((Object)ShopService.snapshot(player, false, 0)));
+                response.add("snapshot", AtomicJsonStore.gson().toJsonTree(ShopService.snapshot(player, false, 0)));
                 ModNetworking.send(player, "purchase_result", AtomicJsonStore.gson().toJson((JsonElement)response));
                 break;
             }

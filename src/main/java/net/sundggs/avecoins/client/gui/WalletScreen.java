@@ -71,7 +71,7 @@ implements ThemedScreen {
     @Override
     protected void init() {
         super.init();
-        this.addRenderableWidget((GuiEventListener)new PanelButton(this.leftPos + 8, this.topPos + 6, 64, 18, (Component)Component.literal((String)"< ").append((Component)Component.translatable((String)"gui.avecoins.back")), PanelButton.Variant.DANGER, button -> this.backToShop()));
+        this.addRenderableWidget(new PanelButton(this.leftPos + 8, this.topPos + 6, 64, 18, (Component)Component.literal((String)"< ").append((Component)Component.translatable((String)"gui.avecoins.back")), PanelButton.Variant.DANGER, button -> this.backToShop()));
     }
 
     private void backToShop() {
@@ -140,7 +140,7 @@ implements ThemedScreen {
         for (int slot = 0; slot < 27; ++slot) {
             ItemStack stack = ((WalletMenu)this.menu).walletContainer().getItem(slot);
             if (stack.isEmpty()) continue;
-            totals.merge(BuiltInRegistries.ITEM.getKey((Object)stack.getItem()).toString(), Long.valueOf(stack.getCount()), Long::sum);
+            totals.merge(BuiltInRegistries.ITEM.getKey(stack.getItem()).toString(), Long.valueOf(stack.getCount()), Long::sum);
         }
         return totals;
     }

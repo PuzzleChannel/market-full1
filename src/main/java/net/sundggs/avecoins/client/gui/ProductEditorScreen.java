@@ -98,14 +98,14 @@ extends AvecoinsScreen {
             }
         });
         this.itemBox = this.itemAutocomplete.box();
-        this.addRenderableWidget((GuiEventListener)this.itemBox);
+        this.addRenderableWidget(this.itemBox);
         PanelButton useProductInHand = new PanelButton(left + 206, this.panelTop + 142, 90, 20, (Component)Component.translatable((String)"gui.avecoins.use_held_item_short"), PanelButton.Variant.HEADER, button -> this.setProductFromHand());
         useProductInHand.setTooltip(Tooltip.create((Component)Component.translatable((String)"gui.avecoins.product.item_data_help")));
-        this.addRenderableWidget((GuiEventListener)useProductInHand);
+        this.addRenderableWidget(useProductInHand);
         this.categoryAutocomplete = new AutocompleteField(this.font, right, this.panelTop + 142, 145, 64, this.selectedCategoryName(), this.categoryNames(), value -> ItemStack.EMPTY, value -> {
             this.selectedCategoryId = this.categoryIdForName((String)value);
         });
-        this.addRenderableWidget((GuiEventListener)this.categoryAutocomplete.box());
+        this.addRenderableWidget(this.categoryAutocomplete.box());
         this.itemCountBox = this.field(right + 155, this.panelTop + 142, 62, 2, this.existing == null ? "" : Integer.toString(this.existing.itemCount));
         this.stockBox = this.field(right + 225, this.panelTop + 142, 62, 11, this.existing == null ? "" : Integer.toString(this.existing.stock));
         this.currencyAutocomplete = new AutocompleteField(this.font, paymentLeft, this.panelTop + 218, 200, 128, this.existing == null ? CraftingConfig.CURRENCY : this.existing.currencyId, CraftingConfig.COINS, AutocompleteField::registeredItem, value -> {
@@ -114,26 +114,26 @@ extends AvecoinsScreen {
             }
         });
         this.currencyBox = this.currencyAutocomplete.box();
-        this.addRenderableWidget((GuiEventListener)this.currencyBox);
-        this.addRenderableWidget((GuiEventListener)new PanelButton(paymentLeft + 206, this.panelTop + 218, 90, 20, (Component)Component.translatable((String)"gui.avecoins.use_held_item_short"), PanelButton.Variant.HEADER, button -> this.setCurrencyFromHand()));
+        this.addRenderableWidget(this.currencyBox);
+        this.addRenderableWidget(new PanelButton(paymentLeft + 206, this.panelTop + 218, 90, 20, (Component)Component.translatable((String)"gui.avecoins.use_held_item_short"), PanelButton.Variant.HEADER, button -> this.setCurrencyFromHand()));
         this.priceBox = this.field(priceLeft, this.panelTop + 218, 52, 10, this.existing == null ? "" : Integer.toString(this.existing.price));
         this.discountButton = new PanelButton(discountLeft, this.panelTop + 218, 82, 20, (Component)Component.literal((String)this.discountLabel()), this.discountPercent == 0 ? PanelButton.Variant.SECONDARY : PanelButton.Variant.SELECTED, this.discountPercent == 0 ? -6183253 : -6307928, button -> this.cycleDiscount());
-        this.addRenderableWidget((GuiEventListener)this.discountButton);
+        this.addRenderableWidget(this.discountButton);
         this.sellingPriceBox = this.field(sellingLeft, this.panelTop + 218, 52, 10, !this.sellEnabled || this.existing == null || this.existing.sellingPrice == null ? "" : Integer.toString(this.existing.sellingPrice));
         this.sellingPriceBox.setEditable(this.sellEnabled);
         this.sellingPriceBox.active = this.sellEnabled;
         this.sellButton = new PanelButton(allowSellingLeft, this.panelTop + 218, 82, 20, (Component)Component.translatable((String)(this.sellEnabled ? "gui.avecoins.enabled" : "gui.avecoins.disabled")), this.sellEnabled ? PanelButton.Variant.SELECTED : PanelButton.Variant.SECONDARY, this.sellEnabled ? -6307928 : -6183253, button -> this.toggleSelling());
-        this.addRenderableWidget((GuiEventListener)this.sellButton);
+        this.addRenderableWidget(this.sellButton);
         this.statusButton = new PanelButton(this.panelLeft + 120, this.panelTop + 305, 150, 20, (Component)Component.translatable((String)(this.enabled ? "gui.avecoins.enabled" : "gui.avecoins.disabled")), PanelButton.Variant.SELECTED, this.enabled ? -6307928 : -3044212, button -> this.toggleEnabled());
-        this.addRenderableWidget((GuiEventListener)this.statusButton);
-        this.addRenderableWidget((GuiEventListener)new PanelButton(this.panelLeft + 432, this.panelTop + 305, 148, 22, (Component)Component.translatable((String)"gui.avecoins.save"), PanelButton.Variant.SELECTED, button -> this.save()));
+        this.addRenderableWidget(this.statusButton);
+        this.addRenderableWidget(new PanelButton(this.panelLeft + 432, this.panelTop + 305, 148, 22, (Component)Component.translatable((String)"gui.avecoins.save"), PanelButton.Variant.SELECTED, button -> this.save()));
     }
 
     private EditBox field(int x, int y, int width, int max, String value) {
         EditBox box = new EditBox(this.font, x, y, width, 20, (Component)Component.empty());
         box.setMaxLength(max);
         box.setValue(value);
-        this.addRenderableWidget((GuiEventListener)box);
+        this.addRenderableWidget(box);
         return box;
     }
 
@@ -159,7 +159,7 @@ extends AvecoinsScreen {
         if (this.minecraft.player == null || this.minecraft.player.getMainHandItem().isEmpty()) {
             return;
         }
-        String currencyId = BuiltInRegistries.ITEM.getKey((Object)this.minecraft.player.getMainHandItem().getItem()).toString();
+        String currencyId = BuiltInRegistries.ITEM.getKey(this.minecraft.player.getMainHandItem().getItem()).toString();
         if (!CraftingConfig.COINS.contains(currencyId)) {
             this.validationKey = "gui.avecoins.editor.currency_hand_required";
             return;
@@ -172,7 +172,7 @@ extends AvecoinsScreen {
         if (this.minecraft.level == null || this.minecraft.player == null || this.minecraft.player.getMainHandItem().isEmpty()) {
             return;
         }
-        this.capturedItemId = BuiltInRegistries.ITEM.getKey((Object)this.minecraft.player.getMainHandItem().getItem()).toString();
+        this.capturedItemId = BuiltInRegistries.ITEM.getKey(this.minecraft.player.getMainHandItem().getItem()).toString();
         this.capturedItemData = ShopItemStacks.encode((HolderLookup.Provider)this.minecraft.level.registryAccess(), this.minecraft.player.getMainHandItem());
         this.itemAutocomplete.setValue(this.capturedItemId);
     }
@@ -286,7 +286,7 @@ extends AvecoinsScreen {
             this.validationKey = "gui.avecoins.editor.invalid_numbers";
             return;
         }
-        ClientNetworking.send(new ServerboundAvecoinsPayload("save_product", AtomicJsonStore.gson().toJson((Object)product)));
+        ClientNetworking.send(new ServerboundAvecoinsPayload("save_product", AtomicJsonStore.gson().toJson(product)));
     }
 
     @Override

@@ -34,7 +34,7 @@ public final class RecipesConfig {
     public static RecipesConfig validate(RecipesConfig input) {
         RecipesConfig output = new RecipesConfig();
         if (input.customRecipes != null) {
-            for (Map.Entry<String, Object> entry : input.customRecipes.entrySet()) {
+            for (Map.Entry<String, RecipeDefinition> entry : input.customRecipes.entrySet()) {
                 String result = RecipesConfig.safeId(entry.getKey());
                 if (!CraftingConfig.MANAGED_RESULTS.contains(result)) {
                     if (CraftingConfig.LEGACY_COINS.contains(result)) {
@@ -42,7 +42,7 @@ public final class RecipesConfig {
                     }
                     throw new IllegalArgumentException("Unsupported custom recipe result: " + result);
                 }
-                RecipeDefinition definition = (RecipeDefinition)entry.getValue();
+                RecipeDefinition definition = entry.getValue();
                 if (definition == null || definition.grid == null || definition.grid.size() != 9) {
                     throw new IllegalArgumentException("Custom recipes require exactly nine grid entries");
                 }
@@ -60,9 +60,9 @@ public final class RecipesConfig {
             }
         }
         if (input.downgradeCounts != null) {
-            for (Map.Entry<String, Object> entry : input.downgradeCounts.entrySet()) {
+            for (Map.Entry<String, Integer> entry : input.downgradeCounts.entrySet()) {
                 String source = RecipesConfig.safeId(entry.getKey());
-                Integer count = (Integer)entry.getValue();
+                Integer count = entry.getValue();
                 if (!DOWNGRADE_RESULTS.containsKey(source)) {
                     if (CraftingConfig.LEGACY_COINS.contains(source)) {
                         continue;

@@ -107,7 +107,7 @@ final class AutocompleteField {
             }
             return List.of();
         }
-        return candidates.stream().filter(candidate -> candidate.contains(query)).sorted(Comparator.comparing(candidate -> !AutocompleteField.preferred(candidate, query)).thenComparing(Function.identity())).limit(limit).toList();
+        return candidates.stream().filter(candidate -> candidate.contains(query)).sorted(Comparator.comparing((String candidate) -> !AutocompleteField.preferred(candidate, query)).thenComparing(Function.identity())).limit(limit).toList();
     }
 
     static ItemStack registeredItem(String value) {

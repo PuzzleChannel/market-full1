@@ -83,10 +83,10 @@ extends AvecoinsScreen {
         int pagerGap = 10;
         PanelButton previous = new PanelButton(listCenter - pagerWidth / 2 - pagerGap - 30, this.panelTop + 344, 30, 18, (Component)Component.literal((String)"\u2039"), PanelButton.Variant.SECONDARY, button -> this.previousTransactions());
         previous.active = this.listPage > 0 || this.snapshot.historyPage > 0;
-        this.addRenderableWidget((GuiEventListener)previous);
+        this.addRenderableWidget(previous);
         PanelButton next = new PanelButton(listCenter + pagerWidth / 2 + pagerGap, this.panelTop + 344, 30, 18, (Component)Component.literal((String)"\u203a"), PanelButton.Variant.SECONDARY, button -> this.nextTransactions());
         next.active = this.listPage + 1 < localPages || this.snapshot.historyPage + 1 < this.snapshot.historyPages;
-        this.addRenderableWidget((GuiEventListener)next);
+        this.addRenderableWidget(next);
         ShopData.PurchaseRecord selected = this.selectedRecord();
         if (selected != null) {
             int pages = PurchaseHistoryScreen.detailPages(selected);
@@ -98,13 +98,13 @@ extends AvecoinsScreen {
                     this.rebuildWidgets();
                 });
                 linePrevious.active = this.detailPage > 0;
-                this.addRenderableWidget((GuiEventListener)linePrevious);
+                this.addRenderableWidget(linePrevious);
                 PanelButton lineNext = new PanelButton(detailCenter + 42, this.panelTop + this.detailPagerY(selected), 30, 18, (Component)Component.literal((String)"\u203a"), PanelButton.Variant.SECONDARY, button -> {
                     this.detailPage = Math.min(pages - 1, this.detailPage + 1);
                     this.rebuildWidgets();
                 });
                 lineNext.active = this.detailPage + 1 < pages;
-                this.addRenderableWidget((GuiEventListener)lineNext);
+                this.addRenderableWidget(lineNext);
             }
         }
     }
@@ -217,12 +217,12 @@ extends AvecoinsScreen {
         }
         graphics.text(this.font, (Component)Component.translatable((String)"gui.avecoins.history.products").withStyle(ChatFormatting.BOLD), left, this.panelTop + this.detailCardBottom(record) + 12, this.theme().TEXT, false);
         graphics.fill(left, this.panelTop + this.detailCardBottom(record) + 25, right, this.panelTop + this.detailCardBottom(record) + 26, this.theme().DIVIDER);
-        List<Object> lines = record.lines == null ? List.of() : record.lines;
+        List<ShopData.PurchaseLine> lines = record.lines == null ? List.of() : record.lines;
         int start = this.detailPage * 3;
         int end = Math.min(lines.size(), start + 3);
         ItemStack hoveredStack = ItemStack.EMPTY;
         for (int index = start; index < end; ++index) {
-            ShopData.PurchaseLine line = (ShopData.PurchaseLine)lines.get(index);
+            ShopData.PurchaseLine line = lines.get(index);
             int y = this.panelTop + this.detailCardBottom(record) + 33 + (index - start) * 27;
             graphics.fill(left, y - 3, right, y + 21, (index & 1) == 0 ? this.theme().SURFACE : this.theme().ALTERNATE);
             ItemStack stack = PurchaseHistoryScreen.item(line.itemId);

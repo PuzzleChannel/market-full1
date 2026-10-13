@@ -29,7 +29,7 @@ public final class ModCommands {
                     activeCustomAlias = customAlias;
                 } else {
                     activeCustomAlias = "";
-                    AvecoinsMod.LOGGER.warn("The configured shop alias /{} conflicts with an existing command and was not registered", (Object)customAlias);
+                    AvecoinsMod.LOGGER.warn("The configured shop alias /{} conflicts with an existing command and was not registered", customAlias);
                 }
             } else {
                 activeCustomAlias = "";

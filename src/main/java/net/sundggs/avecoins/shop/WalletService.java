@@ -45,7 +45,7 @@ public final class WalletService {
             if (oldStack.isEmpty()) {
                 continue;
             }
-            String itemId = BuiltInRegistries.ITEM.getKey((Object)oldStack.getItem()).toString();
+            String itemId = BuiltInRegistries.ITEM.getKey(oldStack.getItem()).toString();
             if (!CraftingConfig.LEGACY_COINS.contains(itemId)) {
                 continue;
             }
@@ -112,7 +112,7 @@ public final class WalletService {
         for (int slot = 0; slot < container.getContainerSize(); ++slot) {
             ItemStack stack = container.getItem(slot);
             if (stack.isEmpty()) continue;
-            String currencyId = BuiltInRegistries.ITEM.getKey((Object)stack.getItem()).toString();
+            String currencyId = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
             if (!CraftingConfig.MANAGED_RESULTS.contains(currencyId)) {
                 return false;
             }
@@ -132,7 +132,7 @@ public final class WalletService {
         if (stack.isEmpty()) {
             return false;
         }
-        return CraftingConfig.MANAGED_RESULTS.contains(BuiltInRegistries.ITEM.getKey((Object)stack.getItem()).toString());
+        return CraftingConfig.MANAGED_RESULTS.contains(BuiltInRegistries.ITEM.getKey(stack.getItem()).toString());
     }
 
     static Item resolveCurrency(String currencyId) {
@@ -146,13 +146,13 @@ public final class WalletService {
     static long countPhysical(ServerPlayer player, Item item) {
         long total = WalletService.count((List<ItemStack>)player.getInventory().getNonEquipmentItems(), item);
         ItemStack offhand = player.getInventory().getItem(40);
-        return total + (long)(offhand.is((Object)item) ? offhand.getCount() : 0);
+        return total + (long)(offhand.is(item) ? offhand.getCount() : 0);
     }
 
     private static long count(List<ItemStack> stacks, Item item) {
         long total = 0L;
         for (ItemStack stack : stacks) {
-            if (!stack.is((Object)item)) continue;
+            if (!stack.is(item)) continue;
             total += (long)stack.getCount();
         }
         return total;
@@ -161,7 +161,7 @@ public final class WalletService {
     static long removePhysical(ServerPlayer player, Item item, long amount) {
         ItemStack offhand;
         long remaining = ShopService.removeFromStacks((List<ItemStack>)player.getInventory().getNonEquipmentItems(), item, amount);
-        if (remaining > 0L && (offhand = player.getInventory().getItem(40)).is((Object)item)) {
+        if (remaining > 0L && (offhand = player.getInventory().getItem(40)).is(item)) {
             int removed = (int)Math.min(remaining, (long)offhand.getCount());
             offhand.shrink(removed);
             remaining -= (long)removed;

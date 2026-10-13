@@ -43,7 +43,7 @@ public final class ShopStore {
             validated = ShopData.validate(data);
         }
         catch (RuntimeException exception) {
-            AvecoinsMod.LOGGER.warn("Rejected invalid AVECOINS shop configuration: {}", (Object)exception.getMessage());
+            AvecoinsMod.LOGGER.warn("Rejected invalid AVECOINS shop configuration: {}", exception.getMessage());
             return false;
         }
         validated.revision = revision = Math.max(ShopStore.current.revision + 1L, validated.revision);
@@ -55,7 +55,7 @@ public final class ShopStore {
         }
         current = validated;
         if (!(Production.CATEGORIES.save(categories) && Production.PRODUCTS.save(products) && Production.HISTORY.save(history))) {
-            AvecoinsMod.LOGGER.warn("AVECOINS shop transaction {} remains journaled for recovery", (Object)revision);
+            AvecoinsMod.LOGGER.warn("AVECOINS shop transaction {} remains journaled for recovery", revision);
             return true;
         }
         ShopStore.removeTransactionFile();
@@ -150,7 +150,7 @@ public final class ShopStore {
             Files.deleteIfExists(transactionFile);
         }
         catch (IOException exception) {
-            AvecoinsMod.LOGGER.warn("Could not remove completed AVECOINS shop transaction file {}", (Object)transactionFile, (Object)exception);
+            AvecoinsMod.LOGGER.warn("Could not remove completed AVECOINS shop transaction file {}", transactionFile, exception);
         }
     }
 

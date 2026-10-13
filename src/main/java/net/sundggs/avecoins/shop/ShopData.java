@@ -102,7 +102,7 @@ public final class ShopData {
             if (product.sellingPrice != null && (product.sellingPrice < 1 || product.sellingPrice > product.price)) {
                 throw new IllegalArgumentException("Selling price must not exceed the normal price");
             }
-            if (product.sellEnabled && !sellFingerprints.add((CallSite)((Object)(product.itemId + "\u0000" + product.itemData)))) {
+            if (product.sellEnabled && !sellFingerprints.add((CallSite)((product.itemId + "\u0000" + product.itemData)))) {
                 throw new IllegalArgumentException("Duplicate sellable product item: " + product.itemId);
             }
             product.sortOrder = ShopData.boundedInt(source.sortOrder, 0, 10000, "product order");

@@ -100,33 +100,33 @@ extends AvecoinsScreen {
         this.layoutPanel(800, 430);
         int buttonY = this.panelTop + 9;
         int closeX = this.panelLeft + this.panelWidth - 28;
-        this.addRenderableWidget((GuiEventListener)new PanelButton(closeX, buttonY, 18, 22, (Component)Component.literal((String)"\u00d7"), PanelButton.Variant.DANGER, button -> this.onClose()));
+        this.addRenderableWidget(new PanelButton(closeX, buttonY, 18, 22, (Component)Component.literal((String)"\u00d7"), PanelButton.Variant.DANGER, button -> this.onClose()));
         int cartCount = this.snapshot.cart.values().stream().mapToInt(Integer::intValue).sum();
         int cartX = closeX - 120;
-        this.addRenderableWidget((GuiEventListener)new PanelButton(cartX, buttonY, 112, 22, (Component)Component.translatable((String)"gui.avecoins.shop.cart", (Object[])new Object[]{cartCount}), PanelButton.Variant.HEADER, button -> this.minecraft.gui.setScreen((Screen)new CartScreen(this.snapshot, 0, "", this.selectedCategory, this.search, this.page, this.categoryPage))).withIcon(CART_ICON, 14));
+        this.addRenderableWidget(new PanelButton(cartX, buttonY, 112, 22, (Component)Component.translatable((String)"gui.avecoins.shop.cart", (Object[])new Object[]{cartCount}), PanelButton.Variant.HEADER, button -> this.minecraft.gui.setScreen((Screen)new CartScreen(this.snapshot, 0, "", this.selectedCategory, this.search, this.page, this.categoryPage))).withIcon(CART_ICON, 14));
         PanelButton sell = new PanelButton(cartX - 122, buttonY, 112, 22, (Component)Component.translatable((String)"gui.avecoins.shop.sell_box"), PanelButton.Variant.HEADER, button -> ClientNetworking.send(new ServerboundAvecoinsPayload("request_sell_box", "{}"))).withIcon(SELL_ICON, 14);
         sell.active = this.snapshot.products.stream().anyMatch(product -> product.enabled && product.sellEnabled);
         sell.setTooltip(Tooltip.create((Component)Component.translatable((String)"gui.avecoins.shop.sell_box_help")));
-        this.addRenderableWidget((GuiEventListener)sell);
+        this.addRenderableWidget(sell);
         if (this.snapshot.administrator) {
             int adminX = this.panelLeft + 14 + this.font.width((FormattedText)this.displayedShopName()) + 12;
             PanelButton administration = new PanelButton(adminX, buttonY, 28, 22, (Component)Component.empty(), PanelButton.Variant.HEADER, button -> ClientNetworking.send(new ServerboundAvecoinsPayload("request_shop_admin", "{\"history\":false,\"page\":0}"))).withIcon(ADMIN_ICON, 16);
             administration.setTooltip(Tooltip.create((Component)Component.translatable((String)"gui.avecoins.shop.admin")));
-            this.addRenderableWidget((GuiEventListener)administration);
+            this.addRenderableWidget(administration);
         }
         if (this.minecraft.player != null) {
             int footerTop = this.panelTop + this.panelHeight - 32;
             int walletX = this.panelLeft + this.panelWidth - 12 - 26;
             PanelButton wallet = new PanelButton(walletX, footerTop + 5, 26, 22, (Component)Component.empty(), PanelButton.Variant.HEADER, button -> ClientNetworking.send(new ServerboundAvecoinsPayload("request_wallet", "{}"))).withIcon(WALLET_ICON, 16);
             wallet.setTooltip(Tooltip.create((Component)Component.translatable((String)"gui.avecoins.wallet.open")));
-            this.addRenderableWidget((GuiEventListener)wallet);
+            this.addRenderableWidget(wallet);
         }
         int searchWidth = 240;
         this.searchBox = new EditBox(this.font, this.panelLeft + (this.panelWidth - searchWidth) / 2, buttonY, searchWidth, 22, (Component)Component.translatable((String)"gui.avecoins.shop.search"));
         this.searchBox.setMaxLength(64);
         this.searchBox.setValue(this.search);
         this.searchBox.setHint((Component)Component.translatable((String)"gui.avecoins.shop.search"));
-        this.addRenderableWidget((GuiEventListener)this.searchBox);
+        this.addRenderableWidget(this.searchBox);
         int categoryX = this.panelLeft + 12;
         int categoryY = this.panelTop + 68;
         this.addCategoryButton(categoryX, categoryY, "all", (Component)Component.translatable((String)"gui.avecoins.shop.all"));
@@ -159,18 +159,18 @@ extends AvecoinsScreen {
             int x = contentLeft + local % 4 * (productWidth + 8);
             int y = contentTop + local / 4 * 92;
             int quantity = this.snapshot.cart.getOrDefault(product2.id, 0);
-            ProductCardButton card = new ProductCardButton(x, y, productWidth, product2, quantity, () -> this.changeQuantity(product2, quantity, 1), () -> this.changeQuantity(product2, quantity, -1), () -> this.changeQuantity(product2, quantity, 1), () -> this.setQuantity(product.id, 0));
+            ProductCardButton card = new ProductCardButton(x, y, productWidth, product2, quantity, () -> this.changeQuantity(product2, quantity, 1), () -> this.changeQuantity(product2, quantity, -1), () -> this.changeQuantity(product2, quantity, 1), () -> this.setQuantity(product2.id, 0));
             this.productCards.add(card);
-            this.addRenderableWidget((GuiEventListener)card);
+            this.addRenderableWidget(card);
         }
         if (maxPage > 0) {
             int navY = this.panelTop + 370;
             int contentCenter = contentLeft + contentWidth / 2;
-            this.addRenderableWidget((GuiEventListener)new PanelButton(contentCenter - 88, navY, 36, 18, (Component)Component.literal((String)"\u2039"), PanelButton.Variant.SECONDARY, button -> {
+            this.addRenderableWidget(new PanelButton(contentCenter - 88, navY, 36, 18, (Component)Component.literal((String)"\u2039"), PanelButton.Variant.SECONDARY, button -> {
                 this.page = Math.max(0, this.page - 1);
                 this.rebuildWidgets();
             }));
-            this.addRenderableWidget((GuiEventListener)new PanelButton(contentCenter + 52, navY, 36, 18, (Component)Component.literal((String)"\u203a"), PanelButton.Variant.SECONDARY, button -> {
+            this.addRenderableWidget(new PanelButton(contentCenter + 52, navY, 36, 18, (Component)Component.literal((String)"\u203a"), PanelButton.Variant.SECONDARY, button -> {
                 this.page = Math.min(maxPage, this.page + 1);
                 this.rebuildWidgets();
             }));
@@ -179,7 +179,7 @@ extends AvecoinsScreen {
 
     private void addCategoryButton(int x, int y, String id, Component name) {
         MutableComponent label = Component.literal((String)"   ").append(name);
-        this.addRenderableWidget((GuiEventListener)new PanelButton(x, y, 116, 22, (Component)label, this.selectedCategory.equals(id) ? PanelButton.Variant.SELECTED : PanelButton.Variant.SECONDARY, button -> {
+        this.addRenderableWidget(new PanelButton(x, y, 116, 22, (Component)label, this.selectedCategory.equals(id) ? PanelButton.Variant.SELECTED : PanelButton.Variant.SECONDARY, button -> {
             this.selectedCategory = id;
             this.page = 0;
             this.rebuildWidgets();
@@ -191,10 +191,10 @@ extends AvecoinsScreen {
         int y = this.panelTop + 366;
         PanelButton previous = new PanelButton(centerX - 60, y, 22, 18, (Component)Component.literal((String)"\u2039"), PanelButton.Variant.SECONDARY, button -> this.changeCategoryPage(this.categoryPage - 1));
         previous.active = this.categoryPage > 0;
-        this.addRenderableWidget((GuiEventListener)previous);
+        this.addRenderableWidget(previous);
         PanelButton next = new PanelButton(centerX + 38, y, 22, 18, (Component)Component.literal((String)"\u203a"), PanelButton.Variant.SECONDARY, button -> this.changeCategoryPage(this.categoryPage + 1));
         next.active = this.categoryPage + 1 < this.categoryPages;
-        this.addRenderableWidget((GuiEventListener)next);
+        this.addRenderableWidget(next);
     }
 
     private boolean changeCategoryPage(int requestedPage) {
@@ -268,7 +268,7 @@ extends AvecoinsScreen {
         this.rebuildWidgets();
         this.searchBox.setFocused(true);
         this.searchBox.moveCursorToEnd(false);
-        this.setFocused((GuiEventListener)this.searchBox);
+        this.setFocused(this.searchBox);
     }
 
     @Override

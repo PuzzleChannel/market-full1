@@ -56,9 +56,9 @@ extends AvecoinsScreen {
         this.countBox.setResponder(value -> {
             this.countValue = value;
         });
-        this.addRenderableWidget((GuiEventListener)this.countBox);
-        this.addRenderableWidget((GuiEventListener)new PanelButton(this.panelLeft + 55, this.panelTop + 224, 140, 22, (Component)Component.translatable((String)"gui.avecoins.save"), PanelButton.Variant.PRIMARY, button -> this.save()));
-        this.addRenderableWidget((GuiEventListener)new PanelButton(this.panelLeft + 225, this.panelTop + 224, 140, 22, (Component)Component.translatable((String)"gui.avecoins.recipe.restore"), PanelButton.Variant.DANGER, button -> this.restore()));
+        this.addRenderableWidget(this.countBox);
+        this.addRenderableWidget(new PanelButton(this.panelLeft + 55, this.panelTop + 224, 140, 22, (Component)Component.translatable((String)"gui.avecoins.save"), PanelButton.Variant.PRIMARY, button -> this.save()));
+        this.addRenderableWidget(new PanelButton(this.panelLeft + 225, this.panelTop + 224, 140, 22, (Component)Component.translatable((String)"gui.avecoins.recipe.restore"), PanelButton.Variant.DANGER, button -> this.restore()));
     }
 
     private void save() {

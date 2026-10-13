@@ -74,23 +74,23 @@ public final class AtomicJsonStore<T> {
             AtomicJsonStore.validateStrictJson(json);
             JsonElement root = JsonParser.parseString((String)json);
             AtomicJsonStore.validateKnownFields(root, this.type);
-            Object candidate = GSON.fromJson(root, this.type);
+            T candidate = GSON.fromJson(root, this.type);
             this.current = this.validator.apply(candidate);
             return true;
         }
         catch (Exception exception) {
-            LOGGER.error("Could not load {}. Keeping the last valid configuration.", (Object)this.path, (Object)exception);
+            LOGGER.error("Could not load {}. Keeping the last valid configuration.", this.path, exception);
             return false;
         }
     }
 
     public synchronized boolean save(T candidate) {
-        Object validated;
+        T validated;
         try {
             validated = this.validator.apply(candidate);
         }
         catch (RuntimeException exception) {
-            LOGGER.warn("Rejected invalid configuration for {}: {}", (Object)this.path, (Object)exception.getMessage());
+            LOGGER.warn("Rejected invalid configuration for {}: {}", this.path, exception.getMessage());
             return false;
         }
         Path temporary = null;
@@ -110,13 +110,13 @@ public final class AtomicJsonStore<T> {
             return true;
         }
         catch (IOException exception) {
-            LOGGER.error("Could not save {}. Keeping the previous in-memory state.", (Object)this.path, (Object)exception);
+            LOGGER.error("Could not save {}. Keeping the previous in-memory state.", this.path, exception);
             if (temporary != null) {
                 try {
                     Files.deleteIfExists(temporary);
                 }
                 catch (IOException cleanupException) {
-                    LOGGER.debug("Could not remove temporary file {}", temporary, (Object)cleanupException);
+                    LOGGER.debug("Could not remove temporary file {}", temporary, cleanupException);
                 }
             }
             return false;

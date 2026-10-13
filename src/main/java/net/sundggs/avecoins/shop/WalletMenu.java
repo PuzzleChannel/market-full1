@@ -107,7 +107,7 @@ extends AbstractContainerMenu {
         super.clicked(slotId, button, input, player);
         Player player2 = this.owner;
         if (player2 instanceof ServerPlayer && !WalletService.saveContainer(serverPlayer = (ServerPlayer)player2, this.walletContainer)) {
-            AvecoinsMod.LOGGER.error("Could not persist the wallet for {}", (Object)serverPlayer.getScoreboardName());
+            AvecoinsMod.LOGGER.error("Could not persist the wallet for {}", serverPlayer.getScoreboardName());
         }
     }
 
