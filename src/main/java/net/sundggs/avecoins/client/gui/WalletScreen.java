@@ -91,7 +91,6 @@ implements ThemedScreen {
         graphics.fill(this.leftPos + 1, this.topPos + 312, this.leftPos + this.imageWidth - 1, this.topPos + this.imageHeight - 1, this.theme().HEADER);
         graphics.fill(this.leftPos + 224, this.topPos + 40, this.leftPos + 224 + 1, this.topPos + 312 - 13, this.theme().DIVIDER);
         graphics.fill(this.leftPos + 31, this.topPos + 172, this.leftPos + 31 + 162, this.topPos + 173, this.theme().DIVIDER);
-        GuiTextLayout.drawCentered(graphics, this.font, "SundGGs \u00a9 2026", this.leftPos + this.imageWidth / 2, this.topPos + this.imageHeight + 7, -6183253, !this.theme().custom);
         for (int row = 0; row < 3; ++row) {
             for (int column2 = 0; column2 < 9; ++column2) {
                 this.slotBackground(graphics, 31 + column2 * 18, 102 + row * 18);

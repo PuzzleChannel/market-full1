@@ -153,7 +153,6 @@ implements ThemedScreen {
             int y = this.topPos + summaryTop + row * 24;
             graphics.fill(x, y, x + 140, y + 22, (row & 1) == 0 ? this.theme().SURFACE : this.theme().ALTERNATE);
         }
-        GuiTextLayout.drawCentered(graphics, this.font, "SundGGs \u00a9 2026", this.leftPos + this.imageWidth / 2, this.topPos + this.imageHeight + 7, -6183253, !this.theme().custom);
     }
 
     private void slotBackground(GuiGraphicsExtractor graphics, int x, int y) {
