@@ -118,7 +118,7 @@ extends AvecoinsScreen {
                     : this.panelLeft + 14 + this.font.width((FormattedText)this.displayedShopName()) + 12;
             PanelButton administration = new PanelButton(adminX, buttonY, 28, 22,
                     (Component)Component.empty(), PanelButton.Variant.HEADER,
-                    button -> ClientNetworking.send(new ServerboundAvecoinsPayload("request_shop_admin", "{\\"history\\":false,\\"page\\":0}")))
+                    button -> ClientNetworking.send(new ServerboundAvecoinsPayload("request_shop_admin", "{\"history\":false,\"page\":0}")))
                     .withIcon(ADMIN_ICON, 16);
             administration.setTooltip(Tooltip.create((Component)Component.translatable((String)"gui.avecoins.shop.admin")));
             this.addRenderableWidget(administration);
