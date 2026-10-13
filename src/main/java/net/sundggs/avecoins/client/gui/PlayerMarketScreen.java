@@ -27,6 +27,7 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
     private static final int COLUMNS = 4;
     private static final int CARD_HEIGHT = 80;
     private static final int CARD_STEP = 86;
+    private static final Identifier WALLET_ICON = Identifier.fromNamespaceAndPath("avecoins", "textures/gui/icons/coin_wallet.png");
     private static final String[] FILTER_KEYS = {
             "gui.avecoins.player_market.filter_all",
             "gui.avecoins.player_market.filter_affordable",
@@ -79,10 +80,6 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
     protected void init() {
         this.layoutPanel(820, 440);
         int headerY = this.panelTop + 7;
-        this.addRenderableWidget(new PanelButton(this.panelLeft + 10, headerY, 92, 20,
-                Component.translatable("gui.avecoins.player_market.back"), PanelButton.Variant.SECONDARY,
-                button -> ClientNetworking.send(new ServerboundAvecoinsPayload("request_shop", "{}"))));
-
         int closeX = this.panelLeft + this.panelWidth - 28;
         this.addRenderableWidget(new PanelButton(closeX, headerY, 18, 20,
                 Component.literal("×"), PanelButton.Variant.DANGER, button -> this.onClose()));
@@ -96,6 +93,16 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
         this.addRenderableWidget(new PanelButton(createX, headerY, 142, 20,
                 Component.translatable("gui.avecoins.player_market.list_item"), PanelButton.Variant.SUCCESS,
                 button -> this.minecraft.gui.setScreen(new PlayerMarketCreateScreen(this.snapshot, ""))));
+
+        int walletX = this.panelLeft + this.panelWidth - 12 - 26;
+        int walletY = this.panelTop + this.panelHeight - 30;
+        PanelButton wallet = new PanelButton(walletX, walletY, 26, 22, Component.empty(),
+                PanelButton.Variant.HEADER,
+                button -> ClientNetworking.send(new ServerboundAvecoinsPayload("request_wallet", "{}")))
+                .withIcon(WALLET_ICON, 16);
+        wallet.setTooltip(net.minecraft.client.gui.components.Tooltip.create(
+                Component.translatable("gui.avecoins.wallet.open")));
+        this.addRenderableWidget(wallet);
 
         int controlsWidth = 150 + 8 + 300 + 8 + 150;
         int controlsLeft = this.panelLeft + (this.panelWidth - controlsWidth) / 2;
@@ -337,13 +344,18 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
             graphics.text(this.font, Component.literal(this.font.plainSubstrByWidth(seller, cardWidth - 16)),
                     cardX + 8, cardY + 28, this.theme().MUTED, !this.theme().custom);
 
-            Component totalPrice = Component.translatable("gui.avecoins.player_market.total_price", total);
-            graphics.text(this.font, Component.literal(this.font.plainSubstrByWidth(totalPrice.getString(), cardWidth - 78)),
-                    cardX + 8, cardY + 44, this.theme().TEXT, !this.theme().custom);
-            String perItem = String.format(Locale.ROOT, "%.3f", (double) total / Math.max(1, listing.quantity));
-            Component unitPrice = Component.translatable("gui.avecoins.player_market.unit_price", perItem);
-            graphics.text(this.font, Component.literal(this.font.plainSubstrByWidth(unitPrice.getString(), cardWidth - 78)),
-                    cardX + 8, cardY + 58, this.theme().MUTED, !this.theme().custom);
+            Component priceLabel = Component.translatable("gui.avecoins.player_market.total_price");
+            graphics.text(this.font, priceLabel, cardX + 8, cardY + 44,
+                    this.theme().TEXT, !this.theme().custom);
+            int priceX = cardX + 8 + this.font.width(priceLabel) + 4;
+            String priceText = Long.toString(total);
+            graphics.text(this.font, Component.literal(priceText), priceX, cardY + 44,
+                    this.theme().TEXT, !this.theme().custom);
+            Identifier currencyId = Identifier.tryParse("vmtrade:vmcoin");
+            if (currencyId != null && BuiltInRegistries.ITEM.containsKey(currencyId)) {
+                graphics.item(new ItemStack((Item) BuiltInRegistries.ITEM.getValue(currencyId)),
+                        priceX + this.font.width(priceText) + 3, cardY + 41);
+            }
         }
 
         int maxPage = Math.max(0, (this.visibleListings.size() - 1) / LISTINGS_PER_PAGE);
