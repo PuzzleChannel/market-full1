@@ -394,13 +394,13 @@
   "gui.avecoins.player_market.keep_listing": "Не снимать",
   "gui.avecoins.player_market.filter": "Фильтр: %s",
   "gui.avecoins.player_market.filter_all": "Все",
-  "gui.avecoins.player_market.filter_affordable": "Можно купить",
-  "gui.avecoins.player_market.filter_mine": "Мои объявления",
-  "gui.avecoins.player_market.filter_others": "Чужие объявления",
+  "gui.avecoins.player_market.filter_affordable": "По карману",
+  "gui.avecoins.player_market.filter_mine": "Мои",
+  "gui.avecoins.player_market.filter_others": "Чужие",
   "gui.avecoins.player_market.sort": "Сортировка: %s",
-  "gui.avecoins.player_market.sort_newest": "Сначала новые",
-  "gui.avecoins.player_market.sort_cheapest": "Дешевле лот",
-  "gui.avecoins.player_market.sort_expensive": "Дороже лот",
-  "gui.avecoins.player_market.sort_quantity": "Больше предметов",
-  "gui.avecoins.player_market.sort_unit": "Дешевле за штуку"
+  "gui.avecoins.player_market.sort_newest": "Новые",
+  "gui.avecoins.player_market.sort_cheapest": "Цена ↑",
+  "gui.avecoins.player_market.sort_expensive": "Цена ↓",
+  "gui.avecoins.player_market.sort_quantity": "Больше шт.",
+  "gui.avecoins.player_market.sort_unit": "Цена/шт. ↑"
 }
