@@ -212,6 +212,41 @@ public final class PlayerMarketService {
         return Result.ok("market_listing_cancelled");
     }
 
+    public static Result updatePrice(ServerPlayer seller, String listingId, int unitPrice) {
+        if (unitPrice < 1 || unitPrice > MAX_WALLET_BALANCE) {
+            return Result.fail("market_invalid_price_quantity");
+        }
+        PlayerMarketData current = PlayerMarketStore.get();
+        PlayerMarketData.Listing listing = find(current, listingId);
+        if (listing == null) {
+            return Result.fail("market_listing_missing");
+        }
+        if (!listing.sellerId.equals(seller.getUUID().toString())) {
+            return Result.fail("permission_denied");
+        }
+
+        long total;
+        try {
+            total = Math.multiplyExact((long) unitPrice, (long) listing.quantity);
+        } catch (ArithmeticException exception) {
+            return Result.fail("market_invalid_price_quantity");
+        }
+        if (total > MAX_WALLET_BALANCE) {
+            return Result.fail("market_total_too_high");
+        }
+
+        PlayerMarketData candidate = current.copy();
+        PlayerMarketData.Listing editable = find(candidate, listingId);
+        if (editable == null) {
+            return Result.fail("market_listing_missing");
+        }
+        editable.unitPrice = unitPrice;
+        if (!PlayerMarketStore.save(candidate)) {
+            return Result.fail("persistence_error");
+        }
+        return Result.ok("market_listing_updated");
+    }
+
     private static PlayerMarketData.Listing find(PlayerMarketData data, String listingId) {
         if (listingId == null || listingId.length() > 40) return null;
         return data.listings.stream().filter(entry -> entry.id.equals(listingId)).findFirst().orElse(null);
