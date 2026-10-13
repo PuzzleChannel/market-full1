@@ -34,7 +34,7 @@ implements ThemedScreen {
     protected int panelTop;
     protected int panelWidth;
     protected int panelHeight;
-    private ResponsivePanelLayout responsiveLayout;
+    protected ResponsivePanelLayout responsiveLayout;
     private ShopService.ShopSnapshot themeSnapshot;
     private String paletteColor = "";
     private GuiPalette palette = GuiPalette.DEFAULT;
