@@ -22,7 +22,6 @@ import net.sundggs.avecoins.client.gui.GuiPalette;
 import net.sundggs.avecoins.client.gui.GuiTextLayout;
 import net.sundggs.avecoins.client.gui.PanelButton;
 import net.sundggs.avecoins.client.gui.ResponsiveContainerScreen;
-import net.sundggs.avecoins.client.gui.ShopScreen;
 import net.sundggs.avecoins.client.gui.ThemedScreen;
 import net.sundggs.avecoins.network.ClientNetworking;
 import net.sundggs.avecoins.network.ServerboundAvecoinsPayload;
@@ -77,9 +76,8 @@ implements ThemedScreen {
     private void backToShop() {
         if (this.minecraft.player != null) {
             this.minecraft.player.closeContainer();
-            this.minecraft.gui.setScreen((Screen)new ShopScreen(((WalletMenu)this.menu).snapshot()));
+            ClientNetworking.send(new ServerboundAvecoinsPayload("request_player_market", "{}"));
         }
-        ClientNetworking.send(new ServerboundAvecoinsPayload("request_shop", "{}"));
     }
 
     @Override
