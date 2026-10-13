@@ -164,8 +164,8 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
         int maxPage = Math.max(0, (this.visibleListings.size() - 1) / LISTINGS_PER_PAGE);
         this.page = Math.min(this.page, maxPage);
 
-        int listX = this.panelLeft + 12;
-        int rowWidth = this.panelWidth - 24;
+        int listX = this.panelLeft + 120;
+        int rowWidth = this.panelWidth - 132;
         int cardWidth = (rowWidth - (COLUMNS - 1) * 8) / COLUMNS;
         int listTop = this.panelTop + 80;
         int start = this.page * LISTINGS_PER_PAGE;
@@ -357,8 +357,8 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
         try {
             graphics.pose().translate(this.responsiveLayout.offsetX(), this.responsiveLayout.offsetY());
             graphics.pose().scale(this.responsiveLayout.scale(), this.responsiveLayout.scale());
-            int listX = this.panelLeft + 12;
-            int rowWidth = this.panelWidth - 24;
+            int listX = this.panelLeft + 120;
+        int rowWidth = this.panelWidth - 132;
             int cardWidth = (rowWidth - (COLUMNS - 1) * 8) / COLUMNS;
             int listTop = this.panelTop + 80;
             int start = this.page * LISTINGS_PER_PAGE;
@@ -381,8 +381,8 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
         this.drawSectionTitleAt(graphics, Component.translatable("gui.avecoins.player_market.listings"),
                 this.panelLeft + 120 + (this.panelWidth - 132) / 2, this.panelTop + 68);
 
-        int listX = this.panelLeft + 12;
-        int rowWidth = this.panelWidth - 24;
+        int listX = this.panelLeft + 120;
+        int rowWidth = this.panelWidth - 132;
         int cardWidth = (rowWidth - (COLUMNS - 1) * 8) / COLUMNS;
         int listTop = this.panelTop + 80;
         int start = this.page * LISTINGS_PER_PAGE;
