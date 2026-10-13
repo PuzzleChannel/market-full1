@@ -14,6 +14,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.network.chat.Component;
 import net.sundggs.avecoins.network.ClientNetworking;
 import net.sundggs.avecoins.network.ServerboundAvecoinsPayload;
@@ -24,15 +25,27 @@ import net.sundggs.avecoins.shop.ShopService;
 /** Компактный рынок игроков с поиском по объявлениям. */
 public final class PlayerMarketScreen extends AvecoinsScreen {
     private static final int LISTINGS_PER_PAGE = 12;
-    private static final int COLUMNS = 4;
+    private static final int COLUMNS = 3;
     private static final int CARD_HEIGHT = 80;
     private static final int CARD_STEP = 86;
     private static final Identifier WALLET_ICON = Identifier.fromNamespaceAndPath("avecoins", "textures/gui/icons/coin_wallet.png");
     private static final String[] FILTER_KEYS = {
             "gui.avecoins.player_market.filter_all",
-            "gui.avecoins.player_market.filter_affordable",
             "gui.avecoins.player_market.filter_mine",
             "gui.avecoins.player_market.filter_others"
+    };
+    private static final String[] CATEGORY_KEYS = {
+            "gui.avecoins.player_market.category_all",
+            "gui.avecoins.player_market.category_blocks",
+            "gui.avecoins.player_market.category_tools",
+            "gui.avecoins.player_market.category_combat",
+            "gui.avecoins.player_market.category_materials",
+            "gui.avecoins.player_market.category_food",
+            "gui.avecoins.player_market.category_potions",
+            "gui.avecoins.player_market.category_redstone",
+            "gui.avecoins.player_market.category_transport",
+            "gui.avecoins.player_market.category_decoration",
+            "gui.avecoins.player_market.category_other"
     };
     private static final String[] SORT_KEYS = {
             "gui.avecoins.player_market.sort_newest",
@@ -46,6 +59,7 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
     private final Map<String, ItemStack> previewCache = new HashMap<>();
     private int filterMode;
     private int sortMode;
+    private int categoryMode;
     private String resultCode;
     private String search;
     private int page;
@@ -57,7 +71,7 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
     }
 
     private PlayerMarketScreen(PlayerMarketService.MarketSnapshot snapshot, String resultCode, String search,
-                                int page, int filterMode, int sortMode) {
+                                int page, int filterMode, int sortMode, int categoryMode) {
         super(Component.translatable("gui.avecoins.player_market.title"));
         this.snapshot = snapshot;
         this.resultCode = resultCode == null ? "" : resultCode;
@@ -65,6 +79,7 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
         this.page = Math.max(0, page);
         this.filterMode = Math.floorMod(filterMode, FILTER_KEYS.length);
         this.sortMode = Math.floorMod(sortMode, SORT_KEYS.length);
+        this.categoryMode = Math.floorMod(categoryMode, CATEGORY_KEYS.length);
         ShopService.ShopSnapshot themeSnapshot = new ShopService.ShopSnapshot();
         themeSnapshot.shopColor = snapshot.shopColor;
         this.useShopTheme(themeSnapshot);
@@ -73,7 +88,7 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
     public PlayerMarketScreen refreshed(PlayerMarketService.MarketSnapshot snapshot, String resultCode) {
         return new PlayerMarketScreen(snapshot, resultCode,
                 this.searchBox == null ? this.search : this.searchBox.getValue(),
-                this.page, this.filterMode, this.sortMode);
+                this.page, this.filterMode, this.sortMode, this.categoryMode);
     }
 
     @Override
@@ -130,6 +145,20 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
                     this.page = 0;
                     this.rebuildWidgets();
                 }));
+
+        int categoryX = this.panelLeft + 10;
+        int categoryY = this.panelTop + 86;
+        for (int i = 0; i < CATEGORY_KEYS.length; i++) {
+            final int selectedCategory = i;
+            this.addRenderableWidget(new PanelButton(categoryX, categoryY + i * 24, 100, 21,
+                    Component.translatable(CATEGORY_KEYS[i]),
+                    i == this.categoryMode ? PanelButton.Variant.HEADER : PanelButton.Variant.SECONDARY,
+                    button -> {
+                        this.categoryMode = selectedCategory;
+                        this.page = 0;
+                        this.rebuildWidgets();
+                    }));
+        }
 
         this.visibleListings = this.filteredListings();
         int maxPage = Math.max(0, (this.visibleListings.size() - 1) / LISTINGS_PER_PAGE);
@@ -193,21 +222,70 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
         return this.snapshot.listings.stream()
                 .filter(listing -> {
                     boolean own = listing.sellerId.equals(this.snapshot.viewerId);
-                    long total = lotPrice(listing);
                     boolean matchesFilter = switch (this.filterMode) {
-                        case 1 -> !own && total <= this.snapshot.walletBalance;
-                        case 2 -> own;
-                        case 3 -> !own;
+                        case 1 -> own;
+                        case 2 -> !own;
                         default -> true;
                     };
+                    boolean matchesCategory = matchesCategory(listing);
                     boolean matchesSearch = query.isEmpty()
                             || (listing.displayName != null && listing.displayName.toLowerCase(Locale.ROOT).contains(query))
                             || (listing.itemId != null && listing.itemId.toLowerCase(Locale.ROOT).contains(query))
                             || (listing.sellerName != null && listing.sellerName.toLowerCase(Locale.ROOT).contains(query));
-                    return matchesFilter && matchesSearch;
+                    return matchesFilter && matchesCategory && matchesSearch;
                 })
                 .sorted(this.listingComparator())
                 .toList();
+    }
+
+
+    private boolean matchesCategory(PlayerMarketService.MarketListing listing) {
+        if (this.categoryMode == 0) return true;
+        Identifier id = Identifier.tryParse(listing.itemId);
+        if (id == null || !BuiltInRegistries.ITEM.containsKey(id)) return this.categoryMode == 10;
+        Item item = (Item) BuiltInRegistries.ITEM.getValue(id);
+        String path = id.getPath();
+        int category;
+        if (item instanceof BlockItem) category = 1;
+        else if (path.contains("sword") || path.contains("bow") || path.contains("crossbow") || path.contains("trident")
+                || path.contains("shield") || path.contains("mace") || path.contains("helmet") || path.contains("chestplate")
+                || path.contains("leggings") || path.contains("boots") || path.contains("horse_armor") || path.contains("wolf_armor")
+                || path.equals("arrow") || path.endsWith("_arrow") || path.contains("spear")) category = 3;
+        else if (path.contains("pickaxe") || path.contains("shovel") || path.contains("hoe") || path.contains("fishing_rod")
+                || path.contains("shears") || path.contains("flint_and_steel") || path.contains("brush") || path.contains("spyglass")
+                || path.contains("compass") || path.contains("clock") || path.contains("lead") || path.contains("name_tag")
+                || path.contains("bucket") || path.contains("carrot_on_a_stick") || path.contains("warped_fungus_on_a_stick")
+                || path.contains("elytra")) category = 2;
+        else if (path.contains("potion") || path.contains("tipped_arrow") || path.contains("brewing") || path.contains("experience_bottle")
+                || path.contains("enchanted_book") || path.contains("book") || path.contains("totem") || path.contains("end_crystal")) category = 6;
+        else if (path.contains("redstone") || path.contains("repeater") || path.contains("comparator") || path.contains("observer")
+                || path.contains("piston") || path.contains("lever") || path.contains("button") || path.contains("pressure_plate")
+                || path.contains("tripwire") || path.contains("target") || path.contains("daylight_detector") || path.contains("dispenser")
+                || path.contains("dropper") || path.contains("hopper") || path.contains("rail") || path.contains("minecart")) category = 7;
+        else if (path.contains("boat") || path.contains("raft") || path.contains("minecart") || path.equals("saddle")
+                || path.equals("chest_minecart") || path.equals("furnace_minecart")) category = 8;
+        else if (path.contains("apple") || path.contains("bread") || path.contains("beef") || path.contains("porkchop")
+                || path.contains("chicken") || path.contains("mutton") || path.contains("rabbit") || path.contains("cod")
+                || path.contains("salmon") || path.contains("tropical_fish") || path.contains("pufferfish") || path.contains("stew")
+                || path.contains("soup") || path.contains("carrot") || path.contains("potato") || path.contains("beetroot")
+                || path.contains("melon_slice") || path.contains("cookie") || path.contains("cake") || path.contains("pie")
+                || path.contains("berries") || path.contains("chorus_fruit") || path.contains("golden_carrot")
+                || path.contains("golden_apple") || path.contains("honey_bottle") || path.equals("honeycomb")) category = 5;
+        else if (path.contains("ingot") || path.contains("nugget") || path.contains("raw_") || path.contains("diamond")
+                || path.contains("emerald") || path.contains("lapis") || path.contains("quartz") || path.contains("amethyst")
+                || path.contains("coal") || path.contains("charcoal") || path.contains("flint") || path.contains("string")
+                || path.contains("leather") || path.contains("feather") || path.contains("bone") || path.contains("gunpowder")
+                || path.contains("paper") || path.contains("slime_ball") || path.contains("prismarine_shard")
+                || path.contains("phantom_membrane") || path.contains("scute") || path.contains("shell") || path.contains("echo_shard")
+                || path.contains("disc_fragment") || path.contains("shard")) category = 4;
+        else if (path.contains("banner") || path.contains("painting") || path.contains("item_frame") || path.contains("flower")
+                || path.contains("tulip") || path.contains("dye") || path.contains("bed") || path.contains("candle")
+                || path.contains("sign") || path.contains("pot") || path.contains("head") || path.contains("skull")
+                || path.contains("armor_stand") || path.contains("lantern") || path.contains("torch") || path.contains("carpet")
+                || path.contains("music_disc") || path.contains("coral") || path.contains("sapling") || path.contains("leaves")
+                || path.contains("hanging_sign")) category = 9;
+        else category = 10;
+        return this.categoryMode == category;
     }
 
     private Comparator<PlayerMarketService.MarketListing> listingComparator() {
@@ -301,7 +379,7 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
     protected void renderPanel(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         this.renderHeader(graphics, null);
         this.drawSectionTitleAt(graphics, Component.translatable("gui.avecoins.player_market.listings"),
-                this.panelLeft + this.panelWidth / 2, this.panelTop + 68);
+                this.panelLeft + 120 + (this.panelWidth - 132) / 2, this.panelTop + 68);
 
         int listX = this.panelLeft + 12;
         int rowWidth = this.panelWidth - 24;
