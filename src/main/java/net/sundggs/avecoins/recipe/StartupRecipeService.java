@@ -65,8 +65,8 @@ public final class StartupRecipeService {
         }
         CraftingConfig config = ModConfigManager.crafting();
         RecipesConfig recipes = ModConfigManager.recipes();
-        List current = List.copyOf(server.getRecipeManager().getRecipes());
-        ArrayList<Object> active = new ArrayList<Object>(current.size() + defaults.size() + recipes.customRecipes.size());
+        List<RecipeHolder<?>> current = List.copyOf(server.getRecipeManager().getRecipes());
+        ArrayList<RecipeHolder<?>> active = new ArrayList<RecipeHolder<?>>(current.size() + defaults.size() + recipes.customRecipes.size());
         active.addAll(StartupRecipeService.preserveUnmanaged(current, holder -> holder.id().identifier()));
         RecipeManagerAccessor accessor = (RecipeManagerAccessor)server.getRecipeManager();
         RecipeMap previous = accessor.avecoins$getRecipes();
