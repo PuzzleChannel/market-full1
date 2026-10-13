@@ -63,7 +63,6 @@ public final class PlayerMarketService {
             return Result.fail("market_not_enough_items");
         }
         // The entered price is the total for this entire lot, not the per-item price.
-        long total = lotPrice;
 
         String itemData = ShopItemStacks.encode(player.level().registryAccess(), held);
         if (itemData.isBlank() || itemData.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > PlayerMarketData.MAX_ITEM_DATA_BYTES) {
