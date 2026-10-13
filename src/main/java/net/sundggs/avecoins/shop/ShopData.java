@@ -86,10 +86,7 @@ public final class ShopData {
                 throw new IllegalArgumentException("Shop item data exceeds the catalogue limit");
             }
             product.itemCount = ShopData.boundedInt(source.itemCount, 1, 64, "product item count");
-            product.currencyId = ShopData.itemId(source.currencyId, "avecoins:coppercoin");
-            if (!CraftingConfig.MANAGED_RESULTS.contains(product.currencyId)) {
-                throw new IllegalArgumentException("Unsupported shop currency: " + product.currencyId);
-            }
+            product.currencyId = CraftingConfig.CURRENCY;
             product.price = ShopData.boundedInt(source.price, 1, 1000000000, "product price");
             product.discountPrice = source.discountPrice;
             if (product.discountPrice != null && (product.discountPrice < 1 || product.discountPrice >= product.price)) {
@@ -156,7 +153,7 @@ public final class ShopData {
                 line.itemId = ShopData.itemId(purchaseLine.itemId, "minecraft:air");
                 line.quantity = ShopData.boundedInt(purchaseLine.quantity, 0, 4096, "history quantity");
                 line.itemCount = ShopData.boundedInt(purchaseLine.itemCount, 1, 64, "history item count");
-                line.currencyId = ShopData.itemId(purchaseLine.currencyId, "avecoins:coppercoin");
+                line.currencyId = CraftingConfig.normalizeCurrencyId(purchaseLine.currencyId);
                 line.unitPrice = ShopData.boundedInt(purchaseLine.unitPrice, 0, 1000000000, "history unit price");
                 if (purchaseLine.lineTotal < 0L) {
                     throw new IllegalArgumentException("History total cannot be negative");
@@ -168,11 +165,11 @@ public final class ShopData {
         output.totals = new LinkedHashMap<String, Long>();
         if (source.totals != null) {
             for (Map.Entry entry : source.totals.entrySet()) {
-                String currency = ShopData.itemId((String)entry.getKey(), null);
-                if (!CraftingConfig.MANAGED_RESULTS.contains(currency) || entry.getValue() == null || (Long)entry.getValue() < 0L) {
+                String currency = CraftingConfig.normalizeCurrencyId((String)entry.getKey());
+                if (entry.getValue() == null || (Long)entry.getValue() < 0L) {
                     throw new IllegalArgumentException("Invalid history currency total");
                 }
-                output.totals.put(currency, (Long)entry.getValue());
+                output.totals.merge(currency, (Long)entry.getValue(), Math::addExact);
             }
         }
         output.inventoryDebits = ShopData.validateCurrencyAmounts(source.inventoryDebits, "inventory debit");
@@ -207,22 +204,18 @@ public final class ShopData {
             return output;
         }
         for (Map.Entry<String, Long> entry : source.entrySet()) {
-            String currency = ShopData.itemId(entry.getKey(), null);
-            if (!CraftingConfig.MANAGED_RESULTS.contains(currency) || entry.getValue() == null || entry.getValue() < 0L) {
+            String currency = CraftingConfig.normalizeCurrencyId(entry.getKey());
+            if (entry.getValue() == null || entry.getValue() < 0L) {
                 throw new IllegalArgumentException("Invalid history " + label);
             }
             if (entry.getValue() <= 0L) continue;
-            output.put(currency, entry.getValue());
+            output.merge(currency, entry.getValue(), Math::addExact);
         }
         return output;
     }
 
     private static String coinId(String value) {
-        String currency = ShopData.itemId(value, null);
-        if (!CraftingConfig.COINS.contains(currency)) {
-            throw new IllegalArgumentException("Invalid coin conversion currency");
-        }
-        return currency;
+        return CraftingConfig.normalizeCurrencyId(value);
     }
 
     private static Category copyCategory(Category source) {
@@ -346,7 +339,7 @@ public final class ShopData {
         public String itemId = "minecraft:stone";
         public String itemData = "";
         public int itemCount = 1;
-        public String currencyId = "avecoins:coppercoin";
+        public String currencyId = CraftingConfig.CURRENCY;
         public int price = 1;
         public Integer discountPrice = null;
         public int stock = -1;
