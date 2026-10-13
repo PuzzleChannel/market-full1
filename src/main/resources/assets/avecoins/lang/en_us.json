@@ -335,7 +335,6 @@
   "gui.avecoins.player_market.tab_help": "Buy items from other players or list your own.",
   "gui.avecoins.player_market.title": "Player Market",
   "gui.avecoins.player_market.subtitle": "Buy and sell items directly between players.",
-  "gui.avecoins.player_market.back": "Shop",
   "gui.avecoins.player_market.listings": "LISTINGS",
   "gui.avecoins.player_market.new_listing": "LISTINGS",
   "gui.avecoins.player_market.empty": "No listings yet. You can post the first item.",
@@ -378,8 +377,7 @@
   "gui.avecoins.player_market.wallet_label": "Wallet balance:",
   "gui.avecoins.player_market.search": "Search item or seller...",
   "gui.avecoins.player_market.search_empty": "No listings matched your search.",
-  "gui.avecoins.player_market.unit_price": "≈ %s/item",
-  "gui.avecoins.player_market.total_price": "Lot total: %s VMcoins",
+  "gui.avecoins.player_market.total_price": "Cost:"
   "gui.avecoins.player_market.my_listings": "My Listings",
   "gui.avecoins.player_market.manage_title": "My Listings",
   "gui.avecoins.player_market.manage_empty": "You have no active listings.",
