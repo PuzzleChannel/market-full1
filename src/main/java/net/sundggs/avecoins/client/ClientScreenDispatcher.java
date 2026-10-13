@@ -18,6 +18,7 @@ import net.sundggs.avecoins.client.gui.ProductEditorScreen;
 import net.sundggs.avecoins.client.gui.PurchaseHistoryScreen;
 import net.sundggs.avecoins.client.gui.PurchaseResultScreen;
 import net.sundggs.avecoins.client.gui.PlayerMarketScreen;
+import net.sundggs.avecoins.client.gui.PlayerMarketCreateScreen;
 import net.sundggs.avecoins.client.gui.RecipeEditorScreen;
 import net.sundggs.avecoins.client.gui.SaleResultScreen;
 import net.sundggs.avecoins.client.gui.SellBoxScreen;
@@ -173,7 +174,15 @@ public final class ClientScreenDispatcher {
             PlayerMarketService.MarketSnapshot snapshot = (PlayerMarketService.MarketSnapshot)AtomicJsonStore.gson().fromJson(response.get("snapshot"), PlayerMarketService.MarketSnapshot.class);
             String result = response.get("result").getAsString();
             Screen screen = Minecraft.getInstance().gui.screen();
-            if (screen instanceof PlayerMarketScreen) {
+            boolean success = response.get("success").getAsBoolean();
+            if (screen instanceof PlayerMarketCreateScreen) {
+                PlayerMarketCreateScreen createScreen = (PlayerMarketCreateScreen)screen;
+                if (success) {
+                    Minecraft.getInstance().gui.setScreen((Screen)new PlayerMarketScreen(snapshot, result));
+                } else {
+                    Minecraft.getInstance().gui.setScreen((Screen)createScreen.refreshed(snapshot, result));
+                }
+            } else if (screen instanceof PlayerMarketScreen) {
                 PlayerMarketScreen marketScreen = (PlayerMarketScreen)screen;
                 Minecraft.getInstance().gui.setScreen((Screen)marketScreen.refreshed(snapshot, result));
             } else {
@@ -191,7 +200,7 @@ public final class ClientScreenDispatcher {
                 InventoryScreen inventoryScreen = (InventoryScreen)screen;
                 inventoryScreen.resize(inventoryScreen.width, inventoryScreen.height);
             }
-            if (!enabled && (Minecraft.getInstance().gui.screen() instanceof ShopScreen || Minecraft.getInstance().gui.screen() instanceof CartScreen || Minecraft.getInstance().gui.screen() instanceof AdminShopScreen || Minecraft.getInstance().gui.screen() instanceof PurchaseHistoryScreen || Minecraft.getInstance().gui.screen() instanceof WalletScreen || Minecraft.getInstance().gui.screen() instanceof SellBoxScreen || Minecraft.getInstance().gui.screen() instanceof SaleResultScreen || Minecraft.getInstance().gui.screen() instanceof PlayerMarketScreen)) {
+            if (!enabled && (Minecraft.getInstance().gui.screen() instanceof ShopScreen || Minecraft.getInstance().gui.screen() instanceof CartScreen || Minecraft.getInstance().gui.screen() instanceof AdminShopScreen || Minecraft.getInstance().gui.screen() instanceof PurchaseHistoryScreen || Minecraft.getInstance().gui.screen() instanceof WalletScreen || Minecraft.getInstance().gui.screen() instanceof SellBoxScreen || Minecraft.getInstance().gui.screen() instanceof SaleResultScreen || Minecraft.getInstance().gui.screen() instanceof PlayerMarketScreen || Minecraft.getInstance().gui.screen() instanceof PlayerMarketCreateScreen)) {
                 Minecraft.getInstance().gui.setScreen(null);
             }
         }

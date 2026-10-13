@@ -75,7 +75,7 @@ public final class ModCommands {
             source.sendFailure(ModMessages.translated("message.avecoins.permission_denied", new Object[0]));
             return 0;
         }
-        ModNetworking.openShop(player, false, 0);
+        ModNetworking.openPlayerMarket(player);
         return 1;
     }
 

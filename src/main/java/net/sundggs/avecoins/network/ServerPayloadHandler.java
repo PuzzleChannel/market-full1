@@ -124,10 +124,11 @@ public final class ServerPayloadHandler {
                     ModNetworking.syncPlayerMarket(player, PlayerMarketService.Result.fail("rate_limited"));
                     break;
                 }
-                JsonObject json = ServerPayloadHandler.object(data, "price", "quantity");
+                JsonObject json = ServerPayloadHandler.object(data, "slot", "price", "quantity");
+                int slot = ServerPayloadHandler.intField(json, "slot", 0, 35);
                 int price = ServerPayloadHandler.intField(json, "price", 1, 1728);
                 int quantity = ServerPayloadHandler.intField(json, "quantity", 1, 999);
-                ModNetworking.syncPlayerMarket(player, PlayerMarketService.createListing(player, price, quantity));
+                ModNetworking.syncPlayerMarket(player, PlayerMarketService.createListing(player, slot, price, quantity));
                 break;
             }
             case "market_buy": {

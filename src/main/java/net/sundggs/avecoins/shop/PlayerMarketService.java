@@ -43,11 +43,14 @@ public final class PlayerMarketService {
         return net.sundggs.avecoins.config.AtomicJsonStore.gson().toJson(snapshot(player));
     }
 
-    public static Result createListing(ServerPlayer player, int unitPrice, int quantity) {
+    public static Result createListing(ServerPlayer player, int inventorySlot, int unitPrice, int quantity) {
         if (unitPrice < 1 || unitPrice > MAX_WALLET_BALANCE || quantity < 1 || quantity > 999) {
             return Result.fail("market_invalid_price_quantity");
         }
-        ItemStack held = player.getMainHandItem();
+        if (inventorySlot < 0 || inventorySlot >= 36) {
+            return Result.fail("market_select_item");
+        }
+        ItemStack held = player.getInventory().getItem(inventorySlot);
         if (held.isEmpty()) {
             return Result.fail("market_hold_item");
         }
