@@ -25,12 +25,6 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
     private static final int COLUMNS = 3;
     private static final int CARD_HEIGHT = 76;
     private static final int CARD_STEP = 80;
-    // Palette inspired by the dayliki interface: warm brown panels and orange accents.
-    private static final int CARD_BORDER = 0xFF9C4D21;
-    private static final int CARD_PANEL = 0xFF2A1A12;
-    private static final int CARD_TOP = 0xFFE58A3A;
-    private static final int CARD_TEXT = 0xFFFFE8D2;
-    private static final int CARD_MUTED = 0xFFBFA38C;
     private static final Identifier COIN_ID = Identifier.fromNamespaceAndPath("vmtrade", "vmcoin");
 
     private final PlayerMarketService.MarketSnapshot snapshot;
@@ -54,7 +48,7 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
         this.priceDrafts = new HashMap<>(priceDrafts);
         this.confirmingListingId = confirmingListingId == null ? "" : confirmingListingId;
         ShopService.ShopSnapshot themeSnapshot = new ShopService.ShopSnapshot();
-        themeSnapshot.shopColor = "#2A1A12";
+        themeSnapshot.shopColor = snapshot.shopColor == null || snapshot.shopColor.isBlank() ? "#38271B" : snapshot.shopColor;
         this.useShopTheme(themeSnapshot);
     }
 
