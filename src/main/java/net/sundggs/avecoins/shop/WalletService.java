@@ -3,6 +3,7 @@
  */
 package net.sundggs.avecoins.shop;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,6 +11,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
@@ -19,6 +21,57 @@ import net.sundggs.avecoins.shop.WalletData;
 import net.sundggs.avecoins.shop.WalletStore;
 
 public final class WalletService {
+    /**
+     * Converts obsolete AVECOINS coin stacks already in a player's inventory
+     * into the server's single VMcoin currency. The conversion is atomic: if
+     * any stack cannot be inserted, the original inventory is restored.
+     */
+    public static boolean migrateLegacyCoins(ServerPlayer player) {
+        if (player == null) {
+            return false;
+        }
+        Item currency = WalletService.resolveCurrency(CraftingConfig.CURRENCY);
+        if (currency == null) {
+            return false;
+        }
+        Inventory inventory = player.getInventory();
+        ArrayList<ItemStack> backup = new ArrayList<ItemStack>(inventory.getContainerSize());
+        for (int slot = 0; slot < inventory.getContainerSize(); ++slot) {
+            backup.add(inventory.getItem(slot).copy());
+        }
+        boolean changed = false;
+        for (int slot = 0; slot < inventory.getContainerSize(); ++slot) {
+            ItemStack oldStack = inventory.getItem(slot);
+            if (oldStack.isEmpty()) {
+                continue;
+            }
+            String itemId = BuiltInRegistries.ITEM.getKey((Object)oldStack.getItem()).toString();
+            if (!CraftingConfig.LEGACY_COINS.contains(itemId)) {
+                continue;
+            }
+            int remaining = oldStack.getCount();
+            oldStack.shrink(remaining);
+            changed = true;
+            while (remaining > 0) {
+                int amount = Math.min(remaining, currency.getDefaultMaxStackSize());
+                ItemStack replacement = new ItemStack((ItemLike)currency, amount);
+                if (!inventory.add(replacement) || !replacement.isEmpty()) {
+                    for (int restore = 0; restore < backup.size(); ++restore) {
+                        inventory.setItem(restore, backup.get(restore).copy());
+                    }
+                    inventory.setChanged();
+                    return false;
+                }
+                remaining -= amount;
+            }
+        }
+        if (changed) {
+            inventory.setChanged();
+            player.containerMenu.broadcastChanges();
+        }
+        return changed;
+    }
+
     public static Map<String, Long> walletBalances(ServerPlayer player) {
         return WalletStore.get().balances(player.getUUID());
     }
