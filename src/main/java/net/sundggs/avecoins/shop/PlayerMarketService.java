@@ -126,35 +126,42 @@ public final class PlayerMarketService {
         if (template.isEmpty()) {
             return Result.fail("market_item_unavailable");
         }
+        // Simulate delivery first. Persisting the removed listing before granting items
+        // makes a crash fail closed: the market cannot sell the same item twice.
         List<ItemStack> inventoryBackup = copyInventory(buyer.getInventory());
         if (!insertCompletely(buyer.getInventory(), template, listing.quantity)) {
             restoreInventory(buyer.getInventory(), inventoryBackup);
             return Result.fail("market_inventory_full");
         }
+        restoreInventory(buyer.getInventory(), inventoryBackup);
 
         WalletData walletBackup = WalletStore.get().copy();
         WalletData walletCandidate = walletBackup.copy();
         try {
             if (!walletCandidate.debit(buyer.getUUID(), CraftingConfig.CURRENCY, total)) {
-                restoreInventory(buyer.getInventory(), inventoryBackup);
                 return Result.fail("market_wallet_insufficient");
             }
             walletCandidate.credit(UUID.fromString(listing.sellerId), CraftingConfig.CURRENCY, total);
         } catch (ArithmeticException | IllegalArgumentException exception) {
-            restoreInventory(buyer.getInventory(), inventoryBackup);
             return Result.fail("market_seller_wallet_limit");
         }
 
         PlayerMarketData marketCandidate = current.copy();
         marketCandidate.listings.removeIf(entry -> entry.id.equals(listing.id));
-        if (!WalletStore.save(walletCandidate)) {
-            restoreInventory(buyer.getInventory(), inventoryBackup);
+        if (!PlayerMarketStore.save(marketCandidate)) {
             return Result.fail("persistence_error");
         }
-        if (!PlayerMarketStore.save(marketCandidate)) {
-            WalletStore.save(walletBackup);
-            restoreInventory(buyer.getInventory(), inventoryBackup);
+        if (!WalletStore.save(walletCandidate)) {
+            // If the wallet write fails, put the escrowed listing back. Failure to do
+            // so can only lose the listing; it cannot create a duplicate item.
+            PlayerMarketStore.save(current);
             return Result.fail("persistence_error");
+        }
+        if (!insertCompletely(buyer.getInventory(), template, listing.quantity)) {
+            WalletStore.save(walletBackup);
+            PlayerMarketStore.save(current);
+            restoreInventory(buyer.getInventory(), inventoryBackup);
+            return Result.fail("market_inventory_full");
         }
         buyer.getInventory().setChanged();
         return Result.ok("market_purchase_completed");
@@ -185,11 +192,18 @@ public final class PlayerMarketService {
             restoreInventory(seller.getInventory(), inventoryBackup);
             return Result.fail("market_inventory_full");
         }
+        restoreInventory(seller.getInventory(), inventoryBackup);
+
         PlayerMarketData candidate = current.copy();
         candidate.listings.removeIf(entry -> entry.id.equals(listing.id));
         if (!PlayerMarketStore.save(candidate)) {
-            restoreInventory(seller.getInventory(), inventoryBackup);
             return Result.fail("persistence_error");
+        }
+        if (!insertCompletely(seller.getInventory(), template, listing.quantity)) {
+            // Keep the item in escrow if delivery unexpectedly fails.
+            PlayerMarketStore.save(current);
+            restoreInventory(seller.getInventory(), inventoryBackup);
+            return Result.fail("market_inventory_full");
         }
         seller.getInventory().setChanged();
         return Result.ok("market_listing_cancelled");
