@@ -2,6 +2,7 @@ package net.sundggs.avecoins.client.gui;
 
 import java.util.List;
 import java.util.Locale;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.input.CharacterEvent;
@@ -62,12 +63,12 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
         this.addRenderableWidget(new PanelButton(closeX, headerY, 18, 20,
                 Component.literal("×"), PanelButton.Variant.DANGER, button -> this.onClose()));
 
-        int refreshX = closeX - 78 - 8;
-        this.addRenderableWidget(new PanelButton(refreshX, headerY, 78, 20,
-                Component.translatable("gui.avecoins.player_market.refresh"), PanelButton.Variant.HEADER,
-                button -> ClientNetworking.send(new ServerboundAvecoinsPayload("request_player_market", "{}"))));
+        int myListingsX = closeX - 92 - 8;
+        this.addRenderableWidget(new PanelButton(myListingsX, headerY, 92, 20,
+                Component.translatable("gui.avecoins.player_market.my_listings"), PanelButton.Variant.HEADER,
+                button -> ClientNetworking.send(new ServerboundAvecoinsPayload("request_player_market_manage", "{}"))));
 
-        int createX = refreshX - 142 - 8;
+        int createX = myListingsX - 142 - 8;
         this.addRenderableWidget(new PanelButton(createX, headerY, 142, 20,
                 Component.translatable("gui.avecoins.player_market.list_item"), PanelButton.Variant.SUCCESS,
                 button -> this.minecraft.gui.setScreen(new PlayerMarketCreateScreen(this.snapshot, ""))));
@@ -170,6 +171,32 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
     }
 
     @Override
+    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        super.extractBackground(graphics, mouseX, mouseY, partialTick);
+        if (Minecraft.getInstance().gui.screen() != this || this.responsiveLayout == null) return;
+        graphics.pose().pushMatrix();
+        try {
+            graphics.pose().translate(this.responsiveLayout.offsetX(), this.responsiveLayout.offsetY());
+            graphics.pose().scale(this.responsiveLayout.scale(), this.responsiveLayout.scale());
+            int listX = this.panelLeft + 12;
+            int rowWidth = this.panelWidth - 24;
+            int cardWidth = (rowWidth - (COLUMNS - 1) * 8) / COLUMNS;
+            int listTop = this.panelTop + 80;
+            int start = this.page * LISTINGS_PER_PAGE;
+            int end = Math.min(this.visibleListings.size(), start + LISTINGS_PER_PAGE);
+            for (int index = start; index < end; index++) {
+                int local = index - start;
+                int cardX = listX + (local % COLUMNS) * (cardWidth + 8);
+                int cardY = listTop + (local / COLUMNS) * CARD_STEP;
+                graphics.fill(cardX, cardY, cardX + cardWidth, cardY + CARD_HEIGHT, this.theme().BORDER);
+                graphics.fill(cardX + 1, cardY + 1, cardX + cardWidth - 1, cardY + CARD_HEIGHT - 1, this.theme().PANEL);
+            }
+        } finally {
+            graphics.pose().popMatrix();
+        }
+    }
+
+    @Override
     protected void renderPanel(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         this.renderHeader(graphics, null);
         this.drawSectionTitleAt(graphics, Component.translatable("gui.avecoins.player_market.listings"),
@@ -197,9 +224,6 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
             int cardY = listTop + (local / COLUMNS) * CARD_STEP;
             boolean ownListing = listing.sellerId.equals(this.snapshot.viewerId);
             long total = (long) listing.unitPrice * listing.quantity;
-
-            graphics.fill(cardX, cardY, cardX + cardWidth, cardY + CARD_HEIGHT, this.theme().BORDER);
-            graphics.fill(cardX + 1, cardY + 1, cardX + cardWidth - 1, cardY + CARD_HEIGHT - 1, this.theme().PANEL);
 
             Identifier itemId = Identifier.tryParse(listing.itemId);
             if (itemId != null && BuiltInRegistries.ITEM.containsKey(itemId)) {
