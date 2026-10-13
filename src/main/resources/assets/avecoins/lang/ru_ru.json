@@ -386,5 +386,10 @@
   "gui.avecoins.player_market.save_price": "Сохранить",
   "gui.avecoins.player_market.price_short": "Цена:",
   "message.avecoins.market_listing_updated": "Цена объявления обновлена.",
-  "message.avecoins.market_updated": "Рынок игроков обновлён."
-}
+  "message.avecoins.market_updated": "Рынок игроков обновлён.",
+  "gui.avecoins.player_market.manage_summary": "Лотов: %s · Предметов: %s · Стоимость всех лотов: %s ВМуткоинов",
+  "gui.avecoins.player_market.current_price": "Цена: %s/шт. · За лот: %s",
+  "gui.avecoins.player_market.price_edit_help": "Введите новую цену за одну штуку и нажмите «Сохранить».",
+  "gui.avecoins.player_market.confirm_remove": "Подтвердить",
+  "gui.avecoins.player_market.keep_listing": "Не снимать"
+}\n
