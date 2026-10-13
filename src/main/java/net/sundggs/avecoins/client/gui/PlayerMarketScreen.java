@@ -1,6 +1,11 @@
 package net.sundggs.avecoins.client.gui;
 
+import java.util.List;
+import java.util.Locale;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
@@ -11,21 +16,29 @@ import net.sundggs.avecoins.network.ServerboundAvecoinsPayload;
 import net.sundggs.avecoins.shop.PlayerMarketService;
 import net.sundggs.avecoins.shop.ShopService;
 
-/** Player-to-player market overview. Listing management is separated into PlayerMarketCreateScreen. */
+/** Компактный рынок игроков с поиском по объявлениям. */
 public final class PlayerMarketScreen extends AvecoinsScreen {
-    private static final int LISTINGS_PER_PAGE = 5;
+    private static final int LISTINGS_PER_PAGE = 12;
+    private static final int COLUMNS = 4;
+    private static final int CARD_HEIGHT = 80;
+    private static final int CARD_STEP = 86;
+
     private final PlayerMarketService.MarketSnapshot snapshot;
     private String resultCode;
+    private String search;
     private int page;
+    private EditBox searchBox;
+    private List<PlayerMarketService.MarketListing> visibleListings = List.of();
 
     public PlayerMarketScreen(PlayerMarketService.MarketSnapshot snapshot, String resultCode) {
-        this(snapshot, resultCode, 0);
+        this(snapshot, resultCode, "", 0);
     }
 
-    private PlayerMarketScreen(PlayerMarketService.MarketSnapshot snapshot, String resultCode, int page) {
+    private PlayerMarketScreen(PlayerMarketService.MarketSnapshot snapshot, String resultCode, String search, int page) {
         super(Component.translatable("gui.avecoins.player_market.title"));
         this.snapshot = snapshot;
         this.resultCode = resultCode == null ? "" : resultCode;
+        this.search = search == null ? "" : search;
         this.page = Math.max(0, page);
         ShopService.ShopSnapshot themeSnapshot = new ShopService.ShopSnapshot();
         themeSnapshot.shopColor = snapshot.shopColor;
@@ -33,7 +46,8 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
     }
 
     public PlayerMarketScreen refreshed(PlayerMarketService.MarketSnapshot snapshot, String resultCode) {
-        return new PlayerMarketScreen(snapshot, resultCode, this.page);
+        return new PlayerMarketScreen(snapshot, resultCode,
+                this.searchBox == null ? this.search : this.searchBox.getValue(), this.page);
     }
 
     @Override
@@ -48,35 +62,51 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
         this.addRenderableWidget(new PanelButton(closeX, headerY, 18, 20,
                 Component.literal("×"), PanelButton.Variant.DANGER, button -> this.onClose()));
 
-        int refreshX = closeX - 88 - 8;
-        this.addRenderableWidget(new PanelButton(refreshX, headerY, 88, 20,
+        int refreshX = closeX - 78 - 8;
+        this.addRenderableWidget(new PanelButton(refreshX, headerY, 78, 20,
                 Component.translatable("gui.avecoins.player_market.refresh"), PanelButton.Variant.HEADER,
                 button -> ClientNetworking.send(new ServerboundAvecoinsPayload("request_player_market", "{}"))));
 
-        int createX = refreshX - 154 - 8;
-        this.addRenderableWidget(new PanelButton(createX, headerY, 154, 20,
+        int createX = refreshX - 142 - 8;
+        this.addRenderableWidget(new PanelButton(createX, headerY, 142, 20,
                 Component.translatable("gui.avecoins.player_market.list_item"), PanelButton.Variant.SUCCESS,
                 button -> this.minecraft.gui.setScreen(new PlayerMarketCreateScreen(this.snapshot, ""))));
 
-        int maxPage = Math.max(0, (this.snapshot.listings.size() - 1) / LISTINGS_PER_PAGE);
+        int searchWidth = 330;
+        this.searchBox = new EditBox(this.font, this.panelLeft + (this.panelWidth - searchWidth) / 2,
+                this.panelTop + 42, searchWidth, 20, Component.translatable("gui.avecoins.player_market.search"));
+        this.searchBox.setMaxLength(64);
+        this.searchBox.setValue(this.search);
+        this.searchBox.setHint(Component.translatable("gui.avecoins.player_market.search"));
+        this.addRenderableWidget(this.searchBox);
+
+        this.visibleListings = this.filteredListings();
+        int maxPage = Math.max(0, (this.visibleListings.size() - 1) / LISTINGS_PER_PAGE);
         this.page = Math.min(this.page, maxPage);
+
         int listX = this.panelLeft + 12;
         int rowWidth = this.panelWidth - 24;
-        int listTop = this.panelTop + 78;
+        int cardWidth = (rowWidth - (COLUMNS - 1) * 8) / COLUMNS;
+        int listTop = this.panelTop + 80;
         int start = this.page * LISTINGS_PER_PAGE;
-        int end = Math.min(this.snapshot.listings.size(), start + LISTINGS_PER_PAGE);
+        int end = Math.min(this.visibleListings.size(), start + LISTINGS_PER_PAGE);
+
         for (int index = start; index < end; index++) {
-            PlayerMarketService.MarketListing listing = this.snapshot.listings.get(index);
-            int rowY = listTop + (index - start) * 58;
+            PlayerMarketService.MarketListing listing = this.visibleListings.get(index);
+            int local = index - start;
+            int cardX = listX + (local % COLUMNS) * (cardWidth + 8);
+            int cardY = listTop + (local / COLUMNS) * CARD_STEP;
             boolean ownListing = listing.sellerId.equals(this.snapshot.viewerId);
-            long total = (long) listing.quantity * (long) listing.unitPrice;
-            PanelButton action = new PanelButton(listX + rowWidth - 92, rowY + 16, 84, 20,
+            long total = (long) listing.unitPrice * listing.quantity;
+
+            PanelButton action = new PanelButton(cardX + cardWidth - 62, cardY + 59, 56, 18,
                     Component.translatable(ownListing ? "gui.avecoins.player_market.cancel" : "gui.avecoins.player_market.buy"),
                     ownListing ? PanelButton.Variant.DANGER : PanelButton.Variant.SUCCESS,
                     button -> {
                         com.google.gson.JsonObject payload = new com.google.gson.JsonObject();
                         payload.addProperty("id", listing.id);
-                        ClientNetworking.send(new ServerboundAvecoinsPayload(ownListing ? "market_cancel" : "market_buy", payload.toString()));
+                        ClientNetworking.send(new ServerboundAvecoinsPayload(
+                                ownListing ? "market_cancel" : "market_buy", payload.toString()));
                     });
             if (!ownListing && this.snapshot.walletBalance < total) {
                 action.active = false;
@@ -88,7 +118,7 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
 
         if (maxPage > 0) {
             int center = listX + rowWidth / 2;
-            int navY = this.panelTop + 374;
+            int navY = this.panelTop + 347;
             PanelButton previous = new PanelButton(center - 60, navY, 24, 18, Component.literal("‹"),
                     PanelButton.Variant.SECONDARY, button -> {
                         this.page = Math.max(0, this.page - 1);
@@ -96,6 +126,7 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
                     });
             previous.active = this.page > 0;
             this.addRenderableWidget(previous);
+
             PanelButton next = new PanelButton(center + 36, navY, 24, 18, Component.literal("›"),
                     PanelButton.Variant.SECONDARY, button -> {
                         this.page = Math.min(maxPage, this.page + 1);
@@ -106,52 +137,100 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
         }
     }
 
+    private List<PlayerMarketService.MarketListing> filteredListings() {
+        String query = this.search == null ? "" : this.search.trim().toLowerCase(Locale.ROOT);
+        if (query.isEmpty()) return this.snapshot.listings;
+        return this.snapshot.listings.stream().filter(listing ->
+                (listing.displayName != null && listing.displayName.toLowerCase(Locale.ROOT).contains(query))
+                || (listing.itemId != null && listing.itemId.toLowerCase(Locale.ROOT).contains(query))
+                || (listing.sellerName != null && listing.sellerName.toLowerCase(Locale.ROOT).contains(query))
+        ).toList();
+    }
+
+    public boolean charTyped(CharacterEvent event) {
+        boolean handled = super.charTyped(event);
+        this.refreshSearchIfChanged();
+        return handled;
+    }
+
+    public boolean keyPressed(KeyEvent event) {
+        boolean handled = super.keyPressed(event);
+        this.refreshSearchIfChanged();
+        return handled;
+    }
+
+    private void refreshSearchIfChanged() {
+        if (this.searchBox == null || this.search.equals(this.searchBox.getValue())) return;
+        this.search = this.searchBox.getValue();
+        this.page = 0;
+        this.rebuildWidgets();
+        this.searchBox.setFocused(true);
+        this.searchBox.moveCursorToEnd(false);
+        this.setFocused(this.searchBox);
+    }
+
     @Override
     protected void renderPanel(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
-        this.renderHeader(graphics, Component.translatable("gui.avecoins.player_market.subtitle"));
+        this.renderHeader(graphics, null);
+        this.drawSectionTitleAt(graphics, Component.translatable("gui.avecoins.player_market.listings"),
+                this.panelLeft + this.panelWidth / 2, this.panelTop + 68);
+
         int listX = this.panelLeft + 12;
         int rowWidth = this.panelWidth - 24;
-        int listTop = this.panelTop + 78;
-        this.drawSectionTitleAt(graphics, Component.translatable("gui.avecoins.player_market.listings"),
-                listX + rowWidth / 2, this.panelTop + 62);
-
+        int cardWidth = (rowWidth - (COLUMNS - 1) * 8) / COLUMNS;
+        int listTop = this.panelTop + 80;
         int start = this.page * LISTINGS_PER_PAGE;
-        int end = Math.min(this.snapshot.listings.size(), start + LISTINGS_PER_PAGE);
-        if (this.snapshot.listings.isEmpty()) {
-            this.drawCenteredWrappedAt(graphics, Component.translatable("gui.avecoins.player_market.empty"),
-                    listX + rowWidth / 2, listTop + 30, rowWidth - 48, this.theme().MUTED);
+        int end = Math.min(this.visibleListings.size(), start + LISTINGS_PER_PAGE);
+
+        if (this.visibleListings.isEmpty()) {
+            Component empty = this.search == null || this.search.isBlank()
+                    ? Component.translatable("gui.avecoins.player_market.empty")
+                    : Component.translatable("gui.avecoins.player_market.search_empty");
+            this.drawCenteredWrappedAt(graphics, empty, this.panelLeft + this.panelWidth / 2,
+                    listTop + 64, rowWidth - 60, this.theme().MUTED);
         }
 
         for (int index = start; index < end; index++) {
-            PlayerMarketService.MarketListing listing = this.snapshot.listings.get(index);
-            int rowY = listTop + (index - start) * 58;
-            graphics.fill(listX, rowY, listX + rowWidth - 98, rowY + 52, this.theme().BORDER);
-            graphics.fill(listX + 1, rowY + 1, listX + rowWidth - 99, rowY + 51, this.theme().PANEL);
+            PlayerMarketService.MarketListing listing = this.visibleListings.get(index);
+            int local = index - start;
+            int cardX = listX + (local % COLUMNS) * (cardWidth + 8);
+            int cardY = listTop + (local / COLUMNS) * CARD_STEP;
+            boolean ownListing = listing.sellerId.equals(this.snapshot.viewerId);
+            long total = (long) listing.unitPrice * listing.quantity;
+
+            graphics.fill(cardX, cardY, cardX + cardWidth, cardY + CARD_HEIGHT, this.theme().BORDER);
+            graphics.fill(cardX + 1, cardY + 1, cardX + cardWidth - 1, cardY + CARD_HEIGHT - 1, this.theme().PANEL);
 
             Identifier itemId = Identifier.tryParse(listing.itemId);
             if (itemId != null && BuiltInRegistries.ITEM.containsKey(itemId)) {
                 Item item = (Item) BuiltInRegistries.ITEM.getValue(itemId);
-                graphics.item(new ItemStack(item), listX + 8, rowY + 9);
+                graphics.item(new ItemStack(item), cardX + 7, cardY + 8);
             }
 
-            String title = this.font.plainSubstrByWidth(listing.displayName + " ×" + listing.quantity, 480);
-            graphics.text(this.font, Component.literal(title), listX + 31, rowY + 8,
-                    this.theme().TEXT, !this.theme().custom);
-            String seller = listing.sellerName + (listing.sellerId.equals(this.snapshot.viewerId) ? " · Вы" : "");
-            String details = seller + "  |  " + listing.unitPrice + " ВМуткоин/шт.  |  Итого: "
-                    + ((long) listing.unitPrice * listing.quantity);
-            graphics.text(this.font, Component.literal(this.font.plainSubstrByWidth(details, rowWidth - 140)),
-                    listX + 31, rowY + 27, this.theme().MUTED, !this.theme().custom);
+            String title = listing.displayName + (listing.quantity > 1 ? " ×" + listing.quantity : "");
+            graphics.text(this.font, Component.literal(this.font.plainSubstrByWidth(title, cardWidth - 34)),
+                    cardX + 29, cardY + 8, this.theme().TEXT, !this.theme().custom);
+
+            String seller = listing.sellerName + (ownListing ? " · Вы" : "");
+            graphics.text(this.font, Component.literal(this.font.plainSubstrByWidth(seller, cardWidth - 16)),
+                    cardX + 8, cardY + 28, this.theme().MUTED, !this.theme().custom);
+
+            Component unitPrice = Component.translatable("gui.avecoins.player_market.unit_price", listing.unitPrice);
+            graphics.text(this.font, Component.literal(this.font.plainSubstrByWidth(unitPrice.getString(), cardWidth - 78)),
+                    cardX + 8, cardY + 44, this.theme().TEXT, !this.theme().custom);
+            Component totalPrice = Component.translatable("gui.avecoins.player_market.total_price", total);
+            graphics.text(this.font, Component.literal(this.font.plainSubstrByWidth(totalPrice.getString(), cardWidth - 78)),
+                    cardX + 8, cardY + 58, this.theme().MUTED, !this.theme().custom);
         }
 
-        int maxPage = Math.max(0, (this.snapshot.listings.size() - 1) / LISTINGS_PER_PAGE);
+        int maxPage = Math.max(0, (this.visibleListings.size() - 1) / LISTINGS_PER_PAGE);
         if (maxPage > 0) {
             GuiTextLayout.drawCentered(graphics, this.font,
                     Component.translatable("gui.avecoins.shop.page", this.page + 1, maxPage + 1),
-                    listX + rowWidth / 2, this.panelTop + 378, this.theme().MUTED, !this.theme().custom);
+                    this.panelLeft + this.panelWidth / 2, this.panelTop + 352, this.theme().MUTED, !this.theme().custom);
         }
 
-        this.renderVmcoinBalance(graphics, this.panelLeft + this.panelWidth / 2, this.panelTop + 386);
+        this.renderVmcoinBalance(graphics, this.panelLeft + this.panelWidth / 2, this.panelTop + 383);
         if (!this.resultCode.isBlank()) {
             this.renderStatusBoxAt(graphics, this.resultCode, this.panelTop + this.panelHeight - 24);
         }

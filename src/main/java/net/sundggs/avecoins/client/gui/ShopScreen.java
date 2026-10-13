@@ -108,19 +108,23 @@ extends AvecoinsScreen {
         sell.active = this.snapshot.products.stream().anyMatch(product -> product.enabled && product.sellEnabled);
         sell.setTooltip(Tooltip.create((Component)Component.translatable((String)"gui.avecoins.shop.sell_box_help")));
         this.addRenderableWidget(sell);
+        if (this.minecraft.player != null) {
+            this.addRenderableWidget(new PanelButton(this.panelLeft + 10, buttonY, 124, 22,
+                    Component.translatable("gui.avecoins.player_market.tab"), PanelButton.Variant.HEADER,
+                    button -> ClientNetworking.send(new ServerboundAvecoinsPayload("request_player_market", "{}"))));
+        }
         if (this.snapshot.administrator) {
-            int adminX = this.panelLeft + 14 + this.font.width((FormattedText)this.displayedShopName()) + 12;
-            PanelButton administration = new PanelButton(adminX, buttonY, 28, 22, (Component)Component.empty(), PanelButton.Variant.HEADER, button -> ClientNetworking.send(new ServerboundAvecoinsPayload("request_shop_admin", "{\"history\":false,\"page\":0}"))).withIcon(ADMIN_ICON, 16);
+            int adminX = this.minecraft.player != null ? this.panelLeft + 140
+                    : this.panelLeft + 14 + this.font.width((FormattedText)this.displayedShopName()) + 12;
+            PanelButton administration = new PanelButton(adminX, buttonY, 28, 22,
+                    (Component)Component.empty(), PanelButton.Variant.HEADER,
+                    button -> ClientNetworking.send(new ServerboundAvecoinsPayload("request_shop_admin", "{\\"history\\":false,\\"page\\":0}")))
+                    .withIcon(ADMIN_ICON, 16);
             administration.setTooltip(Tooltip.create((Component)Component.translatable((String)"gui.avecoins.shop.admin")));
             this.addRenderableWidget(administration);
         }
         if (this.minecraft.player != null) {
             int footerTop = this.panelTop + this.panelHeight - 32;
-            PanelButton playerMarket = new PanelButton(this.panelLeft + (this.panelWidth - 148) / 2, footerTop + 5, 148, 22,
-                    (Component)Component.translatable("gui.avecoins.player_market.tab"), PanelButton.Variant.HEADER,
-                    button -> ClientNetworking.send(new ServerboundAvecoinsPayload("request_player_market", "{}")));
-            playerMarket.setTooltip(Tooltip.create((Component)Component.translatable("gui.avecoins.player_market.tab_help")));
-            this.addRenderableWidget(playerMarket);
             int walletX = this.panelLeft + this.panelWidth - 12 - 26;
             PanelButton wallet = new PanelButton(walletX, footerTop + 5, 26, 22, (Component)Component.empty(), PanelButton.Variant.HEADER, button -> ClientNetworking.send(new ServerboundAvecoinsPayload("request_wallet", "{}"))).withIcon(WALLET_ICON, 16);
             wallet.setTooltip(Tooltip.create((Component)Component.translatable((String)"gui.avecoins.wallet.open")));
@@ -289,7 +293,9 @@ extends AvecoinsScreen {
     @Override
     protected void renderPanel(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         Component shopName = this.displayedShopName();
-        graphics.text(this.font, shopName, this.panelLeft + 14, this.panelTop + 16, this.theme().TEXT, false);
+        int shopNameX = this.minecraft.player == null ? this.panelLeft + 14
+                : this.panelLeft + (this.snapshot.administrator ? 174 : 142);
+        graphics.text(this.font, shopName, shopNameX, this.panelTop + 16, this.theme().TEXT, false);
         GuiIconRenderer.blit(graphics, SEARCH_ICON, this.searchBox.getX() - 20, this.searchBox.getY() + 3, 16, 16, 32, 32);
         graphics.fill(this.panelLeft + 140, this.panelTop + 40, this.panelLeft + 140 + 1, this.panelTop + this.panelHeight - 32, this.theme().DIVIDER);
         MutableComponent categoryHeading = Component.literal((String)"\u2630 ").append((Component)Component.translatable((String)"gui.avecoins.shop.categories")).withStyle(ChatFormatting.BOLD);
@@ -393,7 +399,12 @@ extends AvecoinsScreen {
     }
 
     private Component displayedShopName() {
-        int titleWidth = this.snapshot.administrator ? 178 : 230;
+        int titleWidth;
+        if (this.minecraft.player != null) {
+            titleWidth = this.snapshot.administrator ? 92 : 120;
+        } else {
+            titleWidth = this.snapshot.administrator ? 178 : 230;
+        }
         return Component.literal((String)this.font.plainSubstrByWidth(this.title.getString(), titleWidth)).withStyle(ChatFormatting.BOLD);
     }
 
