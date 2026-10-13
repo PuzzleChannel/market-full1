@@ -392,7 +392,6 @@
   "gui.avecoins.player_market.keep_listing": "Keep listing",
   "gui.avecoins.player_market.filter": "Filter: %s",
   "gui.avecoins.player_market.filter_all": "All",
-  "gui.avecoins.player_market.filter_affordable": "Affordable",
   "gui.avecoins.player_market.filter_mine": "Mine",
   "gui.avecoins.player_market.filter_others": "Others",
   "gui.avecoins.player_market.sort": "Sort: %s",
@@ -401,5 +400,16 @@
   "gui.avecoins.player_market.sort_expensive": "Price ↓",
   "gui.avecoins.player_market.sort_quantity": "More items",
   "gui.avecoins.player_market.sort_unit": "Price/item ↑",
-  "gui.avecoins.player_market.manage_total_value": "Total value:"
+  "gui.avecoins.player_market.manage_total_value": "Total value:",
+  "gui.avecoins.player_market.category_all": "ALL",
+  "gui.avecoins.player_market.category_blocks": "BLOCKS",
+  "gui.avecoins.player_market.category_tools": "TOOLS",
+  "gui.avecoins.player_market.category_combat": "COMBAT",
+  "gui.avecoins.player_market.category_materials": "MATERIALS",
+  "gui.avecoins.player_market.category_food": "FOOD",
+  "gui.avecoins.player_market.category_potions": "POTIONS",
+  "gui.avecoins.player_market.category_redstone": "REDSTONE",
+  "gui.avecoins.player_market.category_transport": "TRANSPORT",
+  "gui.avecoins.player_market.category_decoration": "DECOR",
+  "gui.avecoins.player_market.category_other": "OTHER"
 }
