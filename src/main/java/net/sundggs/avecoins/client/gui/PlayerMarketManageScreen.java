@@ -132,7 +132,7 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
                     Component.translatable("gui.avecoins.player_market.price"));
             priceBox.setMaxLength(4);
             priceBox.setValue(this.priceDrafts.getOrDefault(listing.id, Integer.toString(listing.totalPrice)));
-            priceBox.setHint(Component.literal(Integer.toString(listing.unitPrice)));
+            priceBox.setHint(Component.literal(Integer.toString(listing.totalPrice)));
             priceBox.setTooltip(net.minecraft.client.gui.components.Tooltip.create(
                     Component.translatable("gui.avecoins.player_market.price_edit_help")));
             this.priceBoxes.put(listing.id, priceBox);
