@@ -1,7 +1,10 @@
 package net.sundggs.avecoins.client.gui;
 
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
@@ -15,6 +18,7 @@ import net.minecraft.network.chat.Component;
 import net.sundggs.avecoins.network.ClientNetworking;
 import net.sundggs.avecoins.network.ServerboundAvecoinsPayload;
 import net.sundggs.avecoins.shop.PlayerMarketService;
+import net.sundggs.avecoins.shop.ShopItemStacks;
 import net.sundggs.avecoins.shop.ShopService;
 
 /** Компактный рынок игроков с поиском по объявлениям. */
@@ -23,8 +27,24 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
     private static final int COLUMNS = 4;
     private static final int CARD_HEIGHT = 80;
     private static final int CARD_STEP = 86;
+    private static final String[] FILTER_KEYS = {
+            "gui.avecoins.player_market.filter_all",
+            "gui.avecoins.player_market.filter_affordable",
+            "gui.avecoins.player_market.filter_mine",
+            "gui.avecoins.player_market.filter_others"
+    };
+    private static final String[] SORT_KEYS = {
+            "gui.avecoins.player_market.sort_newest",
+            "gui.avecoins.player_market.sort_cheapest",
+            "gui.avecoins.player_market.sort_expensive",
+            "gui.avecoins.player_market.sort_quantity",
+            "gui.avecoins.player_market.sort_unit"
+    };
 
     private final PlayerMarketService.MarketSnapshot snapshot;
+    private final Map<String, ItemStack> previewCache = new HashMap<>();
+    private int filterMode;
+    private int sortMode;
     private String resultCode;
     private String search;
     private int page;
@@ -32,15 +52,18 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
     private List<PlayerMarketService.MarketListing> visibleListings = List.of();
 
     public PlayerMarketScreen(PlayerMarketService.MarketSnapshot snapshot, String resultCode) {
-        this(snapshot, resultCode, "", 0);
+        this(snapshot, resultCode, "", 0, 0, 0);
     }
 
-    private PlayerMarketScreen(PlayerMarketService.MarketSnapshot snapshot, String resultCode, String search, int page) {
+    private PlayerMarketScreen(PlayerMarketService.MarketSnapshot snapshot, String resultCode, String search,
+                                int page, int filterMode, int sortMode) {
         super(Component.translatable("gui.avecoins.player_market.title"));
         this.snapshot = snapshot;
         this.resultCode = resultCode == null ? "" : resultCode;
         this.search = search == null ? "" : search;
         this.page = Math.max(0, page);
+        this.filterMode = Math.floorMod(filterMode, FILTER_KEYS.length);
+        this.sortMode = Math.floorMod(sortMode, SORT_KEYS.length);
         ShopService.ShopSnapshot themeSnapshot = new ShopService.ShopSnapshot();
         themeSnapshot.shopColor = snapshot.shopColor;
         this.useShopTheme(themeSnapshot);
@@ -48,7 +71,8 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
 
     public PlayerMarketScreen refreshed(PlayerMarketService.MarketSnapshot snapshot, String resultCode) {
         return new PlayerMarketScreen(snapshot, resultCode,
-                this.searchBox == null ? this.search : this.searchBox.getValue(), this.page);
+                this.searchBox == null ? this.search : this.searchBox.getValue(),
+                this.page, this.filterMode, this.sortMode);
     }
 
     @Override
@@ -73,13 +97,32 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
                 Component.translatable("gui.avecoins.player_market.list_item"), PanelButton.Variant.SUCCESS,
                 button -> this.minecraft.gui.setScreen(new PlayerMarketCreateScreen(this.snapshot, ""))));
 
-        int searchWidth = 330;
-        this.searchBox = new EditBox(this.font, this.panelLeft + (this.panelWidth - searchWidth) / 2,
-                this.panelTop + 42, searchWidth, 20, Component.translatable("gui.avecoins.player_market.search"));
+        int controlsWidth = 150 + 8 + 300 + 8 + 150;
+        int controlsLeft = this.panelLeft + (this.panelWidth - controlsWidth) / 2;
+        this.addRenderableWidget(new PanelButton(controlsLeft, this.panelTop + 42, 150, 20,
+                Component.translatable("gui.avecoins.player_market.filter",
+                        Component.translatable(FILTER_KEYS[this.filterMode])),
+                PanelButton.Variant.SECONDARY, button -> {
+                    this.filterMode = (this.filterMode + 1) % FILTER_KEYS.length;
+                    this.page = 0;
+                    this.rebuildWidgets();
+                }));
+
+        this.searchBox = new EditBox(this.font, controlsLeft + 158,
+                this.panelTop + 42, 300, 20, Component.translatable("gui.avecoins.player_market.search"));
         this.searchBox.setMaxLength(64);
         this.searchBox.setValue(this.search);
         this.searchBox.setHint(Component.translatable("gui.avecoins.player_market.search"));
         this.addRenderableWidget(this.searchBox);
+
+        this.addRenderableWidget(new PanelButton(controlsLeft + 466, this.panelTop + 42, 150, 20,
+                Component.translatable("gui.avecoins.player_market.sort",
+                        Component.translatable(SORT_KEYS[this.sortMode])),
+                PanelButton.Variant.SECONDARY, button -> {
+                    this.sortMode = (this.sortMode + 1) % SORT_KEYS.length;
+                    this.page = 0;
+                    this.rebuildWidgets();
+                }));
 
         this.visibleListings = this.filteredListings();
         int maxPage = Math.max(0, (this.visibleListings.size() - 1) / LISTINGS_PER_PAGE);
@@ -98,7 +141,7 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
             int cardX = listX + (local % COLUMNS) * (cardWidth + 8);
             int cardY = listTop + (local / COLUMNS) * CARD_STEP;
             boolean ownListing = listing.sellerId.equals(this.snapshot.viewerId);
-            long total = (long) listing.unitPrice * listing.quantity;
+            long total = lotPrice(listing);
 
             PanelButton action = new PanelButton(cardX + cardWidth - 62, cardY + 59, 56, 18,
                     Component.translatable(ownListing ? "gui.avecoins.player_market.cancel" : "gui.avecoins.player_market.buy"),
@@ -140,12 +183,63 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
 
     private List<PlayerMarketService.MarketListing> filteredListings() {
         String query = this.search == null ? "" : this.search.trim().toLowerCase(Locale.ROOT);
-        if (query.isEmpty()) return this.snapshot.listings;
-        return this.snapshot.listings.stream().filter(listing ->
-                (listing.displayName != null && listing.displayName.toLowerCase(Locale.ROOT).contains(query))
-                || (listing.itemId != null && listing.itemId.toLowerCase(Locale.ROOT).contains(query))
-                || (listing.sellerName != null && listing.sellerName.toLowerCase(Locale.ROOT).contains(query))
-        ).toList();
+        return this.snapshot.listings.stream()
+                .filter(listing -> {
+                    boolean own = listing.sellerId.equals(this.snapshot.viewerId);
+                    long total = lotPrice(listing);
+                    boolean matchesFilter = switch (this.filterMode) {
+                        case 1 -> !own && total <= this.snapshot.walletBalance;
+                        case 2 -> own;
+                        case 3 -> !own;
+                        default -> true;
+                    };
+                    boolean matchesSearch = query.isEmpty()
+                            || (listing.displayName != null && listing.displayName.toLowerCase(Locale.ROOT).contains(query))
+                            || (listing.itemId != null && listing.itemId.toLowerCase(Locale.ROOT).contains(query))
+                            || (listing.sellerName != null && listing.sellerName.toLowerCase(Locale.ROOT).contains(query));
+                    return matchesFilter && matchesSearch;
+                })
+                .sorted(this.listingComparator())
+                .toList();
+    }
+
+    private Comparator<PlayerMarketService.MarketListing> listingComparator() {
+        Comparator<PlayerMarketService.MarketListing> newest =
+                Comparator.comparingLong((PlayerMarketService.MarketListing listing) -> listing.createdAt).reversed();
+        return switch (this.sortMode) {
+            case 1 -> Comparator.comparingLong(PlayerMarketScreen::lotPrice).thenComparing(newest);
+            case 2 -> Comparator.comparingLong(PlayerMarketScreen::lotPrice).reversed().thenComparing(newest);
+            case 3 -> Comparator.comparingInt((PlayerMarketService.MarketListing listing) -> listing.quantity)
+                    .reversed().thenComparing(newest);
+            case 4 -> (first, second) -> {
+                long firstCross = lotPrice(first) * Math.max(1, second.quantity);
+                long secondCross = lotPrice(second) * Math.max(1, first.quantity);
+                int compare = Long.compare(firstCross, secondCross);
+                return compare != 0 ? compare : Long.compare(second.createdAt, first.createdAt);
+            };
+            default -> newest;
+        };
+    }
+
+    private static long lotPrice(PlayerMarketService.MarketListing listing) {
+        return listing.totalPrice > 0 ? listing.totalPrice : (long) listing.unitPrice * listing.quantity;
+    }
+
+    private ItemStack previewStack(PlayerMarketService.MarketListing listing) {
+        ItemStack cached = this.previewCache.get(listing.id);
+        if (cached != null) return cached.copy();
+        Identifier itemId = Identifier.tryParse(listing.itemId);
+        if (itemId == null || !BuiltInRegistries.ITEM.containsKey(itemId)) return ItemStack.EMPTY;
+        Item item = (Item) BuiltInRegistries.ITEM.getValue(itemId);
+        ItemStack stack = ItemStack.EMPTY;
+        if (this.minecraft.level != null && listing.itemData != null && !listing.itemData.isBlank()) {
+            stack = ShopItemStacks.decodeExpected(this.minecraft.level.registryAccess(), listing.itemData, item)
+                    .orElse(ItemStack.EMPTY);
+        }
+        if (stack.isEmpty()) stack = new ItemStack(item);
+        stack = stack.copyWithCount(Math.min(Math.max(1, listing.quantity), stack.getMaxStackSize()));
+        this.previewCache.put(listing.id, stack.copy());
+        return stack;
     }
 
     public boolean charTyped(CharacterEvent event) {
@@ -225,13 +319,17 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
             boolean ownListing = listing.sellerId.equals(this.snapshot.viewerId);
             long total = (long) listing.unitPrice * listing.quantity;
 
-            Identifier itemId = Identifier.tryParse(listing.itemId);
-            if (itemId != null && BuiltInRegistries.ITEM.containsKey(itemId)) {
-                Item item = (Item) BuiltInRegistries.ITEM.getValue(itemId);
-                graphics.item(new ItemStack(item), cardX + 7, cardY + 8);
+            ItemStack preview = this.previewStack(listing);
+            if (!preview.isEmpty()) {
+                graphics.item(preview, cardX + 7, cardY + 8);
+                if (mouseX >= cardX + 6 && mouseX < cardX + 28
+                        && mouseY >= cardY + 7 && mouseY < cardY + 30) {
+                    graphics.setTooltipForNextFrame(this.font, preview, mouseX, mouseY);
+                }
             }
 
-            String title = listing.displayName + (listing.quantity > 1 ? " ×" + listing.quantity : "");
+            String displayName = preview.isEmpty() ? listing.displayName : preview.getHoverName().getString();
+            String title = displayName + (listing.quantity > 1 ? " ×" + listing.quantity : "");
             graphics.text(this.font, Component.literal(this.font.plainSubstrByWidth(title, cardWidth - 34)),
                     cardX + 29, cardY + 8, this.theme().TEXT, !this.theme().custom);
 
@@ -239,11 +337,12 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
             graphics.text(this.font, Component.literal(this.font.plainSubstrByWidth(seller, cardWidth - 16)),
                     cardX + 8, cardY + 28, this.theme().MUTED, !this.theme().custom);
 
-            Component unitPrice = Component.translatable("gui.avecoins.player_market.unit_price", listing.unitPrice);
-            graphics.text(this.font, Component.literal(this.font.plainSubstrByWidth(unitPrice.getString(), cardWidth - 78)),
-                    cardX + 8, cardY + 44, this.theme().TEXT, !this.theme().custom);
             Component totalPrice = Component.translatable("gui.avecoins.player_market.total_price", total);
             graphics.text(this.font, Component.literal(this.font.plainSubstrByWidth(totalPrice.getString(), cardWidth - 78)),
+                    cardX + 8, cardY + 44, this.theme().TEXT, !this.theme().custom);
+            String perItem = String.format(Locale.ROOT, "%.3f", (double) total / Math.max(1, listing.quantity));
+            Component unitPrice = Component.translatable("gui.avecoins.player_market.unit_price", perItem);
+            graphics.text(this.font, Component.literal(this.font.plainSubstrByWidth(unitPrice.getString(), cardWidth - 78)),
                     cardX + 8, cardY + 58, this.theme().MUTED, !this.theme().custom);
         }
 
