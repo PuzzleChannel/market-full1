@@ -33,6 +33,8 @@ public final class PlayerMarketService {
             entry.displayName = listing.displayName;
             entry.quantity = listing.quantity;
             entry.unitPrice = listing.unitPrice;
+            entry.totalPrice = (int) totalPrice(listing);
+            entry.itemData = listing.itemData;
             entry.createdAt = listing.createdAt;
             snapshot.listings.add(entry);
         }
@@ -43,8 +45,8 @@ public final class PlayerMarketService {
         return net.sundggs.avecoins.config.AtomicJsonStore.gson().toJson(snapshot(player));
     }
 
-    public static Result createListing(ServerPlayer player, int inventorySlot, int unitPrice, int quantity) {
-        if (unitPrice < 1 || unitPrice > MAX_WALLET_BALANCE || quantity < 1 || quantity > 999) {
+    public static Result createListing(ServerPlayer player, int inventorySlot, int lotPrice, int quantity) {
+        if (lotPrice < 1 || lotPrice > MAX_WALLET_BALANCE || quantity < 1 || quantity > 999) {
             return Result.fail("market_invalid_price_quantity");
         }
         if (inventorySlot < 0 || inventorySlot >= 36) {
@@ -60,15 +62,8 @@ public final class PlayerMarketService {
         if (quantity > held.getCount()) {
             return Result.fail("market_not_enough_items");
         }
-        long total;
-        try {
-            total = Math.multiplyExact((long) unitPrice, (long) quantity);
-        } catch (ArithmeticException exception) {
-            return Result.fail("market_invalid_price_quantity");
-        }
-        if (total > MAX_WALLET_BALANCE) {
-            return Result.fail("market_total_too_high");
-        }
+        // The entered price is the total for this entire lot, not the per-item price.
+        long total = lotPrice;
 
         String itemData = ShopItemStacks.encode(player.level().registryAccess(), held);
         if (itemData.isBlank() || itemData.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > PlayerMarketData.MAX_ITEM_DATA_BYTES) {
@@ -89,7 +84,8 @@ public final class PlayerMarketService {
         listing.itemId = itemId;
         listing.itemData = itemData;
         listing.quantity = quantity;
-        listing.unitPrice = unitPrice;
+        listing.unitPrice = Math.max(1, lotPrice / quantity);
+        listing.totalPrice = lotPrice;
         listing.createdAt = System.currentTimeMillis();
         candidate.listings.add(0, listing);
 
@@ -112,10 +108,8 @@ public final class PlayerMarketService {
         if (listing.sellerId.equals(buyer.getUUID().toString())) {
             return Result.fail("market_cannot_buy_own");
         }
-        long total;
-        try {
-            total = Math.multiplyExact((long) listing.unitPrice, (long) listing.quantity);
-        } catch (ArithmeticException exception) {
+        long total = totalPrice(listing);
+        if (total < 1 || total > MAX_WALLET_BALANCE) {
             return Result.fail("market_invalid_price_quantity");
         }
 
@@ -212,8 +206,8 @@ public final class PlayerMarketService {
         return Result.ok("market_listing_cancelled");
     }
 
-    public static Result updatePrice(ServerPlayer seller, String listingId, int unitPrice) {
-        if (unitPrice < 1 || unitPrice > MAX_WALLET_BALANCE) {
+    public static Result updatePrice(ServerPlayer seller, String listingId, int lotPrice) {
+        if (lotPrice < 1 || lotPrice > MAX_WALLET_BALANCE) {
             return Result.fail("market_invalid_price_quantity");
         }
         PlayerMarketData current = PlayerMarketStore.get();
@@ -225,12 +219,7 @@ public final class PlayerMarketService {
             return Result.fail("permission_denied");
         }
 
-        long total;
-        try {
-            total = Math.multiplyExact((long) unitPrice, (long) listing.quantity);
-        } catch (ArithmeticException exception) {
-            return Result.fail("market_invalid_price_quantity");
-        }
+        long total = lotPrice;
         if (total > MAX_WALLET_BALANCE) {
             return Result.fail("market_total_too_high");
         }
@@ -240,11 +229,16 @@ public final class PlayerMarketService {
         if (editable == null) {
             return Result.fail("market_listing_missing");
         }
-        editable.unitPrice = unitPrice;
+        editable.unitPrice = Math.max(1, lotPrice / editable.quantity);
+        editable.totalPrice = lotPrice;
         if (!PlayerMarketStore.save(candidate)) {
             return Result.fail("persistence_error");
         }
         return Result.ok("market_listing_updated");
+    }
+
+    private static long totalPrice(PlayerMarketData.Listing listing) {
+        return listing.totalPrice > 0 ? listing.totalPrice : (long) listing.unitPrice * listing.quantity;
     }
 
     private static PlayerMarketData.Listing find(PlayerMarketData data, String listingId) {
@@ -301,7 +295,11 @@ public final class PlayerMarketService {
         public String itemId = "";
         public String displayName = "";
         public int quantity;
+        /** Server-calculated price for the full lot, including migrated legacy listings. */
+        public int totalPrice;
+        /** Retained for compatibility with older saved listings. */
         public int unitPrice;
+        public String itemData = "";
         public long createdAt;
     }
 
