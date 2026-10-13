@@ -43,7 +43,6 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
             "gui.avecoins.player_market.category_food",
             "gui.avecoins.player_market.category_potions",
             "gui.avecoins.player_market.category_redstone",
-            "gui.avecoins.player_market.category_transport",
             "gui.avecoins.player_market.category_decoration",
             "gui.avecoins.player_market.category_other"
     };
@@ -242,7 +241,7 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
     private boolean matchesCategory(PlayerMarketService.MarketListing listing) {
         if (this.categoryMode == 0) return true;
         Identifier id = Identifier.tryParse(listing.itemId);
-        if (id == null || !BuiltInRegistries.ITEM.containsKey(id)) return this.categoryMode == 10;
+        if (id == null || !BuiltInRegistries.ITEM.containsKey(id)) return this.categoryMode == 9;
         Item item = (Item) BuiltInRegistries.ITEM.getValue(id);
         String path = id.getPath();
         int category;
@@ -260,9 +259,8 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
         else if (path.contains("redstone") || path.contains("repeater") || path.contains("comparator") || path.contains("observer")
                 || path.contains("piston") || path.contains("lever") || path.contains("button") || path.contains("pressure_plate")
                 || path.contains("tripwire") || path.contains("target") || path.contains("daylight_detector") || path.contains("dispenser")
-                || path.contains("dropper") || path.contains("hopper")) category = 7;
-        else if (path.contains("boat") || path.contains("raft") || path.contains("minecart") || path.contains("rail") || path.equals("saddle")
-                || path.equals("chest_minecart") || path.equals("furnace_minecart")) category = 8;
+                || path.contains("dropper") || path.contains("hopper") || path.contains("rail") || path.contains("minecart")) category = 7;
+        else if (path.contains("boat") || path.contains("raft") || path.equals("saddle")) category = 2;
         else if (path.contains("apple") || path.contains("bread") || path.contains("beef") || path.contains("porkchop")
                 || path.contains("chicken") || path.contains("mutton") || path.contains("rabbit") || path.contains("cod")
                 || path.contains("salmon") || path.contains("tropical_fish") || path.contains("pufferfish") || path.contains("stew")
@@ -282,9 +280,9 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
                 || path.contains("sign") || path.contains("pot") || path.contains("head") || path.contains("skull")
                 || path.contains("armor_stand") || path.contains("lantern") || path.contains("torch") || path.contains("carpet")
                 || path.contains("music_disc") || path.contains("coral") || path.contains("sapling") || path.contains("leaves")
-                || path.contains("hanging_sign")) category = 9;
+                || path.contains("hanging_sign")) category = 8;
         else if (item instanceof BlockItem) category = 1;
-        else category = 10;
+        else category = 9;
         return this.categoryMode == category;
     }
 
