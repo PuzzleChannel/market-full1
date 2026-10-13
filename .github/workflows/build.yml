@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - restore-vmcoin
+      - player-market
     paths:
       - "build.gradle"
       - "settings.gradle"
