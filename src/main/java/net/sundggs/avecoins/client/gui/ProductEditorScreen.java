@@ -108,8 +108,8 @@ extends AvecoinsScreen {
         this.addRenderableWidget((GuiEventListener)this.categoryAutocomplete.box());
         this.itemCountBox = this.field(right + 155, this.panelTop + 142, 62, 2, this.existing == null ? "" : Integer.toString(this.existing.itemCount));
         this.stockBox = this.field(right + 225, this.panelTop + 142, 62, 11, this.existing == null ? "" : Integer.toString(this.existing.stock));
-        this.currencyAutocomplete = new AutocompleteField(this.font, paymentLeft, this.panelTop + 218, 200, 128, this.existing == null ? "" : this.existing.currencyId, CraftingConfig.MANAGED_RESULTS.stream().sorted().toList(), AutocompleteField::registeredItem, value -> {
-            if (CraftingConfig.MANAGED_RESULTS.contains(value)) {
+        this.currencyAutocomplete = new AutocompleteField(this.font, paymentLeft, this.panelTop + 218, 200, 128, this.existing == null ? CraftingConfig.CURRENCY : this.existing.currencyId, CraftingConfig.COINS, AutocompleteField::registeredItem, value -> {
+            if (CraftingConfig.COINS.contains(value)) {
                 this.validationKey = "";
             }
         });
@@ -160,7 +160,7 @@ extends AvecoinsScreen {
             return;
         }
         String currencyId = BuiltInRegistries.ITEM.getKey((Object)this.minecraft.player.getMainHandItem().getItem()).toString();
-        if (!CraftingConfig.MANAGED_RESULTS.contains(currencyId)) {
+        if (!CraftingConfig.COINS.contains(currencyId)) {
             this.validationKey = "gui.avecoins.editor.currency_hand_required";
             return;
         }
@@ -253,7 +253,7 @@ extends AvecoinsScreen {
             return;
         }
         Identifier currencyId = Identifier.tryParse((String)this.currencyBox.getValue());
-        if (currencyId == null || !BuiltInRegistries.ITEM.containsKey(currencyId) || !CraftingConfig.MANAGED_RESULTS.contains(this.currencyBox.getValue())) {
+        if (currencyId == null || !BuiltInRegistries.ITEM.containsKey(currencyId) || !CraftingConfig.COINS.contains(this.currencyBox.getValue())) {
             this.validationKey = "gui.avecoins.editor.invalid_currency";
             return;
         }
@@ -267,7 +267,7 @@ extends AvecoinsScreen {
         product.name = this.nameBox.getValue();
         product.itemId = this.itemBox.getValue();
         product.itemData = this.capturedItemData;
-        product.currencyId = this.currencyBox.getValue();
+        product.currencyId = CraftingConfig.CURRENCY;
         product.enabled = this.enabled;
         product.sellEnabled = this.sellEnabled;
         product.sortOrder = this.existing == null ? 0 : this.existing.sortOrder;
@@ -344,7 +344,7 @@ extends AvecoinsScreen {
         preview.name = this.nameBox.getValue().isBlank() ? Component.translatable((String)"gui.avecoins.product.unnamed").getString() : this.nameBox.getValue();
         preview.itemId = this.itemBox.getValue();
         preview.itemData = this.itemBox.getValue().equals(this.capturedItemId) ? this.capturedItemData : "";
-        preview.currencyId = this.currencyBox.getValue();
+        preview.currencyId = CraftingConfig.CURRENCY;
         preview.itemCount = this.parsed(this.itemCountBox, 1);
         preview.price = this.parsed(this.priceBox, 1);
         preview.discountPrice = this.discountedPrice(preview.price);
