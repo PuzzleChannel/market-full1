@@ -38,7 +38,7 @@ import net.sundggs.avecoins.shop.CoinExchangeService;
 
 public final class StartupRecipeService {
     private static final Set<Identifier> MANAGED_DEFAULT_RECIPE_IDS = Set.of(StartupRecipeService.managedId("coppercoin"), StartupRecipeService.managedId("ironcoin"), StartupRecipeService.managedId("goldcoin"), StartupRecipeService.managedId("diamondcoin"), StartupRecipeService.managedId("netheritecoin"), StartupRecipeService.managedId("goldticket"), StartupRecipeService.managedId("diamondticket"), StartupRecipeService.managedId("netheriteticket"), StartupRecipeService.managedId("ic_to_cc"), StartupRecipeService.managedId("gc_to_ic"), StartupRecipeService.managedId("dc_to_gc"), StartupRecipeService.managedId("nc_to_dc"));
-    private static final Set<Identifier> MANAGED_CUSTOM_RECIPE_IDS = Set.of(StartupRecipeService.customId("coppercoin"), StartupRecipeService.customId("ironcoin"), StartupRecipeService.customId("goldcoin"), StartupRecipeService.customId("diamondcoin"), StartupRecipeService.customId("netheritecoin"), StartupRecipeService.customId("goldticket"), StartupRecipeService.customId("diamondticket"), StartupRecipeService.customId("netheriteticket"));
+    private static final Set<Identifier> MANAGED_CUSTOM_RECIPE_IDS = Set.of(StartupRecipeService.customId("coppercoin"), StartupRecipeService.customId("ironcoin"), StartupRecipeService.customId("goldcoin"), StartupRecipeService.customId("diamondcoin"), StartupRecipeService.customId("netheritecoin"), StartupRecipeService.customId("goldticket"), StartupRecipeService.customId("diamondticket"), StartupRecipeService.customId("netheriteticket"), StartupRecipeService.customId("vmcoin"));
     private static final Map<Identifier, String> DOWNGRADE_SOURCES = StartupRecipeService.downgradeSources();
     private static MinecraftServer server;
     private static List<RecipeHolder<?>> defaults;
@@ -119,11 +119,14 @@ public final class StartupRecipeService {
 
     private static String resultId(RecipeHolder<?> holder) {
         Identifier recipeId = holder.id().identifier();
-        String downgradeSource = DOWNGRADE_SOURCES.get(recipeId);
-        if (downgradeSource != null) {
-            return RecipesConfig.DOWNGRADE_RESULTS.get(downgradeSource);
+        String path = recipeId.getPath();
+        if (List.of("ic_to_cc", "gc_to_ic", "dc_to_gc", "nc_to_dc").contains(path)
+            || CraftingConfig.LEGACY_COINS.contains("avecoins:" + path)) {
+            return null;
         }
-        return MANAGED_DEFAULT_RECIPE_IDS.contains(recipeId) ? Identifier.fromNamespaceAndPath((String)"avecoins", (String)recipeId.getPath()).toString() : null;
+        return MANAGED_DEFAULT_RECIPE_IDS.contains(recipeId)
+            ? Identifier.fromNamespaceAndPath((String)"avecoins", (String)path).toString()
+            : null;
     }
 
     private static RecipeHolder<?> createCustomRecipe(String resultId, RecipeDefinition definition) {
@@ -159,12 +162,7 @@ public final class StartupRecipeService {
     }
 
     private static Map<Identifier, String> downgradeSources() {
-        LinkedHashMap<Identifier, String> sources = new LinkedHashMap<Identifier, String>();
-        sources.put(StartupRecipeService.managedId("ic_to_cc"), "avecoins:ironcoin");
-        sources.put(StartupRecipeService.managedId("gc_to_ic"), "avecoins:goldcoin");
-        sources.put(StartupRecipeService.managedId("dc_to_gc"), "avecoins:diamondcoin");
-        sources.put(StartupRecipeService.managedId("nc_to_dc"), "avecoins:netheritecoin");
-        return Map.copyOf(sources);
+        return Map.of();
     }
 
     private static Identifier requireItem(String value) {
