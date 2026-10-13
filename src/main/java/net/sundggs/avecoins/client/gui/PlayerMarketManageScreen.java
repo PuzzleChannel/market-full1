@@ -16,6 +16,7 @@ import net.minecraft.network.chat.Component;
 import net.sundggs.avecoins.network.ClientNetworking;
 import net.sundggs.avecoins.network.ServerboundAvecoinsPayload;
 import net.sundggs.avecoins.shop.PlayerMarketService;
+import net.sundggs.avecoins.shop.ShopItemStacks;
 import net.sundggs.avecoins.shop.ShopService;
 
 /** Lists the current player's escrowed items and allows safe price edits or cancellation. */
@@ -57,7 +58,7 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
             activeIds.add(listing.id);
             String draft = drafts.get(listing.id);
             if ("market_listing_updated".equals(resultCode) && draft != null
-                    && draft.trim().equals(Integer.toString(listing.unitPrice))) {
+                    && draft.trim().equals(Integer.toString(listing.totalPrice))) {
                 drafts.remove(listing.id);
             }
         }
@@ -84,7 +85,7 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
     private static long totalValue(List<PlayerMarketService.MarketListing> listings) {
         long total = 0L;
         for (PlayerMarketService.MarketListing listing : listings) {
-            total += (long) listing.unitPrice * listing.quantity;
+            total += (long) listing.totalPrice;
         }
         return total;
     }
@@ -130,7 +131,7 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
             EditBox priceBox = new EditBox(this.font, cardX + 8, cardY + 41, 74, 18,
                     Component.translatable("gui.avecoins.player_market.price"));
             priceBox.setMaxLength(4);
-            priceBox.setValue(this.priceDrafts.getOrDefault(listing.id, Integer.toString(listing.unitPrice)));
+            priceBox.setValue(this.priceDrafts.getOrDefault(listing.id, Integer.toString(listing.totalPrice)));
             priceBox.setHint(Component.literal(Integer.toString(listing.unitPrice)));
             priceBox.setTooltip(net.minecraft.client.gui.components.Tooltip.create(
                     Component.translatable("gui.avecoins.player_market.price_edit_help")));
@@ -192,13 +193,12 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
 
     private void updateSaveButton(PlayerMarketService.MarketListing listing, EditBox box, PanelButton button) {
         String value = box.getValue().trim();
-        boolean changed = !value.equals(Integer.toString(listing.unitPrice));
+        boolean changed = !value.equals(Integer.toString(listing.totalPrice));
         button.active = changed;
         boolean valid = false;
         try {
             int parsed = Integer.parseInt(value);
-            valid = parsed >= 1 && parsed <= PlayerMarketService.MAX_WALLET_BALANCE
-                    && (long) parsed * listing.quantity <= PlayerMarketService.MAX_WALLET_BALANCE;
+            valid = parsed >= 1 && parsed <= PlayerMarketService.MAX_WALLET_BALANCE;
         } catch (NumberFormatException ignored) {
             // Leave the button clickable for a useful validation message.
         }
@@ -232,11 +232,7 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
             this.resultCode = "market_invalid_price_quantity";
             return;
         }
-        if ((long) price * listing.quantity > PlayerMarketService.MAX_WALLET_BALANCE) {
-            this.resultCode = "market_total_too_high";
-            return;
-        }
-        if (price == listing.unitPrice) {
+        if (price == listing.totalPrice) {
             this.priceDrafts.remove(listing.id);
             this.resultCode = "";
             return;
@@ -304,10 +300,13 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
             int cardX = listX + (local % COLUMNS) * (cardWidth + 8);
             int cardY = listTop + (local / COLUMNS) * CARD_STEP;
 
-            Identifier itemId = Identifier.tryParse(listing.itemId);
-            if (itemId != null && BuiltInRegistries.ITEM.containsKey(itemId)) {
-                Item item = (Item) BuiltInRegistries.ITEM.getValue(itemId);
-                graphics.item(new ItemStack(item), cardX + 8, cardY + 8);
+            ItemStack preview = this.previewStack(listing);
+            if (!preview.isEmpty()) {
+                graphics.item(preview, cardX + 8, cardY + 8);
+                if (mouseX >= cardX + 7 && mouseX < cardX + 28
+                        && mouseY >= cardY + 7 && mouseY < cardY + 29) {
+                    graphics.setTooltipForNextFrame(this.font, preview, mouseX, mouseY);
+                }
             }
             String title = listing.displayName;
             graphics.text(this.font, Component.literal(this.font.plainSubstrByWidth(title, cardWidth - 44)),
@@ -317,7 +316,7 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
                     cardX + 30, cardY + 23, this.theme().MUTED, !this.theme().custom);
             graphics.text(this.font,
                     Component.translatable("gui.avecoins.player_market.current_price",
-                            listing.unitPrice, (long) listing.unitPrice * listing.quantity),
+                            listing.totalPrice),
                     cardX + 8, cardY + 32, this.theme().TEXT, !this.theme().custom);
         }
 
@@ -331,6 +330,22 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
         if (!this.resultCode.isBlank()) {
             this.renderStatusBoxAt(graphics, this.resultCode, this.panelTop + this.panelHeight - 24);
         }
+    }
+
+    private ItemStack previewStack(PlayerMarketService.MarketListing listing) {
+        Identifier itemId = Identifier.tryParse(listing.itemId);
+        if (itemId == null || !BuiltInRegistries.ITEM.containsKey(itemId)) {
+            return ItemStack.EMPTY;
+        }
+        Item item = (Item) BuiltInRegistries.ITEM.getValue(itemId);
+        if (this.minecraft.level != null && listing.itemData != null && !listing.itemData.isBlank()) {
+            ItemStack decoded = ShopItemStacks.decodeExpected(this.minecraft.level.registryAccess(),
+                    listing.itemData, item).orElse(ItemStack.EMPTY);
+            if (!decoded.isEmpty()) {
+                return decoded.copyWithCount(Math.min(listing.quantity, decoded.getMaxStackSize()));
+            }
+        }
+        return new ItemStack(item);
     }
 
     private void renderVmcoinBalance(GuiGraphicsExtractor graphics, int centerX, int iconY) {
