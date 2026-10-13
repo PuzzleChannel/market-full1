@@ -393,14 +393,14 @@
   "gui.avecoins.player_market.confirm_remove": "Confirm",
   "gui.avecoins.player_market.keep_listing": "Keep listing",
   "gui.avecoins.player_market.filter": "Filter: %s",
-  "gui.avecoins.player_market.filter_all": "All listings",
+  "gui.avecoins.player_market.filter_all": "All",
   "gui.avecoins.player_market.filter_affordable": "Affordable",
-  "gui.avecoins.player_market.filter_mine": "My listings",
-  "gui.avecoins.player_market.filter_others": "Other players",
+  "gui.avecoins.player_market.filter_mine": "Mine",
+  "gui.avecoins.player_market.filter_others": "Others",
   "gui.avecoins.player_market.sort": "Sort: %s",
-  "gui.avecoins.player_market.sort_newest": "Newest first",
-  "gui.avecoins.player_market.sort_cheapest": "Lowest lot price",
-  "gui.avecoins.player_market.sort_expensive": "Highest lot price",
-  "gui.avecoins.player_market.sort_quantity": "Largest quantity",
-  "gui.avecoins.player_market.sort_unit": "Lowest per-item price"
+  "gui.avecoins.player_market.sort_newest": "Newest",
+  "gui.avecoins.player_market.sort_cheapest": "Price ↑",
+  "gui.avecoins.player_market.sort_expensive": "Price ↓",
+  "gui.avecoins.player_market.sort_quantity": "More items",
+  "gui.avecoins.player_market.sort_unit": "Price/item ↑"
 }
