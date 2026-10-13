@@ -13,6 +13,7 @@ import net.sundggs.avecoins.recipe.StartupRecipeService;
 import net.sundggs.avecoins.shop.CoinExchangeService;
 import net.sundggs.avecoins.shop.ShopService;
 import net.sundggs.avecoins.shop.WalletStore;
+import net.sundggs.avecoins.shop.WalletService;
 
 public final class ModServerEvents {
     public static void register() {
@@ -33,6 +34,7 @@ public final class ModServerEvents {
             ServerPayloadHandler.removeSession(handler.player.getUUID());
         });
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+            WalletService.migrateLegacyCoins(handler.player);
             JsonObject state = new JsonObject();
             state.addProperty("enabled", Boolean.valueOf(ModConfigManager.general().shopEnabled));
             ModNetworking.send(handler.player, "shop_state", state.toString());
