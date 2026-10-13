@@ -377,7 +377,7 @@
   "gui.avecoins.sale.back_shop": "Вернуться в магазин",
   "gui.avecoins.player_market.search": "Поиск предмета или продавца...",
   "gui.avecoins.player_market.search_empty": "По вашему запросу ничего не найдено.",
-  "gui.avecoins.player_market.total_price": "Стоимость:"
+  "gui.avecoins.player_market.total_price": "Стоимость:",
   "gui.avecoins.player_market.my_listings": "Мои товары",
   "gui.avecoins.player_market.manage_title": "Мои товары",
   "gui.avecoins.player_market.manage_empty": "Вы пока не выставили ни одного предмета на продажу.",
