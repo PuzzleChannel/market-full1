@@ -3,7 +3,10 @@ package net.sundggs.avecoins.client.gui;
 import java.util.List;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.chat.Component;
 import net.sundggs.avecoins.client.gui.AvecoinsScreen;
 import net.sundggs.avecoins.client.gui.PanelButton;
@@ -165,22 +168,26 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
         for (int index = start; index < end; index++) {
             PlayerMarketService.MarketListing listing = this.snapshot.listings.get(index);
             int rowY = listTop + (index - start) * 58;
-            graphics.fill(listX, rowY, listX + rowWidth, rowY + 52, this.theme().BORDER);
-            graphics.fill(listX + 1, rowY + 1, listX + rowWidth - 1, rowY + 51, this.theme().PANEL);
-            String title = this.font.plainSubstrByWidth(listing.displayName + " ×" + listing.quantity, 300);
-            graphics.text(this.font, Component.literal(title), listX + 9, rowY + 8,
+            graphics.fill(listX, rowY, listX + rowWidth - 98, rowY + 52, this.theme().BORDER);
+            graphics.fill(listX + 1, rowY + 1, listX + rowWidth - 99, rowY + 51, this.theme().PANEL);
+            Identifier itemId = Identifier.tryParse(listing.itemId);
+            if (itemId != null && BuiltInRegistries.ITEM.containsKey(itemId)) {
+                Item item = (Item) BuiltInRegistries.ITEM.getValue(itemId);
+                graphics.item(new ItemStack(item), listX + 8, rowY + 9);
+            }
+            String title = this.font.plainSubstrByWidth(listing.displayName + " ×" + listing.quantity, 270);
+            graphics.text(this.font, Component.literal(title), listX + 31, rowY + 8,
                     this.theme().TEXT, !this.theme().custom);
             String seller = listing.sellerName + (listing.sellerId.equals(this.snapshot.viewerId) ? " · Вы" : "");
             String details = seller + "  |  " + listing.unitPrice + " ВМуткоин/шт.  |  Итого: "
                     + ((long) listing.unitPrice * listing.quantity);
             graphics.text(this.font, Component.literal(this.font.plainSubstrByWidth(details, 395)),
-                    listX + 9, rowY + 26, this.theme().MUTED, !this.theme().custom);
+                    listX + 31, rowY + 26, this.theme().MUTED, !this.theme().custom);
         }
 
         int formX = this.panelLeft + 542;
         int formRight = this.panelLeft + this.panelWidth - 12;
-        graphics.fill(formX - 8, this.panelTop + 78, formRight, this.panelTop + 360, this.theme().BORDER);
-        graphics.fill(formX - 7, this.panelTop + 79, formRight - 1, this.panelTop + 359, this.theme().PANEL);
+        graphics.fill(formX - 9, this.panelTop + 78, formX - 8, this.panelTop + 360, this.theme().DIVIDER);
         this.drawWrapped(graphics, Component.translatable("gui.avecoins.player_market.hold_item"),
                 formX, this.panelTop + 91, 240, this.theme().MUTED);
         graphics.text(this.font, Component.translatable("gui.avecoins.player_market.price"),
