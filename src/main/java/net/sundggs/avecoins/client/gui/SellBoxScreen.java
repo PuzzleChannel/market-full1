@@ -197,7 +197,7 @@ implements ThemedScreen {
         GuiTextLayout.drawCentered(graphics, this.font, (Component)Component.translatable((String)"gui.avecoins.sell_box.destination").withStyle(ChatFormatting.BOLD), 392, 200, this.theme().TEXT, !this.theme().custom);
         GuiTextLayout.drawCentered(graphics, this.font, (Component)Component.translatable((String)"gui.avecoins.sell_box.destination_help"), 392, 214, this.theme().MUTED, !this.theme().custom);
         int remaining = this.remainingItems();
-        MutableComponent mutableComponent = !this.result.isBlank() ? Component.translatable((String)("message.avecoins." + this.result)) : (feedback = remaining > 0 ? Component.translatable((String)"gui.avecoins.sell_box.remaining", (Object[])new Object[]{remaining}) : Component.empty());
+        feedback = !this.result.isBlank() ? Component.translatable((String)("message.avecoins." + this.result)) : (remaining > 0 ? Component.translatable((String)"gui.avecoins.sell_box.remaining", (Object[])new Object[]{remaining}) : Component.empty());
         if (!feedback.getString().isBlank()) {
             int color = !this.result.isBlank() ? this.theme().ERROR : this.theme().WARNING;
             GuiTextLayout.drawCentered(graphics, this.font, this.font.plainSubstrByWidth(feedback.getString(), 294), 392, 296, color, !this.theme().custom);
