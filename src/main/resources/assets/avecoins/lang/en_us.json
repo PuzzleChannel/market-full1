@@ -339,7 +339,7 @@
   "gui.avecoins.player_market.new_listing": "LISTINGS",
   "gui.avecoins.player_market.empty": "No listings yet. You can post the first item.",
   "gui.avecoins.player_market.hold_item": "Hold the item in your main hand. It is escrowed until sold or the listing is cancelled.",
-  "gui.avecoins.player_market.price": "Price for the entire lot (VMcoin)",
+  "gui.avecoins.player_market.price": "Lot price",
   "gui.avecoins.player_market.quantity": "Item quantity",
   "gui.avecoins.player_market.limit": "Up to 40 listings at once. Each lot must cost 1 to 1728 VMcoins.",
   "gui.avecoins.player_market.wallet": "Wallet balance: %s VMcoins",
@@ -385,9 +385,9 @@
   "gui.avecoins.player_market.price_short": "Price:",
   "message.avecoins.market_listing_updated": "Listing price updated.",
   "message.avecoins.market_updated": "Player market updated.",
-  "gui.avecoins.player_market.manage_summary": "Listings: %s · Items: %s · Total listing value: %s VMcoins",
-  "gui.avecoins.player_market.current_price": "Full lot price: %s VMcoins",
-  "gui.avecoins.player_market.price_edit_help": "Enter a new unit price and press Save.",
+  "gui.avecoins.player_market.manage_summary": "Listings: %s · Items: %s",
+  "gui.avecoins.player_market.current_price": "Cost:",
+  "gui.avecoins.player_market.price_edit_help": "Enter the new total price for this lot, then select Save.",
   "gui.avecoins.player_market.confirm_remove": "Confirm",
   "gui.avecoins.player_market.keep_listing": "Keep listing",
   "gui.avecoins.player_market.filter": "Filter: %s",
@@ -400,5 +400,6 @@
   "gui.avecoins.player_market.sort_cheapest": "Price ↑",
   "gui.avecoins.player_market.sort_expensive": "Price ↓",
   "gui.avecoins.player_market.sort_quantity": "More items",
-  "gui.avecoins.player_market.sort_unit": "Price/item ↑"
+  "gui.avecoins.player_market.sort_unit": "Price/item ↑",
+  "gui.avecoins.player_market.manage_total_value": "Total value:"
 }
