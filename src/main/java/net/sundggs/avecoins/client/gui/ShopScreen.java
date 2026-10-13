@@ -116,6 +116,11 @@ extends AvecoinsScreen {
         }
         if (this.minecraft.player != null) {
             int footerTop = this.panelTop + this.panelHeight - 32;
+            PanelButton playerMarket = new PanelButton(this.panelLeft + (this.panelWidth - 148) / 2, footerTop + 5, 148, 22,
+                    (Component)Component.translatable("gui.avecoins.player_market.tab"), PanelButton.Variant.HEADER,
+                    button -> ClientNetworking.send(new ServerboundAvecoinsPayload("request_player_market", "{}")));
+            playerMarket.setTooltip(Tooltip.create((Component)Component.translatable("gui.avecoins.player_market.tab_help")));
+            this.addRenderableWidget(playerMarket);
             int walletX = this.panelLeft + this.panelWidth - 12 - 26;
             PanelButton wallet = new PanelButton(walletX, footerTop + 5, 26, 22, (Component)Component.empty(), PanelButton.Variant.HEADER, button -> ClientNetworking.send(new ServerboundAvecoinsPayload("request_wallet", "{}"))).withIcon(WALLET_ICON, 16);
             wallet.setTooltip(Tooltip.create((Component)Component.translatable((String)"gui.avecoins.wallet.open")));
