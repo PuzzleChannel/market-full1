@@ -1,0 +1,20 @@
+{
+  "item.avecoins.goldticket": "Золотой билет",
+  "item.avecoins.diamondticket": "Алмазный билет",
+  "item.avecoins.netheriteticket": "Незеритовый билет",
+  "creativetab.avecoinsmod.items": "Билеты ВМутко",
+  "gui.avecoins.dashboard.coins": "ВМуткоин",
+  "gui.avecoins.coins.title": "ВМуткоин",
+  "gui.avecoins.coins.subtitle": "Единая валюта сервера.\\nНастройте рецепт при необходимости.",
+  "gui.avecoins.coins.master_help": "Включить или отключить пользовательский рецепт ВМуткоина.",
+  "gui.avecoins.dashboard.tickets": "Билеты",
+  "gui.avecoins.tickets.title": "Билеты",
+  "gui.avecoins.tickets.subtitle": "Настройте рецепты билетов.",
+  "gui.avecoins.tickets.master_help": "Включить или отключить рецепты всех билетов.",
+  "gui.avecoins.product.currency": "Валюта",
+  "gui.avecoins.product.currency_example": "Единая валюта: vmtrade:vmcoin",
+  "gui.avecoins.editor.currency_hand_required": "Возьмите ВМуткоин в руку.",
+  "gui.avecoins.editor.invalid_currency": "Допустимая валюта: vmtrade:vmcoin.",
+  "gui.avecoins.wallet.summary": "Баланс кошелька",
+  "gui.avecoins.wallet.summary_help": "ВМуткоины и билеты в кошельке"
+}

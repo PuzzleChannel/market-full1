@@ -1,0 +1,11 @@
+{
+  "required": true,
+  "package": "net.sundggs.avecoins.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "mixins": [
+    "RecipeManagerAccessor"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
