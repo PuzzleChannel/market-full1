@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "avecoins:coppercoin",
+    "C": "minecraft:iron_ingot"
+  },
+  "pattern": [
+    " B ",
+    "BCB",
+    " B "
+  ],
+  "result": {
+    "count": 1,
+    "id": "avecoins:ironcoin"
+  }
+}
+

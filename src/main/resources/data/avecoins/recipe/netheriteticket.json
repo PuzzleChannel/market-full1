@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "P": "minecraft:paper",
+    "X": "minecraft:netherite_ingot"
+  },
+  "pattern": [
+    " X ",
+    "XPX",
+    " X "
+  ],
+  "result": {
+    "count": 1,
+    "id": "avecoins:netheriteticket"
+  }
+}
+

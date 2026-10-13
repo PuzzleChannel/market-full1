@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "avecoins:ironcoin",
+    "C": "minecraft:gold_ingot"
+  },
+  "pattern": [
+    " B ",
+    "BCB",
+    " B "
+  ],
+  "result": {
+    "count": 1,
+    "id": "avecoins:goldcoin"
+  }
+}
+
