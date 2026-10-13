@@ -1,5 +1,6 @@
 package net.sundggs.avecoins.client.gui;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -64,6 +65,7 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
     private int page;
     private EditBox searchBox;
     private List<PlayerMarketService.MarketListing> visibleListings = List.of();
+    private final List<PanelButton> listingControls = new ArrayList<>();
 
     public PlayerMarketScreen(PlayerMarketService.MarketSnapshot snapshot, String resultCode) {
         this(snapshot, resultCode, "", 0, 0, 0, 0);
@@ -159,6 +161,16 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
                     }));
         }
 
+
+        this.rebuildListingControls();
+
+    }
+
+
+    private void rebuildListingControls() {
+        for (PanelButton control : this.listingControls) this.removeWidget(control);
+        this.listingControls.clear();
+
         this.visibleListings = this.filteredListings();
         int maxPage = Math.max(0, (this.visibleListings.size() - 1) / LISTINGS_PER_PAGE);
         this.page = Math.min(this.page, maxPage);
@@ -177,7 +189,6 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
             int cardY = listTop + (local / COLUMNS) * CARD_STEP;
             boolean ownListing = listing.sellerId.equals(this.snapshot.viewerId);
             long total = lotPrice(listing);
-
             PanelButton action = new PanelButton(cardX + cardWidth - 62, cardY + 59, 56, 18,
                     Component.translatable(ownListing ? "gui.avecoins.player_market.cancel" : "gui.avecoins.player_market.buy"),
                     ownListing ? PanelButton.Variant.DANGER : PanelButton.Variant.SUCCESS,
@@ -192,7 +203,7 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
                 action.setTooltip(net.minecraft.client.gui.components.Tooltip.create(
                         Component.translatable("gui.avecoins.player_market.need_money")));
             }
-            this.addRenderableWidget(action);
+            this.listingControls.add(this.addRenderableWidget(action));
         }
 
         if (maxPage > 0) {
@@ -201,18 +212,18 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
             PanelButton previous = new PanelButton(center - 60, navY, 24, 18, Component.literal("‹"),
                     PanelButton.Variant.SECONDARY, button -> {
                         this.page = Math.max(0, this.page - 1);
-                        this.rebuildWidgets();
+                        this.rebuildListingControls();
                     });
             previous.active = this.page > 0;
-            this.addRenderableWidget(previous);
+            this.listingControls.add(this.addRenderableWidget(previous));
 
             PanelButton next = new PanelButton(center + 36, navY, 24, 18, Component.literal("›"),
                     PanelButton.Variant.SECONDARY, button -> {
                         this.page = Math.min(maxPage, this.page + 1);
-                        this.rebuildWidgets();
+                        this.rebuildListingControls();
                     });
             next.active = this.page < maxPage;
-            this.addRenderableWidget(next);
+            this.listingControls.add(this.addRenderableWidget(next));
         }
     }
 
@@ -341,10 +352,7 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
         if (this.searchBox == null || this.search.equals(this.searchBox.getValue())) return;
         this.search = this.searchBox.getValue();
         this.page = 0;
-        this.rebuildWidgets();
-        this.searchBox.setFocused(true);
-        this.searchBox.moveCursorToEnd(false);
-        this.setFocused(this.searchBox);
+        this.rebuildListingControls();
     }
 
     @Override
