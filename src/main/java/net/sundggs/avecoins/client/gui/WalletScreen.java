@@ -42,7 +42,7 @@ implements ThemedScreen {
     private static final int RIGHT_CENTER = 392;
     private static final int SUMMARY_COLUMN_STEP = 154;
     private static final int SUMMARY_CARD_WIDTH = 140;
-    private static final List<String> CURRENCIES = List.of("avecoins:coppercoin", "avecoins:ironcoin", "avecoins:goldcoin", "avecoins:diamondcoin", "avecoins:netheritecoin", "avecoins:goldticket", "avecoins:diamondticket", "avecoins:netheriteticket");
+    private static final List<String> CURRENCIES = List.of("vmtrade:vmcoin", "avecoins:goldticket", "avecoins:diamondticket", "avecoins:netheriteticket");
 
     @Override
     public GuiPalette theme() {
@@ -101,12 +101,10 @@ implements ThemedScreen {
         for (column = 0; column < 9; ++column) {
             this.slotBackground(graphics, 31 + column * 18, 260);
         }
-        for (column = 0; column < 2; ++column) {
-            for (int row = 0; row < 4; ++row) {
-                int x = this.leftPos + 245 + column * 154;
-                int y = this.topPos + 126 + row * 34;
-                graphics.fill(x, y, x + 140, y + 28, (row & 1) == 0 ? this.theme().SURFACE : this.theme().ALTERNATE);
-            }
+        for (int row = 0; row < CURRENCIES.size(); ++row) {
+            int x = this.leftPos + 322;
+            int y = this.topPos + 126 + row * 34;
+            graphics.fill(x, y, x + 140, y + 28, (row & 1) == 0 ? this.theme().SURFACE : this.theme().ALTERNATE);
         }
     }
 
@@ -124,18 +122,16 @@ implements ThemedScreen {
         GuiTextLayout.drawCentered(graphics, this.font, (Component)Component.translatable((String)"gui.avecoins.wallet.summary").withStyle(ChatFormatting.BOLD), 392, 85, this.theme().TEXT, !this.theme().custom);
         GuiTextLayout.drawCentered(graphics, this.font, (Component)Component.translatable((String)"gui.avecoins.wallet.summary_help"), 392, 101, this.theme().MUTED, !this.theme().custom);
         Map<String, Long> totals = this.walletTotals();
-        for (int column = 0; column < 2; ++column) {
-            for (int row = 0; row < 4; ++row) {
-                String currency = CURRENCIES.get(column * 4 + row);
-                Identifier id = Identifier.tryParse((String)currency);
-                if (id == null || !BuiltInRegistries.ITEM.containsKey(id)) continue;
-                int x = 251 + column * 154;
-                int y = 132 + row * 34;
-                ItemStack stack = new ItemStack((ItemLike)BuiltInRegistries.ITEM.getValue(id));
-                graphics.item(stack, x, y);
-                graphics.text(this.font, this.font.plainSubstrByWidth(stack.getHoverName().getString(), 104), x + 20, y - 2, this.theme().TEXT, false);
-                graphics.text(this.font, (Component)Component.literal((String)("\u00d7 " + String.valueOf(totals.getOrDefault(currency, 0L)))), x + 20, y + 9, this.theme().MUTED, false);
-            }
+        for (int index = 0; index < CURRENCIES.size(); ++index) {
+            String currency = CURRENCIES.get(index);
+            Identifier id = Identifier.tryParse((String)currency);
+            if (id == null || !BuiltInRegistries.ITEM.containsKey(id)) continue;
+            int x = 323;
+            int y = 132 + index * 34;
+            ItemStack stack = new ItemStack((ItemLike)BuiltInRegistries.ITEM.getValue(id));
+            graphics.item(stack, x, y);
+            graphics.text(this.font, this.font.plainSubstrByWidth(stack.getHoverName().getString(), 104), x + 20, y - 2, this.theme().TEXT, false);
+            graphics.text(this.font, (Component)Component.literal((String)("\u00d7 " + String.valueOf(totals.getOrDefault(currency, 0L)))), x + 20, y + 9, this.theme().MUTED, false);
         }
     }
 
