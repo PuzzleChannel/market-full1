@@ -404,12 +404,11 @@
   "gui.avecoins.player_market.category_all": "ВСЕ",
   "gui.avecoins.player_market.category_blocks": "БЛОКИ",
   "gui.avecoins.player_market.category_tools": "ИНСТРУМЕНТЫ",
-  "gui.avecoins.player_market.category_combat": "БОЕВОЕ",
+  "gui.avecoins.player_market.category_combat": "ОРУЖИЕ",
   "gui.avecoins.player_market.category_materials": "МАТЕРИАЛЫ",
   "gui.avecoins.player_market.category_food": "ЕДА",
   "gui.avecoins.player_market.category_potions": "ЗЕЛЬЯ",
-  "gui.avecoins.player_market.category_redstone": "РЕДСТОУН",
-  "gui.avecoins.player_market.category_transport": "ТРАНСПОРТ",
+  "gui.avecoins.player_market.category_redstone": "МЕХАНИЗМЫ",
   "gui.avecoins.player_market.category_decoration": "ДЕКОР",
   "gui.avecoins.player_market.category_other": "ПРОЧЕЕ"
 }
