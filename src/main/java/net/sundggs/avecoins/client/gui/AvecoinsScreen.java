@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
@@ -84,14 +85,18 @@ implements ThemedScreen {
     }
 
     public final void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        if (Minecraft.getInstance().gui.screen() != this || this.responsiveLayout == null) return;
         graphics.pose().pushMatrix();
-        graphics.pose().translate(this.responsiveLayout.offsetX(), this.responsiveLayout.offsetY());
-        graphics.pose().scale(this.responsiveLayout.scale(), this.responsiveLayout.scale());
-        int virtualMouseX = this.virtualMouseX(mouseX);
-        int virtualMouseY = this.virtualMouseY(mouseY);
-        super.extractRenderState(graphics, virtualMouseX, virtualMouseY, partialTick);
-        this.renderPanel(graphics, virtualMouseX, virtualMouseY, partialTick);
-        graphics.pose().popMatrix();
+        try {
+            graphics.pose().translate(this.responsiveLayout.offsetX(), this.responsiveLayout.offsetY());
+            graphics.pose().scale(this.responsiveLayout.scale(), this.responsiveLayout.scale());
+            int virtualMouseX = this.virtualMouseX(mouseX);
+            int virtualMouseY = this.virtualMouseY(mouseY);
+            super.extractRenderState(graphics, virtualMouseX, virtualMouseY, partialTick);
+            this.renderPanel(graphics, virtualMouseX, virtualMouseY, partialTick);
+        } finally {
+            graphics.pose().popMatrix();
+        }
     }
 
     protected abstract void renderPanel(GuiGraphicsExtractor var1, int var2, int var3, float var4);
@@ -138,16 +143,19 @@ implements ThemedScreen {
     }
 
     public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        if (Minecraft.getInstance().gui.screen() != this || this.responsiveLayout == null) return;
         graphics.pose().pushMatrix();
-        graphics.pose().translate(this.responsiveLayout.offsetX(), this.responsiveLayout.offsetY());
-        graphics.pose().scale(this.responsiveLayout.scale(), this.responsiveLayout.scale());
-        graphics.fill(0, 0, this.responsiveLayout.virtualWidth(), this.responsiveLayout.virtualHeight(), this.theme().BACKGROUND);
-        graphics.fill(this.panelLeft, this.panelTop, this.panelLeft + this.panelWidth, this.panelTop + this.panelHeight, this.theme().BORDER);
-        graphics.fill(this.panelLeft + 1, this.panelTop + 1, this.panelLeft + this.panelWidth - 1, this.panelTop + this.panelHeight - 1, this.theme().PANEL);
-        graphics.fill(this.panelLeft + 1, this.panelTop + 1, this.panelLeft + this.panelWidth - 1, this.panelTop + this.panelHeaderHeight(), this.theme().HEADER);
-        graphics.fill(this.panelLeft + 1, this.panelTop + this.panelHeight - this.panelFooterHeight(), this.panelLeft + this.panelWidth - 1, this.panelTop + this.panelHeight - 1, this.theme().HEADER);
-        GuiTextLayout.drawCentered(graphics, this.font, "SundGGs \u00a9 2026", this.panelLeft + this.panelWidth / 2, this.panelTop + this.panelHeight + 7, -6183253, !this.theme().custom);
-        graphics.pose().popMatrix();
+        try {
+            graphics.pose().translate(this.responsiveLayout.offsetX(), this.responsiveLayout.offsetY());
+            graphics.pose().scale(this.responsiveLayout.scale(), this.responsiveLayout.scale());
+            graphics.fill(0, 0, this.responsiveLayout.virtualWidth(), this.responsiveLayout.virtualHeight(), 0xFF101318);
+            graphics.fill(this.panelLeft, this.panelTop, this.panelLeft + this.panelWidth, this.panelTop + this.panelHeight, this.theme().BORDER);
+            graphics.fill(this.panelLeft + 1, this.panelTop + 1, this.panelLeft + this.panelWidth - 1, this.panelTop + this.panelHeight - 1, this.theme().PANEL);
+            graphics.fill(this.panelLeft + 1, this.panelTop + 1, this.panelLeft + this.panelWidth - 1, this.panelTop + this.panelHeaderHeight(), this.theme().HEADER);
+            graphics.fill(this.panelLeft + 1, this.panelTop + this.panelHeight - this.panelFooterHeight(), this.panelLeft + this.panelWidth - 1, this.panelTop + this.panelHeight - 1, this.theme().HEADER);
+        } finally {
+            graphics.pose().popMatrix();
+        }
     }
 
     protected int panelHeaderHeight() {
