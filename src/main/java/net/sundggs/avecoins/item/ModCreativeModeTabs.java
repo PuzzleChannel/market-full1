@@ -17,12 +17,7 @@ import net.sundggs.avecoins.item.ModItems;
 
 public final class ModCreativeModeTabs {
     private static final ResourceKey<CreativeModeTab> TAB_KEY = ResourceKey.create((ResourceKey)BuiltInRegistries.CREATIVE_MODE_TAB.key(), (Identifier)Identifier.fromNamespaceAndPath((String)"avecoins", (String)"avecoins_items_tab"));
-    public static final CreativeModeTab AVECOINS_ITEMS_TAB = FabricCreativeModeTab.builder().icon(() -> new ItemStack((ItemLike)ModItems.IRONCOIN)).title((Component)Component.translatable((String)"creativetab.avecoinsmod.items")).displayItems((parameters, output) -> {
-        output.accept((ItemLike)ModItems.COPPERCOIN);
-        output.accept((ItemLike)ModItems.IRONCOIN);
-        output.accept((ItemLike)ModItems.GOLDCOIN);
-        output.accept((ItemLike)ModItems.DIAMONDCOIN);
-        output.accept((ItemLike)ModItems.NETHERITECOIN);
+    public static final CreativeModeTab AVECOINS_ITEMS_TAB = FabricCreativeModeTab.builder().icon(() -> new ItemStack((ItemLike)ModItems.GOLDTICKET)).title((Component)Component.translatable((String)"creativetab.avecoinsmod.items")).displayItems((parameters, output) -> {
         output.accept((ItemLike)ModItems.GOLDTICKET);
         output.accept((ItemLike)ModItems.DIAMONDTICKET);
         output.accept((ItemLike)ModItems.NETHERITETICKET);
