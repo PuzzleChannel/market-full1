@@ -29,6 +29,7 @@ import net.sundggs.avecoins.network.ServerboundAvecoinsPayload;
 import net.sundggs.avecoins.permission.PermissionService;
 import net.sundggs.avecoins.shop.SellBoxMenu;
 import net.sundggs.avecoins.shop.ShopService;
+import net.sundggs.avecoins.shop.PlayerMarketService;
 import net.sundggs.avecoins.shop.WalletMenu;
 import net.sundggs.avecoins.shop.WalletService;
 
@@ -72,6 +73,18 @@ public final class ModNetworking {
         boolean bl = allowedAdmin = administration && PermissionService.isAdministrator(player);
         String action = allowedAdmin ? (historyPage >= 0 ? "open_shop_history" : "open_shop_admin") : "open_shop";
         ModNetworking.send(player, action, ShopService.snapshotJson(player, allowedAdmin, historyPage));
+    }
+
+    public static void openPlayerMarket(ServerPlayer player) {
+        ModNetworking.send(player, "open_player_market", PlayerMarketService.snapshotJson(player));
+    }
+
+    public static void syncPlayerMarket(ServerPlayer player, PlayerMarketService.Result result) {
+        JsonObject response = new JsonObject();
+        response.addProperty("success", result.success());
+        response.addProperty("result", result.code());
+        response.add("snapshot", AtomicJsonStore.gson().toJsonTree(PlayerMarketService.snapshot(player)));
+        ModNetworking.send(player, "player_market_update", AtomicJsonStore.gson().toJson(response));
     }
 
     public static void openWallet(final ServerPlayer player) {
