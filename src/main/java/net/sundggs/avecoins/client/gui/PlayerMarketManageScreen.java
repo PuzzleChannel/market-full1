@@ -54,7 +54,7 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
         this.priceDrafts = new HashMap<>(priceDrafts);
         this.confirmingListingId = confirmingListingId == null ? "" : confirmingListingId;
         ShopService.ShopSnapshot themeSnapshot = new ShopService.ShopSnapshot();
-        themeSnapshot.shopColor = snapshot.shopColor;
+        themeSnapshot.shopColor = "#2A1A12";
         this.useShopTheme(themeSnapshot);
     }
 
