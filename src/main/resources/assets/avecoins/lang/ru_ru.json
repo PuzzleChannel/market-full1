@@ -21,7 +21,6 @@
   "gui.avecoins.player_market.tab_help": "Покупайте предметы у других игроков или выставляйте свои.",
   "gui.avecoins.player_market.title": "Рынок игроков",
   "gui.avecoins.player_market.subtitle": "Покупайте и продавайте предметы напрямую другим игрокам.",
-  "gui.avecoins.player_market.back": "Магазин",
   "gui.avecoins.player_market.listings": "ОБЪЯВЛЕНИЯ",
   "gui.avecoins.player_market.new_listing": "ОБЪЯВЛЕНИЯ",
   "gui.avecoins.player_market.empty": "Объявлений пока нет. Вы можете выставить первый предмет.",
@@ -378,8 +377,7 @@
   "gui.avecoins.sale.back_shop": "Вернуться в магазин",
   "gui.avecoins.player_market.search": "Поиск предмета или продавца...",
   "gui.avecoins.player_market.search_empty": "По вашему запросу ничего не найдено.",
-  "gui.avecoins.player_market.unit_price": "≈ %s/шт.",
-  "gui.avecoins.player_market.total_price": "Итого за лот: %s ВМуткоинов",
+  "gui.avecoins.player_market.total_price": "Стоимость:"
   "gui.avecoins.player_market.my_listings": "Мои товары",
   "gui.avecoins.player_market.manage_title": "Мои товары",
   "gui.avecoins.player_market.manage_empty": "Вы пока не выставили ни одного предмета на продажу.",
