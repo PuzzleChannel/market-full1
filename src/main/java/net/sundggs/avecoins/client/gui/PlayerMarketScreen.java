@@ -67,7 +67,7 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
     private List<PlayerMarketService.MarketListing> visibleListings = List.of();
 
     public PlayerMarketScreen(PlayerMarketService.MarketSnapshot snapshot, String resultCode) {
-        this(snapshot, resultCode, "", 0, 0, 0);
+        this(snapshot, resultCode, "", 0, 0, 0, 0);
     }
 
     private PlayerMarketScreen(PlayerMarketService.MarketSnapshot snapshot, String resultCode, String search,
@@ -260,8 +260,8 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
         else if (path.contains("redstone") || path.contains("repeater") || path.contains("comparator") || path.contains("observer")
                 || path.contains("piston") || path.contains("lever") || path.contains("button") || path.contains("pressure_plate")
                 || path.contains("tripwire") || path.contains("target") || path.contains("daylight_detector") || path.contains("dispenser")
-                || path.contains("dropper") || path.contains("hopper") || path.contains("rail") || path.contains("minecart")) category = 7;
-        else if (path.contains("boat") || path.contains("raft") || path.contains("minecart") || path.equals("saddle")
+                || path.contains("dropper") || path.contains("hopper")) category = 7;
+        else if (path.contains("boat") || path.contains("raft") || path.contains("minecart") || path.contains("rail") || path.equals("saddle")
                 || path.equals("chest_minecart") || path.equals("furnace_minecart")) category = 8;
         else if (path.contains("apple") || path.contains("bread") || path.contains("beef") || path.contains("porkchop")
                 || path.contains("chicken") || path.contains("mutton") || path.contains("rabbit") || path.contains("cod")
