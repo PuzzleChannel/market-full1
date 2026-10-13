@@ -118,8 +118,11 @@ public final class PlayerMarketCreateScreen extends AvecoinsScreen {
                 this.rebuildWidgets();
                 return;
             }
-            ClientNetworking.send(new ServerboundAvecoinsPayload("market_create_listing",
-                    "{\\"slot\\":" + this.selectedSlot + ",\\"price\\":" + price + ",\\"quantity\\":" + quantity + "}"));
+            com.google.gson.JsonObject payload = new com.google.gson.JsonObject();
+            payload.addProperty("slot", this.selectedSlot);
+            payload.addProperty("price", price);
+            payload.addProperty("quantity", quantity);
+            ClientNetworking.send(new ServerboundAvecoinsPayload("market_create_listing", payload.toString()));
         } catch (NumberFormatException exception) {
             this.resultCode = "market_invalid_price_quantity";
             this.rebuildWidgets();
@@ -169,7 +172,6 @@ public final class PlayerMarketCreateScreen extends AvecoinsScreen {
         for (int row = 0; row < 3; row++) {
             for (int column = 0; column < 9; column++) {
                 int slot = 9 + row * 9 + column;
-                drawInventorySlot(graphics, slot, inventoryX + column * 18, mainTop);
                 drawInventorySlot(graphics, slot, inventoryX + column * 18, mainTop + row * 18);
             }
         }

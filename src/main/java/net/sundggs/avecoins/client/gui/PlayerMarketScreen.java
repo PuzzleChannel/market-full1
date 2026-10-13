@@ -74,8 +74,9 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
                     Component.translatable(ownListing ? "gui.avecoins.player_market.cancel" : "gui.avecoins.player_market.buy"),
                     ownListing ? PanelButton.Variant.DANGER : PanelButton.Variant.SUCCESS,
                     button -> {
-                        String json = "{\\"id\\":\\"" + listing.id + "\\"}";
-                        ClientNetworking.send(new ServerboundAvecoinsPayload(ownListing ? "market_cancel" : "market_buy", json));
+                        com.google.gson.JsonObject payload = new com.google.gson.JsonObject();
+                        payload.addProperty("id", listing.id);
+                        ClientNetworking.send(new ServerboundAvecoinsPayload(ownListing ? "market_cancel" : "market_buy", payload.toString()));
                     });
             if (!ownListing && this.snapshot.walletBalance < total) {
                 action.active = false;
