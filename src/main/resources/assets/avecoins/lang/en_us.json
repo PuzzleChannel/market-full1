@@ -377,7 +377,7 @@
   "gui.avecoins.player_market.wallet_label": "Wallet balance:",
   "gui.avecoins.player_market.search": "Search item or seller...",
   "gui.avecoins.player_market.search_empty": "No listings matched your search.",
-  "gui.avecoins.player_market.total_price": "Cost:"
+  "gui.avecoins.player_market.total_price": "Cost:",
   "gui.avecoins.player_market.my_listings": "My Listings",
   "gui.avecoins.player_market.manage_title": "My Listings",
   "gui.avecoins.player_market.manage_empty": "You have no active listings.",
