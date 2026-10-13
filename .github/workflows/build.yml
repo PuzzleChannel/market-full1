@@ -3,6 +3,7 @@ name: Build AVECOINS VMcoin
 on:
   push:
     branches:
+      - main
       - restore-vmcoin
     paths:
       - "build.gradle"
