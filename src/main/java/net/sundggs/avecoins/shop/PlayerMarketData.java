@@ -61,17 +61,26 @@ public final class PlayerMarketData {
             if (source.unitPrice < 1 || source.unitPrice > 1728) {
                 throw new IllegalArgumentException("Invalid market price");
             }
-            long total;
-            try {
-                total = Math.multiplyExact((long) source.quantity, (long) source.unitPrice);
-            } catch (ArithmeticException exception) {
-                throw new IllegalArgumentException("Market total overflow", exception);
+            if (source.totalPrice < 0 || source.totalPrice > 1728) {
+                throw new IllegalArgumentException("Invalid market total price");
             }
-            if (total > 1728L) {
+            long total;
+            if (source.totalPrice > 0) {
+                total = source.totalPrice;
+            } else {
+                // A missing totalPrice means this is a legacy per-item-price listing.
+                try {
+                    total = Math.multiplyExact((long) source.quantity, (long) source.unitPrice);
+                } catch (ArithmeticException exception) {
+                    throw new IllegalArgumentException("Market total overflow", exception);
+                }
+            }
+            if (total < 1L || total > 1728L) {
                 throw new IllegalArgumentException("Market listing total exceeds wallet limit");
             }
             listing.quantity = source.quantity;
             listing.unitPrice = source.unitPrice;
+            listing.totalPrice = source.totalPrice;
             listing.createdAt = Math.max(0L, source.createdAt);
             output.listings.add(listing);
         }
@@ -91,6 +100,7 @@ public final class PlayerMarketData {
             listing.itemData = source.itemData;
             listing.quantity = source.quantity;
             listing.unitPrice = source.unitPrice;
+            listing.totalPrice = source.totalPrice;
             listing.createdAt = source.createdAt;
             copy.listings.add(listing);
         }
@@ -122,7 +132,10 @@ public final class PlayerMarketData {
         /** Encodes one item with its data/components; quantity is stored separately. */
         public String itemData = "";
         public int quantity = 1;
+        /** Legacy per-item price. Zero totalPrice means this field still defines the price. */
         public int unitPrice = 1;
+        /** Fixed price for the entire listing; zero is reserved for backward-compatible legacy entries. */
+        public int totalPrice;
         public long createdAt;
     }
 }
