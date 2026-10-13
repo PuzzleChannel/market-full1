@@ -30,11 +30,15 @@ public final class WalletData {
             LinkedHashMap<String, Long> balances = new LinkedHashMap<String, Long>();
             if (wallet.getValue() != null) {
                 for (Map.Entry<String, Long> balance : wallet.getValue().entrySet()) {
-                    if (!CraftingConfig.MANAGED_RESULTS.contains(balance.getKey()) || balance.getValue() == null || balance.getValue() < 0L || balance.getValue() > 1728L) {
+                    String currencyId = balance.getKey();
+                    if (CraftingConfig.LEGACY_COINS.contains(currencyId)) {
+                        currencyId = CraftingConfig.CURRENCY;
+                    }
+                    if (!CraftingConfig.MANAGED_RESULTS.contains(currencyId) || balance.getValue() == null || balance.getValue() < 0L || balance.getValue() > 1728L) {
                         throw new IllegalArgumentException("Invalid wallet balance");
                     }
                     if (balance.getValue() <= 0L) continue;
-                    balances.put(balance.getKey(), balance.getValue());
+                    balances.merge(currencyId, balance.getValue(), Math::addExact);
                 }
             }
             WalletData.ensureFits(balances);
