@@ -376,5 +376,9 @@
   "gui.avecoins.player_market.selected_count": "In selected slot: %s item(s)",
   "gui.avecoins.player_market.no_selected_item": "Select an item in the inventory on the left.",
   "message.avecoins.market_select_item": "Select an item in your inventory.",
-  "gui.avecoins.player_market.wallet_label": "Wallet balance:"
+  "gui.avecoins.player_market.wallet_label": "Wallet balance:",
+  "gui.avecoins.player_market.search": "Search item or seller...",
+  "gui.avecoins.player_market.search_empty": "No listings matched your search.",
+  "gui.avecoins.player_market.unit_price": "Price: %s/item",
+  "gui.avecoins.player_market.total_price": "Total: %s"
 }
