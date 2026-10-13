@@ -336,7 +336,6 @@
   "gui.avecoins.player_market.title": "Player Market",
   "gui.avecoins.player_market.subtitle": "Buy and sell items directly between players.",
   "gui.avecoins.player_market.back": "Shop",
-  "gui.avecoins.player_market.refresh": "Refresh",
   "gui.avecoins.player_market.listings": "LISTINGS",
   "gui.avecoins.player_market.new_listing": "LISTINGS",
   "gui.avecoins.player_market.empty": "No listings yet. You can post the first item.",
@@ -347,7 +346,7 @@
   "gui.avecoins.player_market.wallet": "Wallet balance: %s VMcoins",
   "gui.avecoins.player_market.create": "Create Listing",
   "gui.avecoins.player_market.buy": "Buy",
-  "gui.avecoins.player_market.cancel": "Cancel",
+  "gui.avecoins.player_market.cancel": "Remove",
   "gui.avecoins.player_market.need_money": "Not enough VMcoins in your wallet.",
   "message.avecoins.market_invalid_price_quantity": "Enter a valid price and quantity.",
   "message.avecoins.market_hold_item": "Select an item in your inventory.",
@@ -380,5 +379,12 @@
   "gui.avecoins.player_market.search": "Search item or seller...",
   "gui.avecoins.player_market.search_empty": "No listings matched your search.",
   "gui.avecoins.player_market.unit_price": "Price: %s/item",
-  "gui.avecoins.player_market.total_price": "Total: %s"
+  "gui.avecoins.player_market.total_price": "Total: %s",
+  "gui.avecoins.player_market.my_listings": "My Listings",
+  "gui.avecoins.player_market.manage_title": "My Listings",
+  "gui.avecoins.player_market.manage_empty": "You have no active listings.",
+  "gui.avecoins.player_market.save_price": "Save",
+  "gui.avecoins.player_market.price_short": "Price:",
+  "message.avecoins.market_listing_updated": "Listing price updated.",
+  "message.avecoins.market_updated": "Player market updated."
 }
