@@ -25,7 +25,7 @@ public final class ModCommands {
             String customAlias = ModConfigManager.general().customShopCommand;
             if (!customAlias.isEmpty()) {
                 if (dispatcher.getRoot().getChild(customAlias) == null) {
-                    dispatcher.register((LiteralArgumentBuilder)Commands.literal((String)customAlias).executes(context -> ModCommands.openShop((CommandSourceStack)context.getSource())));
+                    dispatcher.register((LiteralArgumentBuilder)Commands.literal((String)customAlias).requires(source -> source.hasPermission(2)).executes(context -> ModCommands.openShop((CommandSourceStack)context.getSource())));
                     activeCustomAlias = customAlias;
                 } else {
                     activeCustomAlias = "";
@@ -38,7 +38,7 @@ public final class ModCommands {
     }
 
     private static LiteralArgumentBuilder<CommandSourceStack> root(String name) {
-        return (LiteralArgumentBuilder)((LiteralArgumentBuilder)((LiteralArgumentBuilder)Commands.literal((String)name).then(Commands.literal((String)"gui").executes(context -> ModCommands.openDashboard((CommandSourceStack)context.getSource())))).then(Commands.literal((String)"shop").executes(context -> ModCommands.openShop((CommandSourceStack)context.getSource())))).then(Commands.literal((String)"wallet").executes(context -> ModCommands.openWallet((CommandSourceStack)context.getSource())));
+        return (LiteralArgumentBuilder)((LiteralArgumentBuilder)((LiteralArgumentBuilder)Commands.literal((String)name).requires(source -> source.hasPermission(2)).then(Commands.literal((String)"gui").executes(context -> ModCommands.openDashboard((CommandSourceStack)context.getSource())))).then(Commands.literal((String)"shop").executes(context -> ModCommands.openShop((CommandSourceStack)context.getSource())))).then(Commands.literal((String)"wallet").executes(context -> ModCommands.openWallet((CommandSourceStack)context.getSource())));
     }
 
     private static int openDashboard(CommandSourceStack source) {
