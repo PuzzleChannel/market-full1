@@ -101,7 +101,8 @@ public final class ServerPayloadHandler {
                     ModNetworking.send(player, "operation_result", ServerPayloadHandler.resultJson(false, "shop_disabled"));
                     break;
                 }
-                ModNetworking.openShop(player, false, 0);
+                // Legacy shop entry is redirected to the player market; catalogue access is operator-only.
+                ModNetworking.openPlayerMarket(player);
                 break;
             }
             case "request_player_market": {
