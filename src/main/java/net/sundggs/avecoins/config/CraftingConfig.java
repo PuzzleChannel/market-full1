@@ -11,7 +11,9 @@ import java.util.stream.Stream;
 
 public final class CraftingConfig {
     public static final int SCHEMA_VERSION = 1;
-    public static final List<String> COINS = List.of("avecoins:coppercoin", "avecoins:ironcoin", "avecoins:goldcoin", "avecoins:diamondcoin", "avecoins:netheritecoin");
+    public static final String CURRENCY = "vmtrade:vmcoin";
+    public static final List<String> COINS = List.of(CURRENCY);
+    public static final List<String> LEGACY_COINS = List.of("avecoins:coppercoin", "avecoins:ironcoin", "avecoins:goldcoin", "avecoins:diamondcoin", "avecoins:netheritecoin");
     public static final List<String> TICKETS = List.of("avecoins:goldticket", "avecoins:diamondticket", "avecoins:netheriteticket");
     public static final Set<String> MANAGED_RESULTS = Set.copyOf(Stream.concat(COINS.stream(), TICKETS.stream()).toList());
     public int schemaVersion = 1;
@@ -19,6 +21,16 @@ public final class CraftingConfig {
     public Map<String, Boolean> coins = new LinkedHashMap<String, Boolean>(CraftingConfig.enabledMap(COINS));
     public boolean ticketCraftingEnabled = true;
     public Map<String, Boolean> tickets = new LinkedHashMap<String, Boolean>(CraftingConfig.enabledMap(TICKETS));
+
+    public static String normalizeCurrencyId(String currencyId) {
+        if (currencyId == null || currencyId.isBlank()) {
+            return CURRENCY;
+        }
+        if (CURRENCY.equals(currencyId) || LEGACY_COINS.contains(currencyId) || TICKETS.contains(currencyId)) {
+            return CURRENCY;
+        }
+        throw new IllegalArgumentException("Unsupported currency: " + currencyId);
+    }
 
     public static CraftingConfig defaults() {
         return new CraftingConfig();
