@@ -128,12 +128,12 @@ extends AvecoinsScreen {
     }
 
     private void toggleRecipe(String itemId) {
-        Map<String, Boolean> toggles;
         if (!this.masterEnabled()) {
             this.resultCode = "crafting_master_toggle_disabled";
             return;
         }
-        toggles.put(itemId, (toggles = this.toggles()).getOrDefault(itemId, true) == false);
+        Map<String, Boolean> toggles = this.toggles();
+        toggles.put(itemId, !toggles.getOrDefault(itemId, true));
         this.resultCode = "";
         this.rebuildWidgets();
     }
