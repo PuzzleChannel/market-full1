@@ -118,11 +118,7 @@ public final class PlayerMarketCreateScreen extends AvecoinsScreen {
                 this.rebuildWidgets();
                 return;
             }
-            if ((long) price * quantity > 1728L) {
-                this.resultCode = "market_total_too_high";
-                this.rebuildWidgets();
-                return;
-            }
+            // Price is the total amount for the selected quantity, so a stack of 64 can cost 1 VMcoin.
             com.google.gson.JsonObject payload = new com.google.gson.JsonObject();
             payload.addProperty("slot", this.selectedSlot);
             payload.addProperty("price", price);
