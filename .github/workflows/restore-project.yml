@@ -1,0 +1,76 @@
+name: Restore source project
+
+on:
+  push:
+    branches:
+      - restore-vmcoin
+    paths:
+      - ".github/workflows/restore-project.yml"
+      - "restore-trigger"
+
+permissions:
+  contents: write
+
+jobs:
+  decompile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: restore-vmcoin
+          fetch-depth: 0
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - name: Recover Java sources from the supplied mod
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f avecoins-fabric-26.2-2.5.jar
+          curl --fail --location --retry 3 \
+            https://www.benf.org/other/cfr/cfr-0.152.jar \
+            --output /tmp/cfr.jar
+          mkdir -p src/main/java src/main/resources
+          java -jar /tmp/cfr.jar avecoins-fabric-26.2-2.5.jar \
+            --outputdir src/main/java --silent true --comments false \
+            --renameillegalidents true
+
+          mkdir -p /tmp/avecoins-resources
+          (cd /tmp/avecoins-resources && jar xf "$GITHUB_WORKSPACE/avecoins-fabric-26.2-2.5.jar")
+          find /tmp/avecoins-resources -type f -name '*.class' -delete
+          rm -rf /tmp/avecoins-resources/META-INF
+          cp -a /tmp/avecoins-resources/. src/main/resources/
+          find src/main/resources -type f -name '*.class' -delete
+
+          cat > RESTORE_REPORT.md <<'EOF'
+          # Restored source project
+
+          This project was reconstructed from the distributed avecoins-fabric-26.2-2.5.jar.
+          Java files were decompiled with CFR; non-class resources (Fabric metadata, mixin config,
+          assets, translations, recipes, and licenses) were extracted from the supplied JAR.
+
+          Decompiled sources require compile validation and may need manual repair. This is a
+          reconstruction from bytecode, not the original developer source tree.
+          EOF
+
+          echo "Recovered $(find src/main/java -name '*.java' | wc -l) Java source files."
+          echo "Recovered $(find src/main/resources -type f | wc -l) resource files."
+
+      - name: Commit recovered sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/main/java src/main/resources RESTORE_REPORT.md
+          if git diff --cached --quiet; then
+            echo "Nothing to commit"
+            exit 0
+          fi
+          git commit -m "Recover source tree from distributed mod JAR"
+          git push origin HEAD:restore-vmcoin
