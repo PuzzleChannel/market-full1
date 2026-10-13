@@ -14,7 +14,7 @@ public final class RecipesConfig {
     private static final Pattern RESOURCE_ID = Pattern.compile("[a-z0-9_.-]+:[a-z0-9/._-]+");
     public static final int SCHEMA_VERSION = 2;
     public static final int DEFAULT_DOWNGRADE_COUNT = 4;
-    public static final Map<String, String> DOWNGRADE_RESULTS = Map.of("avecoins:ironcoin", "avecoins:coppercoin", "avecoins:goldcoin", "avecoins:ironcoin", "avecoins:diamondcoin", "avecoins:goldcoin", "avecoins:netheritecoin", "avecoins:diamondcoin");
+    public static final Map<String, String> DOWNGRADE_RESULTS = Map.of();
     public int schemaVersion = 2;
     public Map<String, RecipeDefinition> customRecipes = new LinkedHashMap<String, RecipeDefinition>();
     public Map<String, Integer> downgradeCounts = new LinkedHashMap<String, Integer>();
@@ -37,6 +37,9 @@ public final class RecipesConfig {
             for (Map.Entry<String, Object> entry : input.customRecipes.entrySet()) {
                 String result = RecipesConfig.safeId(entry.getKey());
                 if (!CraftingConfig.MANAGED_RESULTS.contains(result)) {
+                    if (CraftingConfig.LEGACY_COINS.contains(result)) {
+                        continue;
+                    }
                     throw new IllegalArgumentException("Unsupported custom recipe result: " + result);
                 }
                 RecipeDefinition definition = (RecipeDefinition)entry.getValue();
@@ -60,7 +63,13 @@ public final class RecipesConfig {
             for (Map.Entry<String, Object> entry : input.downgradeCounts.entrySet()) {
                 String source = RecipesConfig.safeId(entry.getKey());
                 Integer count = (Integer)entry.getValue();
-                if (!DOWNGRADE_RESULTS.containsKey(source) || count == null || count < 1 || count > 64) {
+                if (!DOWNGRADE_RESULTS.containsKey(source)) {
+                    if (CraftingConfig.LEGACY_COINS.contains(source)) {
+                        continue;
+                    }
+                    throw new IllegalArgumentException("Invalid downgrade recipe override: " + source);
+                }
+                if (count == null || count < 1 || count > 64) {
                     throw new IllegalArgumentException("Invalid downgrade recipe override: " + source);
                 }
                 output.downgradeCounts.put(source, count);
