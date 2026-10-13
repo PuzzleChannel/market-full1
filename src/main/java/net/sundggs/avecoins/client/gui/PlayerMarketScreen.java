@@ -270,13 +270,13 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
                 || path.contains("melon_slice") || path.contains("cookie") || path.contains("cake") || path.contains("pie")
                 || path.contains("berries") || path.contains("chorus_fruit") || path.contains("golden_carrot")
                 || path.contains("golden_apple") || path.contains("honey_bottle") || path.equals("honeycomb")) category = 5;
-        else if (path.contains("ingot") || path.contains("nugget") || path.contains("raw_") || path.contains("diamond")
+        else if (!(item instanceof BlockItem) && (path.contains("ingot") || path.contains("nugget") || path.contains("raw_") || path.contains("diamond")
                 || path.contains("emerald") || path.contains("lapis") || path.contains("quartz") || path.contains("amethyst")
                 || path.contains("coal") || path.contains("charcoal") || path.contains("flint") || path.contains("string")
                 || path.contains("leather") || path.contains("feather") || path.contains("bone") || path.contains("gunpowder")
                 || path.contains("paper") || path.contains("slime_ball") || path.contains("prismarine_shard")
                 || path.contains("phantom_membrane") || path.contains("scute") || path.contains("shell") || path.contains("echo_shard")
-                || path.contains("disc_fragment") || path.contains("shard")) category = 4;
+                || path.contains("disc_fragment") || path.contains("shard"))) category = 4;
         else if (path.contains("banner") || path.contains("painting") || path.contains("item_frame") || path.contains("flower")
                 || path.contains("tulip") || path.contains("dye") || path.contains("bed") || path.contains("candle")
                 || path.contains("sign") || path.contains("pot") || path.contains("head") || path.contains("skull")
