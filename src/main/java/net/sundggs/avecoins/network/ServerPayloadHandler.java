@@ -128,7 +128,7 @@ public final class ServerPayloadHandler {
                 int slot = ServerPayloadHandler.intField(json, "slot", 0, 35);
                 int price = ServerPayloadHandler.intField(json, "price", 1, 1728);
                 int quantity = ServerPayloadHandler.intField(json, "quantity", 1, 999);
-                ModNetworking.syncPlayerMarket(player, PlayerMarketService.createListing(player, slot, price, quantity));
+                ServerPayloadHandler.syncMarketMutation(player, server, PlayerMarketService.createListing(player, slot, price, quantity));
                 break;
             }
             case "market_buy": {
@@ -142,7 +142,7 @@ public final class ServerPayloadHandler {
                     break;
                 }
                 JsonObject json = ServerPayloadHandler.object(data, "id");
-                ModNetworking.syncPlayerMarket(player, PlayerMarketService.purchase(player, ServerPayloadHandler.stringField(json, "id", 40)));
+                ServerPayloadHandler.syncMarketMutation(player, server, PlayerMarketService.purchase(player, ServerPayloadHandler.stringField(json, "id", 40)));
                 break;
             }
             case "market_cancel": {
@@ -156,7 +156,33 @@ public final class ServerPayloadHandler {
                     break;
                 }
                 JsonObject json = ServerPayloadHandler.object(data, "id");
-                ModNetworking.syncPlayerMarket(player, PlayerMarketService.cancel(player, ServerPayloadHandler.stringField(json, "id", 40)));
+                ServerPayloadHandler.syncMarketMutation(player, server, PlayerMarketService.cancel(player, ServerPayloadHandler.stringField(json, "id", 40)));
+                break;
+            }
+            case "request_player_market_manage": {
+                ServerPayloadHandler.object(data, new String[0]);
+                ServerPayloadHandler.require(player, "avecoins.shop.use");
+                if (!ModConfigManager.general().shopEnabled) {
+                    ModNetworking.send(player, "operation_result", ServerPayloadHandler.resultJson(false, "shop_disabled"));
+                    break;
+                }
+                ModNetworking.openPlayerMarketManage(player);
+                break;
+            }
+            case "market_update_listing": {
+                ServerPayloadHandler.require(player, "avecoins.shop.use");
+                if (!ModConfigManager.general().shopEnabled) {
+                    ModNetworking.syncPlayerMarket(player, PlayerMarketService.Result.fail("shop_disabled"));
+                    break;
+                }
+                if (!ServerPayloadHandler.marketMutationAllowed(player)) {
+                    ModNetworking.syncPlayerMarket(player, PlayerMarketService.Result.fail("rate_limited"));
+                    break;
+                }
+                JsonObject json = ServerPayloadHandler.object(data, "id", "price");
+                String listingId = ServerPayloadHandler.stringField(json, "id", 40);
+                int price = ServerPayloadHandler.intField(json, "price", 1, 1728);
+                ServerPayloadHandler.syncMarketMutation(player, server, PlayerMarketService.updatePrice(player, listingId, price));
                 break;
             }
             case "request_wallet": {
@@ -343,6 +369,19 @@ public final class ServerPayloadHandler {
             default: {
                 throw new IllegalArgumentException("Unknown action");
             }
+        }
+    }
+
+    private static void syncMarketMutation(ServerPlayer player, MinecraftServer server, PlayerMarketService.Result result) {
+        ModNetworking.syncPlayerMarket(player, result);
+        if (!result.success()) {
+            return;
+        }
+        for (ServerPlayer recipient : server.getPlayerList().getPlayers()) {
+            if (recipient.getUUID().equals(player.getUUID())) {
+                continue;
+            }
+            ModNetworking.syncPlayerMarket(recipient, PlayerMarketService.Result.ok("market_updated"));
         }
     }
 
