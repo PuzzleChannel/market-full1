@@ -6,7 +6,7 @@ package net.sundggs.avecoins.client.gui;
 import net.sundggs.avecoins.config.ShopColor;
 
 public final class GuiPalette {
-    public static final GuiPalette DEFAULT = new GuiPalette();
+    public static final GuiPalette DEFAULT = new GuiPalette(0xFF38271B);
     public final boolean custom;
     public final int BACKGROUND;
     public final int PANEL;
