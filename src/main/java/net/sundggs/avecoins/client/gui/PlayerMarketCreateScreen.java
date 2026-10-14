@@ -21,6 +21,7 @@ public final class PlayerMarketCreateScreen extends AvecoinsScreen {
     private String savedPrice;
     private String savedQuantity;
     private int selectedSlot;
+    private int extraDays;
     private net.minecraft.client.gui.components.EditBox priceBox;
     private net.minecraft.client.gui.components.EditBox quantityBox;
 
@@ -84,7 +85,14 @@ public final class PlayerMarketCreateScreen extends AvecoinsScreen {
         this.quantityBox.setHint(Component.literal("Например, 16"));
         this.addRenderableWidget(this.quantityBox);
 
-        this.addRenderableWidget(new PanelButton(this.panelLeft + (this.panelWidth - 230) / 2, this.panelTop + 273, 230, 25,
+        this.addRenderableWidget(new PanelButton(this.panelLeft + (this.panelWidth - 360) / 2, this.panelTop + 250, 360, 20,
+                Component.literal(this.durationLabel()), PanelButton.Variant.SECONDARY,
+                button -> {
+                    this.extraDays = (this.extraDays + 1) % 11;
+                    this.rebuildWidgets();
+                }));
+
+        this.addRenderableWidget(new PanelButton(this.panelLeft + (this.panelWidth - 230) / 2, this.panelTop + 309, 230, 25,
                 Component.translatable("gui.avecoins.player_market.create"), PanelButton.Variant.SUCCESS,
                 button -> this.createListing()));
     }
@@ -123,6 +131,7 @@ public final class PlayerMarketCreateScreen extends AvecoinsScreen {
             payload.addProperty("slot", this.selectedSlot);
             payload.addProperty("price", price);
             payload.addProperty("quantity", quantity);
+            payload.addProperty("extraDays", this.extraDays);
             ClientNetworking.send(new ServerboundAvecoinsPayload("market_create_listing", payload.toString()));
         } catch (NumberFormatException exception) {
             this.resultCode = "market_invalid_price_quantity";
@@ -219,10 +228,10 @@ public final class PlayerMarketCreateScreen extends AvecoinsScreen {
         graphics.text(this.font, Component.translatable("gui.avecoins.player_market.quantity"),
                 fieldsX + 210, this.panelTop + 208, this.theme().TEXT, !this.theme().custom);
 
-        this.renderVmcoinBalance(graphics, this.panelLeft + this.panelWidth / 2, this.panelTop + 246);
+        this.renderVmcoinBalance(graphics, this.panelLeft + this.panelWidth / 2, this.panelTop + 280);
 
         this.drawCenteredWrappedAt(graphics, Component.translatable("gui.avecoins.player_market.limit"),
-                this.panelLeft + this.panelWidth / 2, this.panelTop + 309, 640, this.theme().MUTED);
+                this.panelLeft + this.panelWidth / 2, this.panelTop + 345, 640, this.theme().MUTED);
 
         for (int slot = 0; slot < 36; slot++) {
             int x;
@@ -248,6 +257,11 @@ public final class PlayerMarketCreateScreen extends AvecoinsScreen {
         if (!this.resultCode.isBlank()) {
             this.renderStatusBoxAt(graphics, this.resultCode, this.panelTop + this.panelHeight - 24);
         }
+    }
+
+    private String durationLabel() {
+        long cost = (1L << this.extraDays) - 1L;
+        return "Срок: " + (this.extraDays + 1) + " дн. · доплата: " + cost + " VMуткоинов";
     }
 
     private void renderVmcoinBalance(GuiGraphicsExtractor graphics, int centerX, int iconY) {
