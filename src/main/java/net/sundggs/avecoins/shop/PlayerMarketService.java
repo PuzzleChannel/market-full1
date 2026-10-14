@@ -24,7 +24,10 @@ public final class PlayerMarketService {
         snapshot.viewerId = player.getUUID().toString();
         snapshot.shopColor = ModConfigManager.general().shopColor;
         snapshot.walletBalance = WalletStore.get().balance(player.getUUID(), CraftingConfig.CURRENCY);
+        long now = System.currentTimeMillis();
         for (PlayerMarketData.Listing listing : data.listings) {
+            if (listing.expiresAt > 0L && listing.expiresAt <= now
+                    && !listing.sellerId.equals(snapshot.viewerId)) continue;
             MarketListing entry = new MarketListing();
             entry.id = listing.id;
             entry.sellerId = listing.sellerId;
@@ -125,6 +128,9 @@ public final class PlayerMarketService {
         PlayerMarketData.Listing listing = find(current, listingId);
         if (listing == null) {
             return Result.fail("market_listing_missing");
+        }
+        if (listing.expiresAt > 0L && listing.expiresAt <= System.currentTimeMillis()) {
+            return Result.fail("market_listing_expired");
         }
         if (listing.sellerId.equals(buyer.getUUID().toString())) {
             return Result.fail("market_cannot_buy_own");
