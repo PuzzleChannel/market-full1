@@ -5,6 +5,7 @@ package net.sundggs.avecoins.server;
 
 import com.google.gson.JsonObject;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.sundggs.avecoins.config.ModConfigManager;
 import net.sundggs.avecoins.network.ModNetworking;
@@ -14,9 +15,12 @@ import net.sundggs.avecoins.shop.CoinExchangeService;
 import net.sundggs.avecoins.shop.ShopService;
 import net.sundggs.avecoins.shop.WalletStore;
 import net.sundggs.avecoins.shop.PlayerMarketStore;
+import net.sundggs.avecoins.shop.PlayerMarketService;
 import net.sundggs.avecoins.shop.WalletService;
 
 public final class ModServerEvents {
+    private static int deliveryTicks;
+
     public static void register() {
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             WalletStore.initialize(server);
@@ -31,6 +35,12 @@ public final class ModServerEvents {
             ServerPayloadHandler.clearSessions();
             WalletStore.clear();
             PlayerMarketStore.clear();
+        });
+        ServerTickEvents.END_SERVER_TICK.register(server -> {
+            if (++deliveryTicks >= 20) {
+                deliveryTicks = 0;
+                PlayerMarketService.processDeliveries(server);
+            }
         });
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
             ShopService.removeSession(handler.player.getUUID());
