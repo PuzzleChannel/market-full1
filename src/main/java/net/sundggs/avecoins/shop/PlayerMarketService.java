@@ -25,7 +25,6 @@ public final class PlayerMarketService {
         snapshot.shopColor = ModConfigManager.general().shopColor;
         snapshot.walletBalance = WalletStore.get().balance(player.getUUID(), CraftingConfig.CURRENCY);
         long now = System.currentTimeMillis();
-        boolean noticesChanged = false;
         for (PlayerMarketData.Listing listing : data.listings) {
             if (listing.expiresAt > 0L && listing.expiresAt <= now
                     && !listing.sellerId.equals(snapshot.viewerId)) continue;
@@ -54,12 +53,23 @@ public final class PlayerMarketService {
                 visible.price = notice.price;
                 visible.soldAt = notice.soldAt;
                 snapshot.saleNotices.add(visible);
-                notice.read = true;
-                noticesChanged = true;
             }
         }
-        if (noticesChanged) PlayerMarketStore.save(noticeCandidate);
         return snapshot;
+    }
+
+    public static void acknowledgeSaleNotices(ServerPlayer player) {
+        PlayerMarketData current = PlayerMarketStore.get();
+        PlayerMarketData candidate = current.copy();
+        boolean changed = false;
+        String viewerId = player.getUUID().toString();
+        for (PlayerMarketData.SaleNotice notice : candidate.saleNotices) {
+            if (notice.sellerId.equals(viewerId) && !notice.read) {
+                notice.read = true;
+                changed = true;
+            }
+        }
+        if (changed) PlayerMarketStore.save(candidate);
     }
 
     public static String snapshotJson(ServerPlayer player) {
