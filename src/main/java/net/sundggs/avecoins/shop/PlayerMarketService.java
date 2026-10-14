@@ -25,6 +25,7 @@ public final class PlayerMarketService {
         snapshot.shopColor = ModConfigManager.general().shopColor;
         snapshot.walletBalance = WalletStore.get().balance(player.getUUID(), CraftingConfig.CURRENCY);
         long now = System.currentTimeMillis();
+        boolean noticesChanged = false;
         for (PlayerMarketData.Listing listing : data.listings) {
             if (listing.expiresAt > 0L && listing.expiresAt <= now
                     && !listing.sellerId.equals(snapshot.viewerId)) continue;
@@ -43,6 +44,21 @@ public final class PlayerMarketService {
             entry.extensionDays = listing.extensionDays;
             snapshot.listings.add(entry);
         }
+        PlayerMarketData noticeCandidate = data.copy();
+        for (PlayerMarketData.SaleNotice notice : noticeCandidate.saleNotices) {
+            if (notice.sellerId.equals(snapshot.viewerId) && !notice.read) {
+                MarketSaleNotice visible = new MarketSaleNotice();
+                visible.id = notice.id;
+                visible.itemName = notice.itemName;
+                visible.quantity = notice.quantity;
+                visible.price = notice.price;
+                visible.soldAt = notice.soldAt;
+                snapshot.saleNotices.add(visible);
+                notice.read = true;
+                noticesChanged = true;
+            }
+        }
+        if (noticesChanged) PlayerMarketStore.save(noticeCandidate);
         return snapshot;
     }
 
@@ -172,6 +188,17 @@ public final class PlayerMarketService {
 
         PlayerMarketData marketCandidate = current.copy();
         marketCandidate.listings.removeIf(entry -> entry.id.equals(listing.id));
+        PlayerMarketData.SaleNotice notice = new PlayerMarketData.SaleNotice();
+        notice.id = UUID.randomUUID().toString();
+        notice.sellerId = listing.sellerId;
+        notice.itemName = listing.displayName;
+        notice.quantity = listing.quantity;
+        notice.price = (int) total;
+        notice.soldAt = System.currentTimeMillis();
+        marketCandidate.saleNotices.add(notice);
+        if (marketCandidate.saleNotices.size() > 100) {
+            marketCandidate.saleNotices.remove(0);
+        }
         if (!PlayerMarketStore.save(marketCandidate)) {
             return Result.fail("persistence_error");
         }
@@ -319,6 +346,15 @@ public final class PlayerMarketService {
         public String shopColor = "";
         public long walletBalance;
         public List<MarketListing> listings = new ArrayList<>();
+        public List<MarketSaleNotice> saleNotices = new ArrayList<>();
+    }
+
+    public static final class MarketSaleNotice {
+        public String id = "";
+        public String itemName = "";
+        public int quantity;
+        public int price;
+        public long soldAt;
     }
 
     public static final class MarketListing {
