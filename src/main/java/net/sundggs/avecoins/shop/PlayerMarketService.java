@@ -46,6 +46,21 @@ public final class PlayerMarketService {
             snapshot.listings.add(entry);
         }
         PlayerMarketData noticeCandidate = data.copy();
+        for (PlayerMarketData.Delivery delivery : data.deliveries) {
+            if (!delivery.buyerId.equals(snapshot.viewerId)) continue;
+            MarketDelivery entry = new MarketDelivery();
+            entry.id = delivery.id;
+            entry.itemId = delivery.itemId;
+            entry.displayName = delivery.displayName;
+            entry.itemData = delivery.itemData;
+            entry.quantity = delivery.quantity;
+            entry.price = delivery.price;
+            entry.purchasedAt = delivery.purchasedAt;
+            entry.deliverAt = delivery.deliverAt;
+            entry.deliveryMinutes = delivery.deliveryMinutes;
+            entry.accelerationCost = accelerationCost(delivery.deliveryMinutes);
+            snapshot.deliveries.add(entry);
+        }
         for (PlayerMarketData.SaleNotice notice : noticeCandidate.saleNotices) {
             if (notice.sellerId.equals(snapshot.viewerId) && !notice.read) {
                 MarketSaleNotice visible = new MarketSaleNotice();
@@ -361,60 +376,95 @@ public final class PlayerMarketService {
         return Math.max(1, Math.min(30, base + priceExtra));
     }
 
-    /** Deliver due orders only while the recipient is online and has inventory space. */
+    /**
+     * Kept as a no-op for compatibility: orders must be collected manually from the
+     * Active Orders screen and must never be granted automatically by a timer.
+     */
     public static void processDeliveries(MinecraftServer server) {
+        // Delivery timers only change an order's readiness; they do not grant items.
+    }
+
+    public static int accelerationCost(int deliveryMinutes) {
+        int duration = Math.max(1, Math.min(30, deliveryMinutes));
+        return 1 + ((duration - 1) * 4) / 29;
+    }
+
+    public static Result accelerateDelivery(ServerPlayer buyer, String deliveryId) {
         PlayerMarketData current = PlayerMarketStore.get();
-        long now = System.currentTimeMillis();
-        boolean changed = false;
-        PlayerMarketData candidate = current.copy();
-        for (int i = 0; i < candidate.deliveries.size();) {
-            PlayerMarketData.Delivery delivery = candidate.deliveries.get(i);
-            if (delivery.deliverAt > now) {
-                i++;
-                continue;
+        PlayerMarketData.Delivery found = null;
+        String buyerId = buyer.getUUID().toString();
+        for (PlayerMarketData.Delivery delivery : current.deliveries) {
+            if (delivery.id.equals(deliveryId)) {
+                found = delivery;
+                break;
             }
-            ServerPlayer recipient;
-            try {
-                recipient = server.getPlayerList().getPlayer(UUID.fromString(delivery.buyerId));
-            } catch (IllegalArgumentException exception) {
-                i++;
-                continue;
-            }
-            if (recipient == null) {
-                i++;
-                continue;
-            }
-            Identifier itemId = Identifier.tryParse(delivery.itemId);
-            if (itemId == null || !BuiltInRegistries.ITEM.containsKey(itemId)) {
-                i++;
-                continue;
-            }
-            Item expected = (Item) BuiltInRegistries.ITEM.getValue(itemId);
-            ItemStack stack = ShopItemStacks.decodeExpected(recipient.level().registryAccess(), delivery.itemData, expected)
-                    .orElse(ItemStack.EMPTY);
-            if (stack.isEmpty()) {
-                i++;
-                continue;
-            }
-            List<ItemStack> inventoryBackup = copyInventory(recipient.getInventory());
-            if (!insertCompletely(recipient.getInventory(), stack, delivery.quantity)) {
-                restoreInventory(recipient.getInventory(), inventoryBackup);
-                i++;
-                continue;
-            }
-            candidate.deliveries.remove(i);
-            if (!PlayerMarketStore.save(candidate)) {
-                restoreInventory(recipient.getInventory(), inventoryBackup);
-                return;
-            }
-            changed = true;
-            current = candidate.copy();
-            recipient.getInventory().setChanged();
-            recipient.sendSystemMessage(Component.literal("§aРынок §7» §fДоставка: " + delivery.displayName
-                    + (delivery.quantity > 1 ? " ×" + delivery.quantity : "") + " прибыла."));
-            candidate = current.copy();
         }
-        if (changed) PlayerMarketStore.save(candidate);
+        if (found == null) return Result.fail("market_delivery_missing");
+        if (!found.buyerId.equals(buyerId)) return Result.fail("permission_denied");
+        long now = System.currentTimeMillis();
+        if (found.deliverAt <= now) return Result.fail("market_delivery_already_ready");
+
+        int cost = accelerationCost(found.deliveryMinutes);
+        WalletData walletCurrent = WalletStore.get().copy();
+        WalletData walletCandidate = walletCurrent.copy();
+        if (!walletCandidate.debit(buyer.getUUID(), CraftingConfig.CURRENCY, cost)) {
+            return Result.fail("market_delivery_acceleration_insufficient");
+        }
+
+        PlayerMarketData marketCandidate = current.copy();
+        for (PlayerMarketData.Delivery delivery : marketCandidate.deliveries) {
+            if (delivery.id.equals(deliveryId)) {
+                delivery.deliverAt = now;
+                break;
+            }
+        }
+        if (!PlayerMarketStore.save(marketCandidate)) return Result.fail("persistence_error");
+        if (!WalletStore.save(walletCandidate)) {
+            PlayerMarketStore.save(current);
+            return Result.fail("persistence_error");
+        }
+        return Result.ok("market_delivery_accelerated");
+    }
+
+    public static Result claimDelivery(ServerPlayer buyer, String deliveryId) {
+        PlayerMarketData current = PlayerMarketStore.get();
+        PlayerMarketData.Delivery delivery = null;
+        String buyerId = buyer.getUUID().toString();
+        for (PlayerMarketData.Delivery entry : current.deliveries) {
+            if (entry.id.equals(deliveryId)) {
+                delivery = entry;
+                break;
+            }
+        }
+        if (delivery == null) return Result.fail("market_delivery_missing");
+        if (!delivery.buyerId.equals(buyerId)) return Result.fail("permission_denied");
+        if (delivery.deliverAt > System.currentTimeMillis()) return Result.fail("market_delivery_not_ready");
+
+        Identifier itemId = Identifier.tryParse(delivery.itemId);
+        if (itemId == null || !BuiltInRegistries.ITEM.containsKey(itemId)) {
+            return Result.fail("market_item_unavailable");
+        }
+        Item expected = (Item) BuiltInRegistries.ITEM.getValue(itemId);
+        ItemStack template = ShopItemStacks.decodeExpected(buyer.level().registryAccess(), delivery.itemData, expected)
+                .orElse(ItemStack.EMPTY);
+        if (template.isEmpty()) return Result.fail("market_item_unavailable");
+
+        // Attempt to place the complete quantity and roll back if all items do not fit.
+        // This handles both empty slots and compatible partially-filled stacks.
+        List<ItemStack> inventoryBackup = copyInventory(buyer.getInventory());
+        if (!insertCompletely(buyer.getInventory(), template, delivery.quantity)) {
+            restoreInventory(buyer.getInventory(), inventoryBackup);
+            return Result.fail("market_delivery_inventory_full");
+        }
+
+        PlayerMarketData marketCandidate = current.copy();
+        marketCandidate.deliveries.removeIf(entry -> entry.id.equals(deliveryId));
+        if (!PlayerMarketStore.save(marketCandidate)) {
+            restoreInventory(buyer.getInventory(), inventoryBackup);
+            return Result.fail("persistence_error");
+        }
+        buyer.getInventory().setChanged();
+        return Result.ok("market_delivery_claimed");
     }
 
     public static long extensionCost(int extraDays) {
@@ -473,6 +523,7 @@ public final class PlayerMarketService {
         public long walletBalance;
         public List<MarketListing> listings = new ArrayList<>();
         public List<MarketSaleNotice> saleNotices = new ArrayList<>();
+        public List<MarketDelivery> deliveries = new ArrayList<>();
     }
 
     public static final class MarketSaleNotice {
@@ -481,6 +532,19 @@ public final class PlayerMarketService {
         public int quantity;
         public int price;
         public long soldAt;
+    }
+
+    public static final class MarketDelivery {
+        public String id = "";
+        public String itemId = "";
+        public String displayName = "";
+        public String itemData = "";
+        public int quantity;
+        public int price;
+        public long purchasedAt;
+        public long deliverAt;
+        public int deliveryMinutes;
+        public int accelerationCost;
     }
 
     public static final class MarketListing {
