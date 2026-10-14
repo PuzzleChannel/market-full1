@@ -108,7 +108,12 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
                 Component.translatable("gui.avecoins.player_market.my_listings"), PanelButton.Variant.HEADER,
                 button -> ClientNetworking.send(new ServerboundAvecoinsPayload("request_player_market_manage", "{}"))));
 
-        int createX = myListingsX - 142 - 8;
+        int ordersX = myListingsX - 118 - 8;
+        this.addRenderableWidget(new PanelButton(ordersX, headerY, 118, 20,
+                Component.translatable("gui.avecoins.player_market.orders"), PanelButton.Variant.HEADER,
+                button -> ClientNetworking.send(new ServerboundAvecoinsPayload("request_player_market_orders", "{}"))));
+
+        int createX = ordersX - 142 - 8;
         this.addRenderableWidget(new PanelButton(createX, headerY, 142, 20,
                 Component.translatable("gui.avecoins.player_market.list_item"), PanelButton.Variant.SUCCESS,
                 button -> this.minecraft.gui.setScreen(new PlayerMarketCreateScreen(this.snapshot, ""))));
