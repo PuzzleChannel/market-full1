@@ -82,6 +82,8 @@ public final class PlayerMarketData {
             listing.unitPrice = source.unitPrice;
             listing.totalPrice = source.totalPrice;
             listing.createdAt = Math.max(0L, source.createdAt);
+            listing.expiresAt = source.expiresAt > 0L ? source.expiresAt : (listing.createdAt > 0L ? listing.createdAt + 86400000L : 0L);
+            listing.extensionDays = Math.max(0, Math.min(10, source.extensionDays));
             output.listings.add(listing);
         }
         return output;
@@ -102,6 +104,8 @@ public final class PlayerMarketData {
             listing.unitPrice = source.unitPrice;
             listing.totalPrice = source.totalPrice;
             listing.createdAt = source.createdAt;
+            listing.expiresAt = source.expiresAt;
+            listing.extensionDays = source.extensionDays;
             copy.listings.add(listing);
         }
         return copy;
@@ -137,5 +141,9 @@ public final class PlayerMarketData {
         /** Fixed price for the entire listing; zero is reserved for backward-compatible legacy entries. */
         public int totalPrice;
         public long createdAt;
+        /** Expiration timestamp; first 24 hours are free. */
+        public long expiresAt;
+        /** Paid extra days beyond the free first day. */
+        public int extensionDays;
     }
 }
