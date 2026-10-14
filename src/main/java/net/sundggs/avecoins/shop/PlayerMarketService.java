@@ -309,17 +309,23 @@ public final class PlayerMarketService {
         String path = itemId == null ? "" : itemId.toLowerCase(java.util.Locale.ROOT);
         String encoded = itemData == null ? "" : itemData.toLowerCase(java.util.Locale.ROOT);
         int base;
-        if (path.contains("elytra") || path.contains("netherite") && (path.contains("sword") || path.contains("pickaxe")
+        if (path.contains("elytra")) {
+            base = 30;
+        } else if ((path.contains("sword") || path.contains("pickaxe") || path.contains("axe") || path.contains("shovel")
+                || path.contains("hoe") || path.contains("chestplate") || path.contains("helmet") || path.contains("leggings")
+                || path.contains("boots")) && encoded.contains("enchantments")) {
+            base = 30;
+        } else if (path.contains("netherite") && (path.contains("sword") || path.contains("pickaxe")
                 || path.contains("axe") || path.contains("shovel") || path.contains("hoe") || path.contains("chestplate"))) {
             base = 24;
         } else if (path.contains("enchanted_book")) {
             base = encoded.contains("mending") || encoded.contains("silk_touch") || encoded.contains("fortune")
                     || encoded.contains("sharpness") || encoded.contains("protection") || encoded.contains("efficiency")
-                    ? 24 : 18;
+                    || encoded.contains("power") || encoded.contains("unbreaking") || encoded.contains("looting") ? 30 : 18;
         } else if (path.contains("lingering_potion")) {
-            base = 26;
+            base = 30;
         } else if (path.contains("splash_potion") || path.contains("tipped_arrow")) {
-            base = encoded.contains("strong") || encoded.contains("long_") ? 23 : 18;
+            base = encoded.contains("strong") || encoded.contains("long_") ? 30 : 18;
         } else if (path.contains("potion")) {
             base = encoded.contains("strong") || encoded.contains("long_") ? 22 : 16;
         } else if (path.contains("golden_carrot")) {
