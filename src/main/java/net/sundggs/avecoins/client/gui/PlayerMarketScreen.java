@@ -25,7 +25,7 @@ import net.sundggs.avecoins.shop.ShopService;
 
 /** Компактный рынок игроков с поиском по объявлениям. */
 public final class PlayerMarketScreen extends AvecoinsScreen {
-    private static final int LISTINGS_PER_PAGE = 12;
+    private static final int LISTINGS_PER_PAGE = 9;
     private static final int COLUMNS = 3;
     private static final int CARD_HEIGHT = 80;
     private static final int CARD_STEP = 86;
@@ -179,7 +179,7 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
         int listX = this.panelLeft + 120;
         int rowWidth = this.panelWidth - 132;
         int cardWidth = (rowWidth - (COLUMNS - 1) * 8) / COLUMNS;
-        int listTop = this.panelTop + 80;
+        int listTop = this.panelTop + 100;
         int start = this.page * LISTINGS_PER_PAGE;
         int end = Math.min(this.visibleListings.size(), start + LISTINGS_PER_PAGE);
 
@@ -392,8 +392,23 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
     @Override
     protected void renderPanel(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         this.renderHeader(graphics, null);
+        int noticeCount = Math.min(3, this.snapshot.saleNotices.size());
+        int noticeGap = 6;
+        int noticeWidth = (this.panelWidth - 132 - (noticeCount - 1) * noticeGap) / Math.max(1, noticeCount);
+        for (int i = 0; i < noticeCount; i++) {
+            PlayerMarketService.MarketSaleNotice notice = this.snapshot.saleNotices.get(i);
+            int noticeX = this.panelLeft + 120 + i * (noticeWidth + noticeGap);
+            int noticeY = this.panelTop + 62;
+            graphics.fill(noticeX, noticeY, noticeX + noticeWidth, noticeY + 20, this.theme().SUCCESS);
+            graphics.fill(noticeX + 1, noticeY + 1, noticeX + noticeWidth - 1, noticeY + 19, this.theme().SURFACE);
+            String itemLabel = notice.itemName + (notice.quantity > 1 ? " ×" + notice.quantity : "");
+            String line = this.font.plainSubstrByWidth(itemLabel, Math.max(20, noticeWidth - 60))
+                    + " · " + notice.price + " ВМ";
+            graphics.text(this.font, Component.literal(this.font.plainSubstrByWidth(line, noticeWidth - 8)),
+                    noticeX + 4, noticeY + 6, this.theme().TEXT, !this.theme().custom);
+        }
         this.drawSectionTitleAt(graphics, Component.translatable("gui.avecoins.player_market.listings"),
-                this.panelLeft + 120 + (this.panelWidth - 132) / 2, this.panelTop + 68);
+                this.panelLeft + 120 + (this.panelWidth - 132) / 2, this.panelTop + 88);
 
         int listX = this.panelLeft + 120;
         int rowWidth = this.panelWidth - 132;
@@ -435,6 +450,12 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
             String seller = listing.sellerName + (ownListing ? " · Вы" : "");
             graphics.text(this.font, Component.literal(this.font.plainSubstrByWidth(seller, cardWidth - 16)),
                     cardX + 8, cardY + 28, this.theme().MUTED, !this.theme().custom);
+            if (listing.expiresAt > 0L) {
+                long remaining = listing.expiresAt - System.currentTimeMillis();
+                String expiry = remaining <= 0L ? "Истёк" : "Осталось " + Math.max(1L, (remaining + 86399999L) / 86400000L) + " дн.";
+                graphics.text(this.font, Component.literal(expiry), cardX + 8, cardY + 36,
+                        this.theme().MUTED, !this.theme().custom);
+            }
 
             Component priceLabel = Component.translatable("gui.avecoins.player_market.total_price");
             graphics.text(this.font, priceLabel, cardX + 8, cardY + 44,
