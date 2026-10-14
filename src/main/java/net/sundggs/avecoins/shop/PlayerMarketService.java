@@ -410,8 +410,8 @@ public final class PlayerMarketService {
             changed = true;
             current = candidate.copy();
             recipient.getInventory().setChanged();
-            recipient.displayClientMessage(Component.literal("§aРынок §7» §fДоставка: " + delivery.displayName
-                    + (delivery.quantity > 1 ? " ×" + delivery.quantity : "") + " прибыла."), false);
+            recipient.sendSystemMessage(Component.literal("§aРынок §7» §fДоставка: " + delivery.displayName
+                    + (delivery.quantity > 1 ? " ×" + delivery.quantity : "") + " прибыла."));
             candidate = current.copy();
         }
         if (changed) PlayerMarketStore.save(candidate);
