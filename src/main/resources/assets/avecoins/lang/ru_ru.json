@@ -48,6 +48,8 @@
   "message.avecoins.market_seller_wallet_limit": "Кошелёк продавца переполнен. Покупка пока невозможна.",
   "message.avecoins.market_inventory_full": "Освободите место в инвентаре и попробуйте снова.",
   "message.avecoins.market_purchase_completed": "Покупка завершена. ВМуткоины зачислены в кошелёк продавца.",
+  "message.avecoins.market_purchase_queued": "Покупка оформлена. Предмет будет доставлен через указанное время.",
+  "message.avecoins.market_delivery_queue_full": "Очередь доставок переполнена. Попробуйте позже.",
   "message.avecoins.market_listing_cancelled": "Объявление снято, предметы возвращены в инвентарь.",
   "gui.avecoins.player_market.list_item": "Выставить на продажу",
   "gui.avecoins.player_market.create_title": "Новое объявление",
