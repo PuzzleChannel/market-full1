@@ -229,7 +229,7 @@ public final class PlayerMarketService {
             PlayerMarketStore.save(current);
             return Result.fail("persistence_error");
         }
-        return Result.ok("market_purchase_queued_" + deliveryMinutes);
+        return Result.ok("market_purchase_queued");
     }
 
     public static Result cancel(ServerPlayer seller, String listingId) {
@@ -316,8 +316,12 @@ public final class PlayerMarketService {
             base = encoded.contains("mending") || encoded.contains("silk_touch") || encoded.contains("fortune")
                     || encoded.contains("sharpness") || encoded.contains("protection") || encoded.contains("efficiency")
                     ? 24 : 18;
-        } else if (path.contains("potion") || path.contains("tipped_arrow")) {
-            base = encoded.contains("lingering") || encoded.contains("strong") || encoded.contains("long_") ? 22 : 16;
+        } else if (path.contains("lingering_potion")) {
+            base = 26;
+        } else if (path.contains("splash_potion") || path.contains("tipped_arrow")) {
+            base = encoded.contains("strong") || encoded.contains("long_") ? 23 : 18;
+        } else if (path.contains("potion")) {
+            base = encoded.contains("strong") || encoded.contains("long_") ? 22 : 16;
         } else if (path.contains("golden_carrot")) {
             base = 10;
         } else if (path.contains("golden_apple") || path.contains("totem") || path.contains("nether_star")
@@ -325,7 +329,7 @@ public final class PlayerMarketService {
                 || path.contains("mace") || path.contains("heavy_core") || path.contains("dragon_egg")) {
             base = 20;
         } else if (encoded.contains("enchantments") || encoded.contains("stored_enchantments")) {
-            base = 17;
+            base = 27;
         } else if (path.contains("diamond") || path.contains("emerald") || path.contains("ancient_debris")
                 || path.contains("netherite") || path.contains("amethyst") || path.contains("echo_shard")
                 || path.contains("music_disc") || path.contains("saddle") || path.contains("name_tag")) {
