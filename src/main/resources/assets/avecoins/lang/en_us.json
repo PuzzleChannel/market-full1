@@ -362,6 +362,8 @@
   "message.avecoins.market_seller_wallet_limit": "The seller's wallet is full. This purchase cannot be completed yet.",
   "message.avecoins.market_inventory_full": "Free up inventory space and try again.",
   "message.avecoins.market_purchase_completed": "Purchase completed. VMcoins were paid into the seller's wallet.",
+  "message.avecoins.market_purchase_queued": "Purchase placed. Your item will be delivered after the displayed wait time.",
+  "message.avecoins.market_delivery_queue_full": "The delivery queue is full. Please try again later.",
   "message.avecoins.market_listing_cancelled": "Listing cancelled and items returned to your inventory.",
   "gui.avecoins.player_market.list_item": "List item for sale",
   "gui.avecoins.player_market.create_title": "New listing",
