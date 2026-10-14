@@ -6,7 +6,7 @@ package net.sundggs.avecoins.client.gui;
 import net.sundggs.avecoins.config.ShopColor;
 
 public final class GuiPalette {
-    public static final GuiPalette DEFAULT = new GuiPalette(0xFF38271B);
+    public static final GuiPalette DEFAULT = new GuiPalette();
     public final boolean custom;
     public final int BACKGROUND;
     public final int PANEL;
@@ -39,7 +39,7 @@ public final class GuiPalette {
 
     private GuiPalette() {
         this.custom = false;
-        this.BACKGROUND = 0xFF17120E;
+        this.BACKGROUND = 0xFF101318;
         this.PANEL = -15263203;
         this.HEADER = -14407636;
         this.SURFACE = -14670808;
@@ -71,7 +71,7 @@ public final class GuiPalette {
 
     private GuiPalette(int base) {
         this.custom = true;
-        this.BACKGROUND = 0xFF17120E;
+        this.BACKGROUND = 0xFF101318;
         this.PANEL = base;
         int foreground = GuiPalette.contrast(-16777216, base) >= GuiPalette.contrast(-1, base) ? -16777216 : -1;
         int blackEndpoint = GuiPalette.surface(-16777216, foreground);
