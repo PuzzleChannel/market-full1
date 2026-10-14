@@ -20,6 +20,7 @@ import net.sundggs.avecoins.client.gui.PurchaseResultScreen;
 import net.sundggs.avecoins.client.gui.PlayerMarketScreen;
 import net.sundggs.avecoins.client.gui.PlayerMarketCreateScreen;
 import net.sundggs.avecoins.client.gui.PlayerMarketManageScreen;
+import net.sundggs.avecoins.client.gui.PlayerMarketOrdersScreen;
 import net.sundggs.avecoins.client.gui.RecipeEditorScreen;
 import net.sundggs.avecoins.client.gui.SaleResultScreen;
 import net.sundggs.avecoins.client.gui.SellBoxScreen;
@@ -170,6 +171,9 @@ public final class ClientScreenDispatcher {
         } else if (action.equals("open_player_market")) {
             PlayerMarketService.MarketSnapshot snapshot = (PlayerMarketService.MarketSnapshot)AtomicJsonStore.gson().fromJson(data, PlayerMarketService.MarketSnapshot.class);
             Minecraft.getInstance().gui.setScreen((Screen)new PlayerMarketScreen(snapshot, ""));
+        } else if (action.equals("open_player_market_orders")) {
+            PlayerMarketService.MarketSnapshot snapshot = (PlayerMarketService.MarketSnapshot)AtomicJsonStore.gson().fromJson(data, PlayerMarketService.MarketSnapshot.class);
+            Minecraft.getInstance().gui.setScreen((Screen)new PlayerMarketOrdersScreen(snapshot, ""));
         } else if (action.equals("open_player_market_manage")) {
             PlayerMarketService.MarketSnapshot snapshot = (PlayerMarketService.MarketSnapshot)AtomicJsonStore.gson().fromJson(data, PlayerMarketService.MarketSnapshot.class);
             Minecraft.getInstance().gui.setScreen((Screen)new PlayerMarketManageScreen(snapshot, ""));
@@ -179,7 +183,10 @@ public final class ClientScreenDispatcher {
             String result = response.get("result").getAsString();
             Screen screen = Minecraft.getInstance().gui.screen();
             boolean success = response.get("success").getAsBoolean();
-            if (screen instanceof PlayerMarketManageScreen) {
+            if (screen instanceof PlayerMarketOrdersScreen) {
+                PlayerMarketOrdersScreen ordersScreen = (PlayerMarketOrdersScreen)screen;
+                Minecraft.getInstance().gui.setScreen((Screen)ordersScreen.refreshed(snapshot, result));
+            } else if (screen instanceof PlayerMarketManageScreen) {
                 PlayerMarketManageScreen manageScreen = (PlayerMarketManageScreen)screen;
                 Minecraft.getInstance().gui.setScreen((Screen)manageScreen.refreshed(snapshot, result));
             } else if (screen instanceof PlayerMarketCreateScreen) {
@@ -205,7 +212,7 @@ public final class ClientScreenDispatcher {
                 InventoryScreen inventoryScreen = (InventoryScreen)screen;
                 inventoryScreen.resize(inventoryScreen.width, inventoryScreen.height);
             }
-            if (!enabled && (Minecraft.getInstance().gui.screen() instanceof ShopScreen || Minecraft.getInstance().gui.screen() instanceof CartScreen || Minecraft.getInstance().gui.screen() instanceof AdminShopScreen || Minecraft.getInstance().gui.screen() instanceof PurchaseHistoryScreen || Minecraft.getInstance().gui.screen() instanceof WalletScreen || Minecraft.getInstance().gui.screen() instanceof SellBoxScreen || Minecraft.getInstance().gui.screen() instanceof SaleResultScreen || Minecraft.getInstance().gui.screen() instanceof PlayerMarketScreen || Minecraft.getInstance().gui.screen() instanceof PlayerMarketCreateScreen || Minecraft.getInstance().gui.screen() instanceof PlayerMarketManageScreen)) {
+            if (!enabled && (Minecraft.getInstance().gui.screen() instanceof ShopScreen || Minecraft.getInstance().gui.screen() instanceof CartScreen || Minecraft.getInstance().gui.screen() instanceof AdminShopScreen || Minecraft.getInstance().gui.screen() instanceof PurchaseHistoryScreen || Minecraft.getInstance().gui.screen() instanceof WalletScreen || Minecraft.getInstance().gui.screen() instanceof SellBoxScreen || Minecraft.getInstance().gui.screen() instanceof SaleResultScreen || Minecraft.getInstance().gui.screen() instanceof PlayerMarketScreen || Minecraft.getInstance().gui.screen() instanceof PlayerMarketCreateScreen || Minecraft.getInstance().gui.screen() instanceof PlayerMarketManageScreen || Minecraft.getInstance().gui.screen() instanceof PlayerMarketOrdersScreen)) {
                 Minecraft.getInstance().gui.setScreen(null);
             }
         }
