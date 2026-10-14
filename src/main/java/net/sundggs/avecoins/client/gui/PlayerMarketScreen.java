@@ -466,6 +466,9 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
             String priceText = Long.toString(total);
             graphics.text(this.font, Component.literal(priceText), priceX, cardY + 44,
                     this.theme().TEXT, !this.theme().custom);
+            String deliveryLabel = "Доставка: " + listing.deliveryMinutes + " мин.";
+            graphics.text(this.font, Component.literal(this.font.plainSubstrByWidth(deliveryLabel, cardWidth - 76)),
+                    cardX + 8, cardY + 54, this.theme().MUTED, !this.theme().custom);
             Identifier currencyId = Identifier.tryParse("vmtrade:vmcoin");
             if (currencyId != null && BuiltInRegistries.ITEM.containsKey(currencyId)) {
                 graphics.item(new ItemStack((Item) BuiltInRegistries.ITEM.getValue(currencyId)),
