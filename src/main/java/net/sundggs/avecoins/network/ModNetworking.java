@@ -92,6 +92,10 @@ public final class ModNetworking {
         ModNetworking.send(player, "open_player_market_manage", PlayerMarketService.snapshotJson(player));
     }
 
+    public static void openPlayerMarketOrders(ServerPlayer player) {
+        ModNetworking.send(player, "open_player_market_orders", PlayerMarketService.snapshotJson(player));
+    }
+
     public static void syncPlayerMarket(ServerPlayer player, PlayerMarketService.Result result) {
         JsonObject response = new JsonObject();
         response.addProperty("success", result.success());
