@@ -66,6 +66,7 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
     private EditBox searchBox;
     private List<PlayerMarketService.MarketListing> visibleListings = List.of();
     private final List<PanelButton> listingControls = new ArrayList<>();
+    private String confirmingListingId = "";
 
     public PlayerMarketScreen(PlayerMarketService.MarketSnapshot snapshot, String resultCode) {
         this(snapshot, resultCode, "", 0, 0, 0, 0);
@@ -189,10 +190,17 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
             int cardY = listTop + (local / COLUMNS) * CARD_STEP;
             boolean ownListing = listing.sellerId.equals(this.snapshot.viewerId);
             long total = lotPrice(listing);
+            boolean confirming = listing.id.equals(this.confirmingListingId);
             PanelButton action = new PanelButton(cardX + cardWidth - 62, cardY + 59, 56, 18,
-                    Component.translatable(ownListing ? "gui.avecoins.player_market.cancel" : "gui.avecoins.player_market.buy"),
-                    ownListing ? PanelButton.Variant.DANGER : PanelButton.Variant.SUCCESS,
+                    Component.literal(ownListing ? "Снять" : confirming ? "Точно?" : "Купить"),
+                    ownListing ? PanelButton.Variant.DANGER : confirming ? PanelButton.Variant.DANGER : PanelButton.Variant.SUCCESS,
                     button -> {
+                        if (!ownListing && !confirming) {
+                            this.confirmingListingId = listing.id;
+                            this.rebuildListingControls();
+                            return;
+                        }
+                        if (!ownListing) this.confirmingListingId = "";
                         com.google.gson.JsonObject payload = new com.google.gson.JsonObject();
                         payload.addProperty("id", listing.id);
                         ClientNetworking.send(new ServerboundAvecoinsPayload(
