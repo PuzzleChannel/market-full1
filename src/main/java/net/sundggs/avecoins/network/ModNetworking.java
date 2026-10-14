@@ -69,10 +69,17 @@ public final class ModNetworking {
     }
 
     public static void openShop(ServerPlayer player, boolean administration, int historyPage) {
-        boolean allowedAdmin;
-        boolean bl = allowedAdmin = administration && PermissionService.isAdministrator(player);
-        String action = allowedAdmin ? (historyPage >= 0 ? "open_shop_history" : "open_shop_admin") : "open_shop";
-        ModNetworking.send(player, action, ShopService.snapshotJson(player, allowedAdmin, historyPage));
+        // Never expose the catalogue through the legacy public-shop route.
+        if (!administration) {
+            ModNetworking.openPlayerMarket(player);
+            return;
+        }
+        if (!PermissionService.isAdministrator(player)) {
+            ModMessages.send(player, "message.avecoins.permission_denied");
+            return;
+        }
+        String action = historyPage >= 0 ? "open_shop_history" : "open_shop_admin";
+        ModNetworking.send(player, action, ShopService.snapshotJson(player, true, historyPage));
     }
 
     public static void openPlayerMarket(ServerPlayer player) {
