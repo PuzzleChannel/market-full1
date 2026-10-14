@@ -115,6 +115,16 @@ public final class ServerPayloadHandler {
                 ModNetworking.openPlayerMarket(player);
                 break;
             }
+            case "request_player_market_orders": {
+                ServerPayloadHandler.object(data, new String[0]);
+                ServerPayloadHandler.require(player, "avecoins.shop.use");
+                if (!ModConfigManager.general().shopEnabled) {
+                    ModNetworking.send(player, "operation_result", ServerPayloadHandler.resultJson(false, "shop_disabled"));
+                    break;
+                }
+                ModNetworking.openPlayerMarketOrders(player);
+                break;
+            }
             case "market_create_listing": {
                 ServerPayloadHandler.require(player, "avecoins.shop.use");
                 if (!ModConfigManager.general().shopEnabled) {
@@ -145,6 +155,36 @@ public final class ServerPayloadHandler {
                 }
                 JsonObject json = ServerPayloadHandler.object(data, "id");
                 ServerPayloadHandler.syncMarketMutation(player, server, PlayerMarketService.purchase(player, ServerPayloadHandler.stringField(json, "id", 40)));
+                break;
+            }
+            case "market_accelerate_delivery": {
+                ServerPayloadHandler.require(player, "avecoins.shop.use");
+                if (!ModConfigManager.general().shopEnabled) {
+                    ModNetworking.syncPlayerMarket(player, PlayerMarketService.Result.fail("shop_disabled"));
+                    break;
+                }
+                if (!ServerPayloadHandler.marketMutationAllowed(player)) {
+                    ModNetworking.syncPlayerMarket(player, PlayerMarketService.Result.fail("rate_limited"));
+                    break;
+                }
+                JsonObject json = ServerPayloadHandler.object(data, "id");
+                ServerPayloadHandler.syncMarketMutation(player, server,
+                        PlayerMarketService.accelerateDelivery(player, ServerPayloadHandler.stringField(json, "id", 40)));
+                break;
+            }
+            case "market_claim_delivery": {
+                ServerPayloadHandler.require(player, "avecoins.shop.use");
+                if (!ModConfigManager.general().shopEnabled) {
+                    ModNetworking.syncPlayerMarket(player, PlayerMarketService.Result.fail("shop_disabled"));
+                    break;
+                }
+                if (!ServerPayloadHandler.marketMutationAllowed(player)) {
+                    ModNetworking.syncPlayerMarket(player, PlayerMarketService.Result.fail("rate_limited"));
+                    break;
+                }
+                JsonObject json = ServerPayloadHandler.object(data, "id");
+                ServerPayloadHandler.syncMarketMutation(player, server,
+                        PlayerMarketService.claimDelivery(player, ServerPayloadHandler.stringField(json, "id", 40)));
                 break;
             }
             case "market_cancel": {
