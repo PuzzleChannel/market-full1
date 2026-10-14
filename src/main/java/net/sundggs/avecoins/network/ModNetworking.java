@@ -83,7 +83,9 @@ public final class ModNetworking {
     }
 
     public static void openPlayerMarket(ServerPlayer player) {
-        ModNetworking.send(player, "open_player_market", PlayerMarketService.snapshotJson(player));
+        String snapshot = PlayerMarketService.snapshotJson(player);
+        ModNetworking.send(player, "open_player_market", snapshot);
+        PlayerMarketService.acknowledgeSaleNotices(player);
     }
 
     public static void openPlayerMarketManage(ServerPlayer player) {
