@@ -25,6 +25,12 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
     private static final int COLUMNS = 3;
     private static final int CARD_HEIGHT = 76;
     private static final int CARD_STEP = 80;
+    // Palette inspired by the dayliki interface: warm brown panels and orange accents.
+    private static final int CARD_BORDER = 0xFF9C4D21;
+    private static final int CARD_PANEL = 0xFF2A1A12;
+    private static final int CARD_TOP = 0xFFE58A3A;
+    private static final int CARD_TEXT = 0xFFFFE8D2;
+    private static final int CARD_MUTED = 0xFFBFA38C;
     private static final Identifier COIN_ID = Identifier.fromNamespaceAndPath("vmtrade", "vmcoin");
 
     private final PlayerMarketService.MarketSnapshot snapshot;
@@ -48,7 +54,7 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
         this.priceDrafts = new HashMap<>(priceDrafts);
         this.confirmingListingId = confirmingListingId == null ? "" : confirmingListingId;
         ShopService.ShopSnapshot themeSnapshot = new ShopService.ShopSnapshot();
-        themeSnapshot.shopColor = snapshot.shopColor == null || snapshot.shopColor.isBlank() ? "#38271B" : snapshot.shopColor;
+        themeSnapshot.shopColor = "#2A1A12";
         this.useShopTheme(themeSnapshot);
     }
 
@@ -263,9 +269,9 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
                 int local = index - start;
                 int cardX = listX + (local % COLUMNS) * (cardWidth + 8);
                 int cardY = listTop + (local / COLUMNS) * CARD_STEP;
-                graphics.fill(cardX, cardY, cardX + cardWidth, cardY + CARD_HEIGHT, this.theme().BORDER);
-                graphics.fill(cardX + 1, cardY + 1, cardX + cardWidth - 1, cardY + CARD_HEIGHT - 1, this.theme().PANEL);
-                graphics.fill(cardX + 1, cardY + 1, cardX + cardWidth - 1, cardY + 3, this.theme().HEADER);
+                graphics.fill(cardX, cardY, cardX + cardWidth, cardY + CARD_HEIGHT, CARD_BORDER);
+                graphics.fill(cardX + 1, cardY + 1, cardX + cardWidth - 1, cardY + CARD_HEIGHT - 1, CARD_PANEL);
+                graphics.fill(cardX + 1, cardY + 1, cardX + cardWidth - 1, cardY + 3, CARD_TOP);
             }
         } finally {
             graphics.pose().popMatrix();
@@ -282,7 +288,7 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
         Component summary = Component.translatable("gui.avecoins.player_market.manage_summary",
                 listings.size(), totalQuantity(listings));
         GuiTextLayout.drawCenteredFitted(graphics, this.font, summary,
-                this.panelLeft + this.panelWidth / 2, this.panelTop + 61, this.panelWidth - 36, this.theme().MUTED);
+                this.panelLeft + this.panelWidth / 2, this.panelTop + 61, this.panelWidth - 36, CARD_MUTED);
         this.renderTotalValue(graphics, this.panelLeft + this.panelWidth / 2, this.panelTop + 70,
                 totalValue(listings));
 
@@ -295,7 +301,7 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
 
         if (listings.isEmpty()) {
             this.drawCenteredWrappedAt(graphics, Component.translatable("gui.avecoins.player_market.manage_empty"),
-                    this.panelLeft + this.panelWidth / 2, listTop + 70, rowWidth - 60, this.theme().MUTED);
+                    this.panelLeft + this.panelWidth / 2, listTop + 70, rowWidth - 60, CARD_MUTED);
         }
 
         for (int index = start; index < end; index++) {
@@ -314,10 +320,10 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
             }
             String title = listing.displayName;
             graphics.text(this.font, Component.literal(this.font.plainSubstrByWidth(title, cardWidth - 44)),
-                    cardX + 30, cardY + 8, this.theme().TEXT, false);
+                    cardX + 30, cardY + 8, CARD_TEXT, false);
             graphics.text(this.font,
                     Component.translatable("gui.avecoins.player_market.selected_count", listing.quantity),
-                    cardX + 30, cardY + 23, this.theme().MUTED, false);
+                    cardX + 30, cardY + 23, CARD_MUTED, false);
             this.renderListingPrice(graphics, listing.totalPrice, cardX + 8, cardY + 36);
         }
 
@@ -336,14 +342,14 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
     
     private void renderTotalValue(GuiGraphicsExtractor graphics, int centerX, int y, long value) {
         Component label = Component.translatable("gui.avecoins.player_market.manage_total_value");
-        this.drawCurrencyLine(graphics, label, Long.toString(value), centerX, y, this.theme().TEXT);
+        this.drawCurrencyLine(graphics, label, Long.toString(value), centerX, y, CARD_TEXT);
     }
 
     private void renderListingPrice(GuiGraphicsExtractor graphics, long value, int x, int y) {
         Component label = Component.translatable("gui.avecoins.player_market.current_price");
-        graphics.text(this.font, label, x, y, this.theme().TEXT, false);
+        graphics.text(this.font, label, x, y, CARD_TEXT, false);
         int amountX = x + this.font.width(label) + 5;
-        graphics.text(this.font, Component.literal(Long.toString(value)), amountX, y, this.theme().TEXT, false);
+        graphics.text(this.font, Component.literal(Long.toString(value)), amountX, y, CARD_TEXT, false);
         int iconX = amountX + this.font.width(Long.toString(value)) + 3;
         if (BuiltInRegistries.ITEM.containsKey(COIN_ID)) {
             graphics.item(new ItemStack((Item) BuiltInRegistries.ITEM.getValue(COIN_ID)), iconX, y - 4);
