@@ -7,6 +7,7 @@ import java.util.UUID;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.Item;
@@ -41,6 +42,7 @@ public final class PlayerMarketService {
             entry.createdAt = listing.createdAt;
             entry.expiresAt = listing.expiresAt;
             entry.extensionDays = listing.extensionDays;
+            entry.deliveryMinutes = estimateDeliveryMinutes(listing.itemId, listing.itemData, (int) totalPrice(listing));
             snapshot.listings.add(entry);
         }
         PlayerMarketData noticeCandidate = data.copy();
@@ -176,14 +178,9 @@ public final class PlayerMarketService {
         if (template.isEmpty()) {
             return Result.fail("market_item_unavailable");
         }
-        // Simulate delivery first. Persisting the removed listing before granting items
-        // makes a crash fail closed: the market cannot sell the same item twice.
-        List<ItemStack> inventoryBackup = copyInventory(buyer.getInventory());
-        if (!insertCompletely(buyer.getInventory(), template, listing.quantity)) {
-            restoreInventory(buyer.getInventory(), inventoryBackup);
-            return Result.fail("market_inventory_full");
+        if (current.deliveries.size() >= 500) {
+            return Result.fail("market_delivery_queue_full");
         }
-        restoreInventory(buyer.getInventory(), inventoryBackup);
 
         WalletData walletBackup = WalletStore.get().copy();
         WalletData walletCandidate = walletBackup.copy();
@@ -198,6 +195,20 @@ public final class PlayerMarketService {
 
         PlayerMarketData marketCandidate = current.copy();
         marketCandidate.listings.removeIf(entry -> entry.id.equals(listing.id));
+        int deliveryMinutes = estimateDeliveryMinutes(listing.itemId, listing.itemData, (int) total);
+        PlayerMarketData.Delivery delivery = new PlayerMarketData.Delivery();
+        delivery.id = UUID.randomUUID().toString();
+        delivery.buyerId = buyer.getUUID().toString();
+        delivery.sellerId = listing.sellerId;
+        delivery.itemId = listing.itemId;
+        delivery.displayName = listing.displayName;
+        delivery.itemData = listing.itemData;
+        delivery.quantity = listing.quantity;
+        delivery.price = (int) total;
+        delivery.purchasedAt = System.currentTimeMillis();
+        delivery.deliveryMinutes = deliveryMinutes;
+        delivery.deliverAt = delivery.purchasedAt + deliveryMinutes * 60_000L;
+        marketCandidate.deliveries.add(delivery);
         PlayerMarketData.SaleNotice notice = new PlayerMarketData.SaleNotice();
         notice.id = UUID.randomUUID().toString();
         notice.sellerId = listing.sellerId;
@@ -218,14 +229,7 @@ public final class PlayerMarketService {
             PlayerMarketStore.save(current);
             return Result.fail("persistence_error");
         }
-        if (!insertCompletely(buyer.getInventory(), template, listing.quantity)) {
-            WalletStore.save(walletBackup);
-            PlayerMarketStore.save(current);
-            restoreInventory(buyer.getInventory(), inventoryBackup);
-            return Result.fail("market_inventory_full");
-        }
-        buyer.getInventory().setChanged();
-        return Result.ok("market_purchase_completed");
+        return Result.ok("market_purchase_queued_" + deliveryMinutes);
     }
 
     public static Result cancel(ServerPlayer seller, String listingId) {
@@ -299,6 +303,108 @@ public final class PlayerMarketService {
             return Result.fail("persistence_error");
         }
         return Result.ok("market_listing_updated");
+    }
+
+    public static int estimateDeliveryMinutes(String itemId, String itemData, int price) {
+        String path = itemId == null ? "" : itemId.toLowerCase(java.util.Locale.ROOT);
+        String encoded = itemData == null ? "" : itemData.toLowerCase(java.util.Locale.ROOT);
+        int base;
+        if (path.contains("elytra") || path.contains("netherite") && (path.contains("sword") || path.contains("pickaxe")
+                || path.contains("axe") || path.contains("shovel") || path.contains("hoe") || path.contains("chestplate"))) {
+            base = 24;
+        } else if (path.contains("enchanted_book")) {
+            base = encoded.contains("mending") || encoded.contains("silk_touch") || encoded.contains("fortune")
+                    || encoded.contains("sharpness") || encoded.contains("protection") || encoded.contains("efficiency")
+                    ? 24 : 18;
+        } else if (path.contains("potion") || path.contains("tipped_arrow")) {
+            base = encoded.contains("lingering") || encoded.contains("strong") || encoded.contains("long_") ? 22 : 16;
+        } else if (path.contains("golden_carrot")) {
+            base = 10;
+        } else if (path.contains("golden_apple") || path.contains("totem") || path.contains("nether_star")
+                || path.contains("beacon") || path.contains("shulker_box") || path.contains("trident")
+                || path.contains("mace") || path.contains("heavy_core") || path.contains("dragon_egg")) {
+            base = 20;
+        } else if (encoded.contains("enchantments") || encoded.contains("stored_enchantments")) {
+            base = 17;
+        } else if (path.contains("diamond") || path.contains("emerald") || path.contains("ancient_debris")
+                || path.contains("netherite") || path.contains("amethyst") || path.contains("echo_shard")
+                || path.contains("music_disc") || path.contains("saddle") || path.contains("name_tag")) {
+            base = 6;
+        } else if (path.contains("sword") || path.contains("pickaxe") || path.contains("axe") || path.contains("shovel")
+                || path.contains("hoe") || path.contains("bow") || path.contains("crossbow") || path.contains("armor")
+                || path.contains("helmet") || path.contains("chestplate") || path.contains("leggings") || path.contains("boots")) {
+            base = 8;
+        } else if (path.contains("apple") || path.contains("bread") || path.contains("beef") || path.contains("porkchop")
+                || path.contains("chicken") || path.contains("mutton") || path.contains("rabbit") || path.contains("cod")
+                || path.contains("salmon") || path.contains("potato") || path.contains("carrot") || path.contains("cookie")
+                || path.contains("melon_slice") || path.contains("berries") || path.contains("stew") || path.contains("soup")) {
+            base = 2;
+        } else if (path.contains("stone") || path.contains("dirt") || path.contains("sand") || path.contains("gravel")
+                || path.contains("cobblestone") || path.contains("planks") || path.contains("log") || path.contains("wool")
+                || path.contains("glass") || path.contains("brick") || path.contains("concrete") || path.contains("terracotta")
+                || path.contains("torch") || path.contains("stick") || path.contains("string") || path.contains("coal")) {
+            base = 1;
+        } else {
+            base = 4;
+        }
+        int priceExtra = price >= 100 ? 10 : price >= 50 ? 7 : price >= 25 ? 4 : price >= 10 ? 2 : price >= 4 ? 1 : 0;
+        return Math.max(1, Math.min(30, base + priceExtra));
+    }
+
+    /** Deliver due orders only while the recipient is online and has inventory space. */
+    public static void processDeliveries(MinecraftServer server) {
+        PlayerMarketData current = PlayerMarketStore.get();
+        long now = System.currentTimeMillis();
+        boolean changed = false;
+        PlayerMarketData candidate = current.copy();
+        for (int i = 0; i < candidate.deliveries.size();) {
+            PlayerMarketData.Delivery delivery = candidate.deliveries.get(i);
+            if (delivery.deliverAt > now) {
+                i++;
+                continue;
+            }
+            ServerPlayer recipient;
+            try {
+                recipient = server.getPlayerList().getPlayer(UUID.fromString(delivery.buyerId));
+            } catch (IllegalArgumentException exception) {
+                i++;
+                continue;
+            }
+            if (recipient == null) {
+                i++;
+                continue;
+            }
+            Identifier itemId = Identifier.tryParse(delivery.itemId);
+            if (itemId == null || !BuiltInRegistries.ITEM.containsKey(itemId)) {
+                i++;
+                continue;
+            }
+            Item expected = (Item) BuiltInRegistries.ITEM.getValue(itemId);
+            ItemStack stack = ShopItemStacks.decodeExpected(recipient.level().registryAccess(), delivery.itemData, expected)
+                    .orElse(ItemStack.EMPTY);
+            if (stack.isEmpty()) {
+                i++;
+                continue;
+            }
+            List<ItemStack> inventoryBackup = copyInventory(recipient.getInventory());
+            if (!insertCompletely(recipient.getInventory(), stack, delivery.quantity)) {
+                restoreInventory(recipient.getInventory(), inventoryBackup);
+                i++;
+                continue;
+            }
+            candidate.deliveries.remove(i);
+            if (!PlayerMarketStore.save(candidate)) {
+                restoreInventory(recipient.getInventory(), inventoryBackup);
+                return;
+            }
+            changed = true;
+            current = candidate.copy();
+            recipient.getInventory().setChanged();
+            recipient.displayClientMessage(Component.literal("§aРынок §7» §fДоставка: " + delivery.displayName
+                    + (delivery.quantity > 1 ? " ×" + delivery.quantity : "") + " прибыла."), false);
+            candidate = current.copy();
+        }
+        if (changed) PlayerMarketStore.save(candidate);
     }
 
     public static long extensionCost(int extraDays) {
@@ -382,6 +488,7 @@ public final class PlayerMarketService {
         public long createdAt;
         public long expiresAt;
         public int extensionDays;
+        public int deliveryMinutes;
     }
 
     public record Result(boolean success, String code) {
