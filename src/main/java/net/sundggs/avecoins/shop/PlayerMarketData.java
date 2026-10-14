@@ -17,6 +17,7 @@ public final class PlayerMarketData {
     public int schemaVersion = SCHEMA_VERSION;
     public long revision;
     public List<Listing> listings = new ArrayList<>();
+    public List<SaleNotice> saleNotices = new ArrayList<>();
 
     public static PlayerMarketData defaults() {
         return new PlayerMarketData();
@@ -86,6 +87,26 @@ public final class PlayerMarketData {
             listing.extensionDays = Math.max(0, Math.min(10, source.extensionDays));
             output.listings.add(listing);
         }
+        if (input.saleNotices != null) {
+            int start = Math.max(0, input.saleNotices.size() - 100);
+            for (int i = start; i < input.saleNotices.size(); i++) {
+                SaleNotice source = input.saleNotices.get(i);
+                if (source == null || source.sellerId == null || source.itemName == null) continue;
+                try {
+                    SaleNotice notice = new SaleNotice();
+                    notice.id = canonicalUuid(source.id, "sale notice id");
+                    notice.sellerId = canonicalUuid(source.sellerId, "sale notice seller id");
+                    notice.itemName = bounded(source.itemName, 128, "sale item name");
+                    notice.quantity = Math.max(1, Math.min(999, source.quantity));
+                    notice.price = Math.max(1, Math.min(1728, source.price));
+                    notice.soldAt = Math.max(0L, source.soldAt);
+                    notice.read = source.read;
+                    output.saleNotices.add(notice);
+                } catch (IllegalArgumentException ignored) {
+                    // Discard only the malformed notice; preserve valid market listings.
+                }
+            }
+        }
         return output;
     }
 
@@ -108,7 +129,28 @@ public final class PlayerMarketData {
             listing.extensionDays = source.extensionDays;
             copy.listings.add(listing);
         }
+        for (SaleNotice source : this.saleNotices) {
+            SaleNotice notice = new SaleNotice();
+            notice.id = source.id;
+            notice.sellerId = source.sellerId;
+            notice.itemName = source.itemName;
+            notice.quantity = source.quantity;
+            notice.price = source.price;
+            notice.soldAt = source.soldAt;
+            notice.read = source.read;
+            copy.saleNotices.add(notice);
+        }
         return copy;
+    }
+
+    public static final class SaleNotice {
+        public String id = "";
+        public String sellerId = "";
+        public String itemName = "";
+        public int quantity = 1;
+        public int price = 1;
+        public long soldAt;
+        public boolean read;
     }
 
     private static String canonicalUuid(String value, String label) {
