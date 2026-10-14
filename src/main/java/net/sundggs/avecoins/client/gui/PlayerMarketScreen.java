@@ -88,9 +88,11 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
     }
 
     public PlayerMarketScreen refreshed(PlayerMarketService.MarketSnapshot snapshot, String resultCode) {
-        return new PlayerMarketScreen(snapshot, resultCode,
+        PlayerMarketScreen refreshed = new PlayerMarketScreen(snapshot, resultCode,
                 this.searchBox == null ? this.search : this.searchBox.getValue(),
                 this.page, this.filterMode, this.sortMode, this.categoryMode);
+        refreshed.confirmingListingId = this.confirmingListingId;
+        return refreshed;
     }
 
     @Override
