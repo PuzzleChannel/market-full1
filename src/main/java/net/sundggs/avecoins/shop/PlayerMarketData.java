@@ -18,6 +18,7 @@ public final class PlayerMarketData {
     public long revision;
     public List<Listing> listings = new ArrayList<>();
     public List<SaleNotice> saleNotices = new ArrayList<>();
+    public List<Delivery> deliveries = new ArrayList<>();
 
     public static PlayerMarketData defaults() {
         return new PlayerMarketData();
@@ -107,6 +108,34 @@ public final class PlayerMarketData {
                 }
             }
         }
+        if (input.deliveries != null) {
+            int start = Math.max(0, input.deliveries.size() - 500);
+            for (int i = start; i < input.deliveries.size(); i++) {
+                Delivery source = input.deliveries.get(i);
+                if (source == null) continue;
+                try {
+                    Delivery delivery = new Delivery();
+                    delivery.id = canonicalUuid(source.id, "delivery id");
+                    delivery.buyerId = canonicalUuid(source.buyerId, "delivery buyer id");
+                    delivery.sellerId = canonicalUuid(source.sellerId, "delivery seller id");
+                    delivery.itemId = bounded(source.itemId, 128, "delivery item id");
+                    Identifier parsedDeliveryItem = Identifier.tryParse(delivery.itemId);
+                    if (parsedDeliveryItem == null || !parsedDeliveryItem.toString().equals(delivery.itemId)) continue;
+                    delivery.displayName = bounded(source.displayName, 128, "delivery display name");
+                    if (source.itemData == null || source.itemData.isBlank()
+                            || source.itemData.getBytes(StandardCharsets.UTF_8).length > MAX_ITEM_DATA_BYTES) continue;
+                    delivery.itemData = source.itemData;
+                    delivery.quantity = Math.max(1, Math.min(999, source.quantity));
+                    delivery.price = Math.max(1, Math.min(1728, source.price));
+                    delivery.purchasedAt = Math.max(0L, source.purchasedAt);
+                    delivery.deliverAt = Math.max(delivery.purchasedAt, source.deliverAt);
+                    delivery.deliveryMinutes = Math.max(1, Math.min(30, source.deliveryMinutes));
+                    output.deliveries.add(delivery);
+                } catch (IllegalArgumentException ignored) {
+                    // Ignore malformed delivery records without discarding valid market data.
+                }
+            }
+        }
         return output;
     }
 
@@ -140,7 +169,36 @@ public final class PlayerMarketData {
             notice.read = source.read;
             copy.saleNotices.add(notice);
         }
+        for (Delivery source : this.deliveries) {
+            Delivery delivery = new Delivery();
+            delivery.id = source.id;
+            delivery.buyerId = source.buyerId;
+            delivery.sellerId = source.sellerId;
+            delivery.itemId = source.itemId;
+            delivery.displayName = source.displayName;
+            delivery.itemData = source.itemData;
+            delivery.quantity = source.quantity;
+            delivery.price = source.price;
+            delivery.purchasedAt = source.purchasedAt;
+            delivery.deliverAt = source.deliverAt;
+            delivery.deliveryMinutes = source.deliveryMinutes;
+            copy.deliveries.add(delivery);
+        }
         return copy;
+    }
+
+    public static final class Delivery {
+        public String id = "";
+        public String buyerId = "";
+        public String sellerId = "";
+        public String itemId = "";
+        public String displayName = "";
+        public String itemData = "";
+        public int quantity = 1;
+        public int price = 1;
+        public long purchasedAt;
+        public long deliverAt;
+        public int deliveryMinutes = 1;
     }
 
     public static final class SaleNotice {
