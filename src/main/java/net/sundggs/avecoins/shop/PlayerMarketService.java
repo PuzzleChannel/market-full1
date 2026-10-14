@@ -36,6 +36,8 @@ public final class PlayerMarketService {
             entry.totalPrice = (int) totalPrice(listing);
             entry.itemData = listing.itemData;
             entry.createdAt = listing.createdAt;
+            entry.expiresAt = listing.expiresAt;
+            entry.extensionDays = listing.extensionDays;
             snapshot.listings.add(entry);
         }
         return snapshot;
@@ -46,7 +48,13 @@ public final class PlayerMarketService {
     }
 
     public static Result createListing(ServerPlayer player, int inventorySlot, int lotPrice, int quantity) {
-        if (lotPrice < 1 || lotPrice > MAX_WALLET_BALANCE || quantity < 1 || quantity > 999) {
+        return createListing(player, inventorySlot, lotPrice, quantity, 0);
+    }
+
+    /** extraDays are paid at creation: 1, 2, 4, 8... VMcoins per additional day. */
+    public static Result createListing(ServerPlayer player, int inventorySlot, int lotPrice, int quantity, int extraDays) {
+        if (lotPrice < 1 || lotPrice > MAX_WALLET_BALANCE || quantity < 1 || quantity > 999
+                || extraDays < 0 || extraDays > 10) {
             return Result.fail("market_invalid_price_quantity");
         }
         if (inventorySlot < 0 || inventorySlot >= 36) {
@@ -86,12 +94,26 @@ public final class PlayerMarketService {
         listing.unitPrice = Math.max(1, lotPrice / quantity);
         listing.totalPrice = lotPrice;
         listing.createdAt = System.currentTimeMillis();
+        listing.extensionDays = extraDays;
+        listing.expiresAt = listing.createdAt + 86400000L + (long) extraDays * 86400000L;
         candidate.listings.add(0, listing);
+
+        long extensionCost = extensionCost(extraDays);
+        WalletData walletBackup = WalletStore.get().copy();
+        WalletData walletCandidate = walletBackup.copy();
+        if (extensionCost > 0L && !walletCandidate.debit(player.getUUID(), CraftingConfig.CURRENCY, extensionCost)) {
+            return Result.fail("market_extension_insufficient");
+        }
 
         List<ItemStack> backup = copyInventory(player.getInventory());
         held.shrink(quantity);
         player.getInventory().setChanged();
         if (!PlayerMarketStore.save(candidate)) {
+            restoreInventory(player.getInventory(), backup);
+            return Result.fail("persistence_error");
+        }
+        if (extensionCost > 0L && !WalletStore.save(walletCandidate)) {
+            PlayerMarketStore.save(current);
             restoreInventory(player.getInventory(), backup);
             return Result.fail("persistence_error");
         }
@@ -236,6 +258,12 @@ public final class PlayerMarketService {
         return Result.ok("market_listing_updated");
     }
 
+    public static long extensionCost(int extraDays) {
+        if (extraDays <= 0) return 0L;
+        if (extraDays > 10) return Long.MAX_VALUE;
+        return (1L << extraDays) - 1L;
+    }
+
     private static long totalPrice(PlayerMarketData.Listing listing) {
         return listing.totalPrice > 0 ? listing.totalPrice : (long) listing.unitPrice * listing.quantity;
     }
@@ -300,6 +328,8 @@ public final class PlayerMarketService {
         public int unitPrice;
         public String itemData = "";
         public long createdAt;
+        public long expiresAt;
+        public int extensionDays;
     }
 
     public record Result(boolean success, String code) {
