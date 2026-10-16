@@ -256,7 +256,9 @@ implements ThemedScreen {
         int boxWidth = this.panelWidth - 40;
         int boxX = this.panelLeft + (this.panelWidth - boxWidth) / 2;
         boolean success = ResultFeedback.isSuccess(resultCode);
-        graphics.fill(boxX, boxY, boxX + boxWidth, boxY + 18, success ? this.theme().SUCCESS_BOX : this.theme().DANGER);
+        boolean information = ResultFeedback.isInformation(resultCode);
+        int background = success ? this.theme().SUCCESS_BOX : information ? this.theme().HEADER : this.theme().DANGER;
+        graphics.fill(boxX, boxY, boxX + boxWidth, boxY + 18, background);
         this.drawCenteredFitted(graphics, (Component)Component.translatable((String)("message.avecoins." + resultCode)), this.panelLeft + this.panelWidth / 2, boxY + 5, boxWidth - 12, this.theme().TEXT);
     }
 
