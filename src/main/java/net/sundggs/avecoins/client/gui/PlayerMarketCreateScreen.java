@@ -24,6 +24,7 @@ public final class PlayerMarketCreateScreen extends AvecoinsScreen {
     private int extraDays;
     private net.minecraft.client.gui.components.EditBox priceBox;
     private net.minecraft.client.gui.components.EditBox quantityBox;
+    private boolean confirmingListing;
 
     public PlayerMarketCreateScreen(PlayerMarketService.MarketSnapshot snapshot, String resultCode) {
         this(snapshot, resultCode, "1", "1", findInitialSlot());
@@ -75,26 +76,77 @@ public final class PlayerMarketCreateScreen extends AvecoinsScreen {
                 Component.translatable("gui.avecoins.player_market.price"));
         this.priceBox.setMaxLength(6);
         this.priceBox.setValue(this.savedPrice);
-        this.priceBox.setHint(Component.literal("Например, 12"));
+        this.priceBox.setHint(Component.translatable("gui.avecoins.player_market.price_hint"));
+        this.priceBox.setTooltip(net.minecraft.client.gui.components.Tooltip.create(
+                Component.translatable("gui.avecoins.player_market.price_help")));
         this.addRenderableWidget(this.priceBox);
+        this.priceBox.setResponder(value -> {
+            this.savedPrice = value;
+            if (this.confirmingListing) {
+                this.confirmingListing = false;
+                this.resultCode = "";
+                this.rebuildWidgets();
+            }
+        });
 
         this.quantityBox = new net.minecraft.client.gui.components.EditBox(this.font, fieldsX + 210, fieldsY, 190, 20,
                 Component.translatable("gui.avecoins.player_market.quantity"));
         this.quantityBox.setMaxLength(3);
         this.quantityBox.setValue(this.savedQuantity);
-        this.quantityBox.setHint(Component.literal("Например, 16"));
+        this.quantityBox.setHint(Component.translatable("gui.avecoins.player_market.quantity_hint"));
+        this.quantityBox.setTooltip(net.minecraft.client.gui.components.Tooltip.create(
+                Component.translatable("gui.avecoins.player_market.quantity_help")));
         this.addRenderableWidget(this.quantityBox);
+        this.quantityBox.setResponder(value -> {
+            this.savedQuantity = value;
+            if (this.confirmingListing) {
+                this.confirmingListing = false;
+                this.resultCode = "";
+                this.rebuildWidgets();
+            }
+        });
 
-        this.addRenderableWidget(new PanelButton(this.panelLeft + (this.panelWidth - 360) / 2, this.panelTop + 250, 360, 20,
-                Component.literal(this.durationLabel()), PanelButton.Variant.SECONDARY,
+        long extensionFee = PlayerMarketService.extensionCost(this.extraDays);
+        PanelButton duration = new PanelButton(this.panelLeft + (this.panelWidth - 360) / 2, this.panelTop + 250, 360, 20,
+                Component.translatable("gui.avecoins.player_market.duration", this.extraDays + 1, extensionFee),
+                PanelButton.Variant.SECONDARY,
                 button -> {
                     this.extraDays = (this.extraDays + 1) % 11;
+                    this.confirmingListing = false;
+                    this.resultCode = "";
                     this.rebuildWidgets();
-                }));
+                });
+        duration.setTooltip(net.minecraft.client.gui.components.Tooltip.create(
+                Component.translatable("gui.avecoins.player_market.duration_help",
+                        extensionFee, this.snapshot.walletBalance)));
+        this.addRenderableWidget(duration);
 
-        this.addRenderableWidget(new PanelButton(this.panelLeft + (this.panelWidth - 230) / 2, this.panelTop + 309, 230, 25,
-                Component.translatable("gui.avecoins.player_market.create"), PanelButton.Variant.SUCCESS,
-                button -> this.createListing()));
+        int createX = this.panelLeft + (this.panelWidth - 230) / 2;
+        PanelButton create = new PanelButton(createX, this.panelTop + 309, 230, 25,
+                Component.translatable(this.confirmingListing
+                        ? "gui.avecoins.player_market.confirm_listing_button"
+                        : "gui.avecoins.player_market.create"), PanelButton.Variant.SUCCESS,
+                button -> this.createListing());
+        ItemStack selectedForTooltip = this.minecraft.player == null || this.selectedSlot < 0
+                ? ItemStack.EMPTY : this.minecraft.player.getInventory().getItem(this.selectedSlot);
+        String selectedName = selectedForTooltip.isEmpty() ? "" : selectedForTooltip.getHoverName().getString();
+        int parsedPriceForTooltip = parsePositiveOrDefault(this.priceBox.getValue(), 1);
+        int parsedQuantityForTooltip = parsePositiveOrDefault(this.quantityBox.getValue(), 1);
+        create.setTooltip(net.minecraft.client.gui.components.Tooltip.create(
+                Component.translatable("gui.avecoins.player_market.create_confirm_tooltip",
+                        selectedName, parsedQuantityForTooltip, parsedPriceForTooltip,
+                        this.extraDays + 1, extensionFee, this.snapshot.walletBalance)));
+        this.addRenderableWidget(create);
+        if (this.confirmingListing) {
+            PanelButton cancelConfirmation = new PanelButton(createX + 236, this.panelTop + 309, 90, 25,
+                    Component.translatable("gui.avecoins.player_market.cancel_confirmation"),
+                    PanelButton.Variant.SECONDARY, button -> {
+                        this.confirmingListing = false;
+                        this.resultCode = "";
+                        this.rebuildWidgets();
+                    });
+            this.addRenderableWidget(cancelConfirmation);
+        }
     }
 
     private void createListing() {
@@ -126,6 +178,19 @@ public final class PlayerMarketCreateScreen extends AvecoinsScreen {
                 this.rebuildWidgets();
                 return;
             }
+            long extensionFee = PlayerMarketService.extensionCost(this.extraDays);
+            if (extensionFee > this.snapshot.walletBalance) {
+                this.confirmingListing = false;
+                this.resultCode = "market_extension_insufficient";
+                this.rebuildWidgets();
+                return;
+            }
+            if (!this.confirmingListing) {
+                this.confirmingListing = true;
+                this.resultCode = "market_confirm_listing";
+                this.rebuildWidgets();
+                return;
+            }
             // Price is the total amount for the selected quantity, so a stack of 64 can cost 1 VMcoin.
             com.google.gson.JsonObject payload = new com.google.gson.JsonObject();
             payload.addProperty("slot", this.selectedSlot);
@@ -134,8 +199,18 @@ public final class PlayerMarketCreateScreen extends AvecoinsScreen {
             payload.addProperty("extraDays", this.extraDays);
             ClientNetworking.send(new ServerboundAvecoinsPayload("market_create_listing", payload.toString()));
         } catch (NumberFormatException exception) {
+            this.confirmingListing = false;
             this.resultCode = "market_invalid_price_quantity";
             this.rebuildWidgets();
+        }
+    }
+
+    private static int parsePositiveOrDefault(String value, int fallback) {
+        try {
+            int parsed = Integer.parseInt(value == null ? "" : value.trim());
+            return parsed > 0 ? parsed : fallback;
+        } catch (NumberFormatException ignored) {
+            return fallback;
         }
     }
 
@@ -154,6 +229,7 @@ public final class PlayerMarketCreateScreen extends AvecoinsScreen {
                     int slot = 9 + row * 9 + column;
                     if (this.minecraft.player != null && !this.minecraft.player.getInventory().getItem(slot).isEmpty()) {
                         this.selectedSlot = slot;
+                        this.confirmingListing = false;
                         this.resultCode = "";
                         return true;
                     }
@@ -161,6 +237,7 @@ public final class PlayerMarketCreateScreen extends AvecoinsScreen {
                     int slot = column;
                     if (this.minecraft.player != null && !this.minecraft.player.getInventory().getItem(slot).isEmpty()) {
                         this.selectedSlot = slot;
+                        this.confirmingListing = false;
                         this.resultCode = "";
                         return true;
                     }
@@ -228,7 +305,13 @@ public final class PlayerMarketCreateScreen extends AvecoinsScreen {
         graphics.text(this.font, Component.translatable("gui.avecoins.player_market.quantity"),
                 fieldsX + 210, this.panelTop + 208, this.theme().TEXT, !this.theme().custom);
 
-        this.renderVmcoinBalance(graphics, this.panelLeft + this.panelWidth / 2, this.panelTop + 280);
+        this.renderVmcoinBalance(graphics, this.panelLeft + this.panelWidth / 2, this.panelTop + 275);
+        long extensionFee = PlayerMarketService.extensionCost(this.extraDays);
+        Component feeSummary = Component.translatable("gui.avecoins.player_market.extension_fee_summary",
+                extensionFee, Math.max(0L, this.snapshot.walletBalance - extensionFee));
+        int feeColor = extensionFee > this.snapshot.walletBalance ? this.theme().DANGER : this.theme().SUCCESS;
+        this.drawCenteredWrappedAt(graphics, feeSummary,
+                this.panelLeft + this.panelWidth / 2, this.panelTop + 296, this.panelWidth - 60, feeColor);
 
         this.drawCenteredWrappedAt(graphics, Component.translatable("gui.avecoins.player_market.limit"),
                 this.panelLeft + this.panelWidth / 2, this.panelTop + 345, 640, this.theme().MUTED);
@@ -260,8 +343,8 @@ public final class PlayerMarketCreateScreen extends AvecoinsScreen {
     }
 
     private String durationLabel() {
-        long cost = (1L << this.extraDays) - 1L;
-        return "Срок: " + (this.extraDays + 1) + " дн. · доплата: " + cost + " VMуткоинов";
+        long cost = PlayerMarketService.extensionCost(this.extraDays);
+        return Component.translatable("gui.avecoins.player_market.duration", this.extraDays + 1, cost).getString();
     }
 
     private void renderVmcoinBalance(GuiGraphicsExtractor graphics, int centerX, int iconY) {
