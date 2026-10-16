@@ -97,10 +97,10 @@ public final class PlayerMarketService {
         return createListing(player, inventorySlot, lotPrice, quantity, 0);
     }
 
-    /** extraDays are paid at creation: 1, 2, 4, 8... VMcoins per additional day. */
+    /** extraDays maps to fixed listing options: 0, 1, 3, or 5 days beyond the free first day. */
     public static Result createListing(ServerPlayer player, int inventorySlot, int lotPrice, int quantity, int extraDays) {
         if (lotPrice < 1 || lotPrice > MAX_WALLET_BALANCE || quantity < 1 || quantity > 999
-                || extraDays < 0 || extraDays > 10) {
+                || !(extraDays == 0 || extraDays == 1 || extraDays == 3 || extraDays == 5)) {
             return Result.fail("market_invalid_price_quantity");
         }
         if (inventorySlot < 0 || inventorySlot >= 36) {
@@ -468,9 +468,13 @@ public final class PlayerMarketService {
     }
 
     public static long extensionCost(int extraDays) {
-        if (extraDays <= 0) return 0L;
-        if (extraDays > 10) return Long.MAX_VALUE;
-        return (1L << extraDays) - 1L;
+        return switch (extraDays) {
+            case 0 -> 0L;
+            case 1 -> 2L;
+            case 3 -> 4L;
+            case 5 -> 6L;
+            default -> Long.MAX_VALUE;
+        };
     }
 
     private static long totalPrice(PlayerMarketData.Listing listing) {
