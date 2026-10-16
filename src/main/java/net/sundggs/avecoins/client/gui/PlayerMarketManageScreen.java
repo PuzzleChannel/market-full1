@@ -129,7 +129,7 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
             int cardX = listX + (local % COLUMNS) * (cardWidth + 8);
             int cardY = listTop + (local / COLUMNS) * CARD_STEP;
 
-            EditBox priceBox = new EditBox(this.font, cardX + 8, cardY + 53, 50, 18,
+            EditBox priceBox = new EditBox(this.font, cardX + 8, cardY + 53, 45, 18,
                     Component.translatable("gui.avecoins.player_market.price"));
             priceBox.setMaxLength(10);
             priceBox.setValue(this.priceDrafts.getOrDefault(listing.id, Integer.toString(listing.totalPrice)));
@@ -139,7 +139,7 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
             this.priceBoxes.put(listing.id, priceBox);
             this.addRenderableWidget(priceBox);
 
-            PanelButton saveButton = new PanelButton(cardX + 61, cardY + 53, 58, 18,
+            PanelButton saveButton = new PanelButton(cardX + 72, cardY + 53, 58, 18,
                     Component.translatable("gui.avecoins.player_market.save_price"), PanelButton.Variant.SECONDARY,
                     button -> this.savePrice(listing));
             this.saveButtons.put(listing.id, saveButton);
@@ -151,13 +151,13 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
             });
 
             boolean confirming = listing.id.equals(this.confirmingListingId);
-            this.addRenderableWidget(new PanelButton(cardX + 122, cardY + 53, 70, 18,
+            this.addRenderableWidget(new PanelButton(cardX + 132, cardY + 53, 66, 18,
                     Component.translatable(confirming
                             ? "gui.avecoins.player_market.confirm_remove"
                             : "gui.avecoins.player_market.cancel"),
                     PanelButton.Variant.DANGER, button -> this.handleRemoveClick(listing)));
             if (confirming) {
-                this.addRenderableWidget(new PanelButton(cardX + 195, cardY + 53, 55, 18,
+                this.addRenderableWidget(new PanelButton(cardX + 200, cardY + 53, 55, 18,
                         Component.translatable("gui.avecoins.player_market.keep_listing"), PanelButton.Variant.SECONDARY,
                         button -> {
                             this.capturePriceDrafts();
@@ -319,6 +319,10 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
                     Component.translatable("gui.avecoins.player_market.selected_count", listing.quantity),
                     cardX + 30, cardY + 23, this.theme().MUTED, false);
             this.renderListingPrice(graphics, listing.totalPrice, cardX + 8, cardY + 36);
+            if (BuiltInRegistries.ITEM.containsKey(COIN_ID)) {
+                graphics.item(new ItemStack((Item) BuiltInRegistries.ITEM.getValue(COIN_ID)),
+                        cardX + 54, cardY + 54);
+            }
         }
 
         int maxPage = Math.max(0, (listings.size() - 1) / PAGE_SIZE);
