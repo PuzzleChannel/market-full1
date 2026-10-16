@@ -124,12 +124,12 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
                 PanelButton.Variant.HEADER,
                 button -> ClientNetworking.send(new ServerboundAvecoinsPayload("request_wallet", "{}")))
                 .withIcon(WALLET_ICON, 16);
-        wallet.setTooltip(net.minecraft.client.gui.components.Tooltip.create(
-                Component.translatable("gui.avecoins.player_market.wallet_help")));
         this.addRenderableWidget(wallet);
 
         int controlsWidth = 150 + 8 + 300 + 8 + 150;
-        int controlsLeft = this.panelLeft + (this.panelWidth - controlsWidth) / 2;
+        int listingColumnLeft = this.panelLeft + 120;
+        int listingColumnWidth = this.panelWidth - 132;
+        int controlsLeft = listingColumnLeft + (listingColumnWidth - controlsWidth) / 2;
         this.addRenderableWidget(new PanelButton(controlsLeft, this.panelTop + 42, 150, 20,
                 Component.translatable("gui.avecoins.player_market.filter",
                         Component.translatable(FILTER_KEYS[this.filterMode])),
