@@ -188,16 +188,18 @@ implements ThemedScreen {
             graphics.text(this.font, amount, x + 140 - 12 - this.font.width(amount), y + 4, this.theme().SUCCESS, false);
             ++index;
         }
+        int remaining = this.remainingItems();
         if (totals.isEmpty()) {
-            GuiTextLayout.drawCenteredFitted(graphics, this.font,
-                    (Component)Component.translatable((String)"gui.avecoins.sell_box.empty"),
+            Component emptyMessage = Component.translatable(remaining > 0
+                    ? "gui.avecoins.sell_box.remaining_note" : "gui.avecoins.sell_box.empty");
+            GuiTextLayout.drawCenteredFitted(graphics, this.font, emptyMessage,
                     RIGHT_CENTER, 128, 270, this.theme().MUTED);
         }
         GuiTextLayout.drawCentered(graphics, this.font, (Component)Component.translatable((String)"gui.avecoins.sell_box.destination").withStyle(ChatFormatting.BOLD),
                 RIGHT_CENTER, DESTINATION_TITLE_Y, this.theme().TEXT, !this.theme().custom);
-        int remaining = this.remainingItems();
         feedback = !this.result.isBlank() ? Component.translatable((String)("message.avecoins." + this.result))
-                : (remaining > 0 ? Component.translatable((String)"gui.avecoins.sell_box.remaining_note") : Component.empty());
+                : (remaining > 0 && !totals.isEmpty()
+                    ? Component.translatable((String)"gui.avecoins.sell_box.remaining_note") : Component.empty());
         if (!feedback.getString().isBlank()) {
             int color = !this.result.isBlank() ? this.theme().ERROR : this.theme().WARNING;
             GuiTextLayout.drawCentered(graphics, this.font, this.font.plainSubstrByWidth(feedback.getString(), 294), 392, 296, color, !this.theme().custom);
