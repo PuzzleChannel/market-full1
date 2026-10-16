@@ -106,26 +106,43 @@ public final class PlayerMarketCreateScreen extends AvecoinsScreen {
             }
         });
 
-        long extensionFee = PlayerMarketService.extensionCost(this.extraDays);
-        PanelButton duration = new PanelButton(this.panelLeft + (this.panelWidth - 360) / 2, this.panelTop + 250, 360, 20,
-                Component.translatable("gui.avecoins.player_market.duration", this.extraDays + 1, extensionFee),
-                PanelButton.Variant.SECONDARY,
-                button -> {
-                    this.extraDays = (this.extraDays + 1) % 11;
-                    this.confirmingListing = false;
-                    this.resultCode = "";
-                    this.rebuildWidgets();
-                });
-        Component durationHelp = extensionFee > this.snapshot.walletBalance
-                ? Component.translatable("gui.avecoins.player_market.duration_shortfall_tooltip",
-                        extensionFee - this.snapshot.walletBalance, extensionFee, this.snapshot.walletBalance)
-                : Component.translatable("gui.avecoins.player_market.duration_help",
-                        extensionFee, this.snapshot.walletBalance);
-        duration.setTooltip(net.minecraft.client.gui.components.Tooltip.create(durationHelp));
-        this.addRenderableWidget(duration);
+        int[] durationOptions = {0, 1, 3, 5};
+        String[] durationLabels = {
+                "gui.avecoins.player_market.duration_option_one",
+                "gui.avecoins.player_market.duration_option_two",
+                "gui.avecoins.player_market.duration_option_four",
+                "gui.avecoins.player_market.duration_option_six"
+        };
+        int durationButtonWidth = 88;
+        int durationGap = 4;
+        int durationRowWidth = durationButtonWidth * durationOptions.length + durationGap * (durationOptions.length - 1);
+        int durationStartX = this.panelLeft + (this.panelWidth - durationRowWidth) / 2;
+        for (int i = 0; i < durationOptions.length; i++) {
+            final int optionExtraDays = durationOptions[i];
+            long optionFee = PlayerMarketService.extensionCost(optionExtraDays);
+            PanelButton option = new PanelButton(durationStartX + i * (durationButtonWidth + durationGap),
+                    this.panelTop + 256, durationButtonWidth, 20,
+                    Component.translatable(durationLabels[i]),
+                    this.extraDays == optionExtraDays ? PanelButton.Variant.SUCCESS : PanelButton.Variant.SECONDARY,
+                    button -> {
+                        this.extraDays = optionExtraDays;
+                        this.confirmingListing = false;
+                        this.resultCode = "";
+                        this.rebuildWidgets();
+                    });
+            Component durationHelp = optionFee > this.snapshot.walletBalance
+                    ? Component.translatable("gui.avecoins.player_market.duration_shortfall_tooltip",
+                            optionFee - this.snapshot.walletBalance, optionFee, this.snapshot.walletBalance)
+                    : Component.translatable("gui.avecoins.player_market.duration_help",
+                            optionFee, this.snapshot.walletBalance);
+            option.setTooltip(net.minecraft.client.gui.components.Tooltip.create(durationHelp));
+            this.addRenderableWidget(option);
+        }
 
-        int createX = this.panelLeft + (this.panelWidth - 230) / 2;
-        PanelButton create = new PanelButton(createX, this.panelTop + 309, 230, 25,
+        long extensionFee = PlayerMarketService.extensionCost(this.extraDays);
+
+        int createX = this.panelLeft + (this.panelWidth - 326) / 2;
+        PanelButton create = new PanelButton(createX, this.panelTop + 320, 230, 25,
                 Component.translatable(this.confirmingListing
                         ? "gui.avecoins.player_market.confirm_listing_button"
                         : "gui.avecoins.player_market.create"), PanelButton.Variant.SUCCESS,
@@ -311,16 +328,18 @@ public final class PlayerMarketCreateScreen extends AvecoinsScreen {
         graphics.text(this.font, Component.translatable("gui.avecoins.player_market.quantity"),
                 fieldsX + 210, this.panelTop + 208, this.theme().TEXT, !this.theme().custom);
 
-        this.renderVmcoinBalance(graphics, this.panelLeft + this.panelWidth / 2, this.panelTop + 275);
+        this.drawSectionTitleAt(graphics, Component.translatable("gui.avecoins.player_market.duration_heading"),
+                this.panelLeft + this.panelWidth / 2, this.panelTop + 245);
+        this.renderVmcoinBalance(graphics, this.panelLeft + this.panelWidth / 2, this.panelTop + 281);
         long extensionFee = PlayerMarketService.extensionCost(this.extraDays);
         Component feeSummary = Component.translatable("gui.avecoins.player_market.extension_fee_summary",
                 extensionFee, Math.max(0L, this.snapshot.walletBalance - extensionFee));
         int feeColor = extensionFee > this.snapshot.walletBalance ? this.theme().DANGER : this.theme().SUCCESS;
         this.drawCenteredWrappedAt(graphics, feeSummary,
-                this.panelLeft + this.panelWidth / 2, this.panelTop + 296, this.panelWidth - 60, feeColor);
+                this.panelLeft + this.panelWidth / 2, this.panelTop + 301, this.panelWidth - 60, feeColor);
 
         this.drawCenteredWrappedAt(graphics, Component.translatable("gui.avecoins.player_market.limit"),
-                this.panelLeft + this.panelWidth / 2, this.panelTop + 345, 640, this.theme().MUTED);
+                this.panelLeft + this.panelWidth / 2, this.panelTop + 356, 640, this.theme().MUTED);
 
         for (int slot = 0; slot < 36; slot++) {
             int x;
