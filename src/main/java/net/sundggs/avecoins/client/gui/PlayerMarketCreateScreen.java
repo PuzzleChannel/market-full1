@@ -15,6 +15,7 @@ import net.sundggs.avecoins.shop.ShopService;
 /** Inventory-based player listing editor. The server validates the selected slot before removing anything. */
 public final class PlayerMarketCreateScreen extends AvecoinsScreen {
     private static final int INVENTORY_WIDTH = 9 * 18;
+    private static final Identifier COIN_ID = Identifier.fromNamespaceAndPath("vmtrade", "vmcoin");
 
     private final PlayerMarketService.MarketSnapshot snapshot;
     private String resultCode;
@@ -129,7 +130,7 @@ public final class PlayerMarketCreateScreen extends AvecoinsScreen {
                         this.confirmingListing = false;
                         this.resultCode = "";
                         this.rebuildWidgets();
-                    });
+                    }).withTrailingItemAmount(COIN_ID, optionFee);
             Component durationHelp = optionFee > this.snapshot.walletBalance
                     ? Component.translatable("gui.avecoins.player_market.duration_shortfall_tooltip",
                             optionFee - this.snapshot.walletBalance, optionFee, this.snapshot.walletBalance)
@@ -161,7 +162,7 @@ public final class PlayerMarketCreateScreen extends AvecoinsScreen {
         create.setTooltip(net.minecraft.client.gui.components.Tooltip.create(createHelp));
         this.addRenderableWidget(create);
         if (this.confirmingListing) {
-            PanelButton cancelConfirmation = new PanelButton(createX + 236, this.panelTop + 309, 90, 25,
+            PanelButton cancelConfirmation = new PanelButton(createX + 236, this.panelTop + 320, 90, 25,
                     Component.translatable("gui.avecoins.player_market.cancel_confirmation"),
                     PanelButton.Variant.SECONDARY, button -> {
                         this.confirmingListing = false;
@@ -323,8 +324,13 @@ public final class PlayerMarketCreateScreen extends AvecoinsScreen {
                     selectedPanelX + 200, selectedPanelY + 12, 370, this.theme().MUTED);
         }
 
-        graphics.text(this.font, Component.translatable("gui.avecoins.player_market.price"),
-                fieldsX, this.panelTop + 208, this.theme().TEXT, !this.theme().custom);
+        Component priceLabel = Component.translatable("gui.avecoins.player_market.price");
+        graphics.text(this.font, priceLabel, fieldsX, this.panelTop + 208,
+                this.theme().TEXT, !this.theme().custom);
+        if (BuiltInRegistries.ITEM.containsKey(COIN_ID)) {
+            graphics.item(new ItemStack((Item) BuiltInRegistries.ITEM.getValue(COIN_ID)),
+                    fieldsX + this.font.width(priceLabel) + 4, this.panelTop + 204);
+        }
         graphics.text(this.font, Component.translatable("gui.avecoins.player_market.quantity"),
                 fieldsX + 210, this.panelTop + 208, this.theme().TEXT, !this.theme().custom);
 
@@ -332,11 +338,10 @@ public final class PlayerMarketCreateScreen extends AvecoinsScreen {
                 this.panelLeft + this.panelWidth / 2, this.panelTop + 245);
         this.renderVmcoinBalance(graphics, this.panelLeft + this.panelWidth / 2, this.panelTop + 281);
         long extensionFee = PlayerMarketService.extensionCost(this.extraDays);
-        Component feeSummary = Component.translatable("gui.avecoins.player_market.extension_fee_summary",
-                extensionFee, Math.max(0L, this.snapshot.walletBalance - extensionFee));
         int feeColor = extensionFee > this.snapshot.walletBalance ? this.theme().DANGER : this.theme().SUCCESS;
-        this.drawCenteredWrappedAt(graphics, feeSummary,
-                this.panelLeft + this.panelWidth / 2, this.panelTop + 301, this.panelWidth - 60, feeColor);
+        this.renderDurationFeeSummary(graphics, this.panelLeft + this.panelWidth / 2,
+                this.panelTop + 301, extensionFee, Math.max(0L, this.snapshot.walletBalance - extensionFee),
+                feeColor);
 
         this.drawCenteredWrappedAt(graphics, Component.translatable("gui.avecoins.player_market.limit"),
                 this.panelLeft + this.panelWidth / 2, this.panelTop + 356, 640, this.theme().MUTED);
@@ -389,13 +394,54 @@ public final class PlayerMarketCreateScreen extends AvecoinsScreen {
         graphics.text(this.font, Component.literal(amount), x, iconY + 4, this.theme().TEXT, !this.theme().custom);
     }
 
+    private void renderDurationFeeSummary(GuiGraphicsExtractor graphics, int centerX, int y,
+                                          long fee, long balanceAfterPayment, int color) {
+        Component feeLabel = Component.translatable("gui.avecoins.player_market.duration_fee_label");
+        Component balanceLabel = Component.translatable("gui.avecoins.player_market.balance_after_fee_label");
+        String feeAmount = Long.toString(fee);
+        String balanceAmount = Long.toString(balanceAfterPayment);
+        boolean hasCoin = BuiltInRegistries.ITEM.containsKey(COIN_ID);
+        int iconWidth = hasCoin ? 19 : 0;
+        String separator = "  ·  ";
+        int feeWidth = this.font.width(feeLabel) + 5 + this.font.width(feeAmount) + iconWidth;
+        int balanceWidth = this.font.width(balanceLabel) + 5 + this.font.width(balanceAmount) + iconWidth;
+        int x = centerX - (feeWidth + this.font.width(separator) + balanceWidth) / 2;
+
+        graphics.text(this.font, feeLabel, x, y, color, !this.theme().custom);
+        x += this.font.width(feeLabel) + 5;
+        x = this.drawCoinAmount(graphics, feeAmount, x, y, color, hasCoin);
+        graphics.text(this.font, Component.literal(separator), x, y, this.theme().MUTED, !this.theme().custom);
+        x += this.font.width(separator);
+        graphics.text(this.font, balanceLabel, x, y, color, !this.theme().custom);
+        x += this.font.width(balanceLabel) + 5;
+        this.drawCoinAmount(graphics, balanceAmount, x, y, color, hasCoin);
+    }
+
+    private int drawCoinAmount(GuiGraphicsExtractor graphics, String amount, int x, int y,
+                               int color, boolean hasCoin) {
+        graphics.text(this.font, Component.literal(amount), x, y, color, !this.theme().custom);
+        x += this.font.width(amount) + 3;
+        if (hasCoin) {
+            graphics.item(new ItemStack((Item) BuiltInRegistries.ITEM.getValue(COIN_ID)), x, y - 4);
+            x += 16;
+        }
+        return x;
+    }
+
     private void drawInventorySlot(GuiGraphicsExtractor graphics, int slot, int x, int y) {
         boolean selected = slot == this.selectedSlot;
         graphics.fill(x - 1, y - 1, x + 17, y + 17, selected ? this.theme().SUCCESS : this.theme().BORDER);
         graphics.fill(x, y, x + 16, y + 16, selected ? this.theme().SURFACE_SELECTED : this.theme().SURFACE);
         if (this.minecraft.player != null) {
             ItemStack stack = this.minecraft.player.getInventory().getItem(slot);
-            if (!stack.isEmpty()) graphics.item(stack, x, y);
+            if (!stack.isEmpty()) {
+                graphics.item(stack, x, y);
+                if (stack.getCount() > 1) {
+                    String count = Integer.toString(stack.getCount());
+                    graphics.text(this.font, Component.literal(count),
+                            x + 17 - this.font.width(count), y + 8, 0xFFFFFFFF, true);
+                }
+            }
         }
     }
 }
