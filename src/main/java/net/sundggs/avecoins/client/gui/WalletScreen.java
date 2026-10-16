@@ -113,9 +113,8 @@ implements ThemedScreen {
     protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         MutableComponent heading = Component.literal((String)("\u00a4 " + this.title.getString().toUpperCase(Locale.ROOT))).withStyle(ChatFormatting.BOLD);
         GuiTextLayout.drawCentered(graphics, this.font, (Component)heading, this.imageWidth / 2, 10, this.theme().TEXT, !this.theme().custom);
-        GuiTextLayout.drawCentered(graphics, this.font, (Component)Component.translatable((String)"gui.avecoins.wallet.storage").withStyle(ChatFormatting.BOLD), 112, 65, this.theme().TEXT, !this.theme().custom);
-        GuiTextLayout.drawCenteredFitted(graphics, this.font, (Component)Component.translatable((String)"gui.avecoins.wallet.storage_help"), 112, 79, 180, this.theme().MUTED);
-        graphics.text(this.font, this.playerInventoryTitle, this.inventoryLabelX, this.inventoryLabelY, this.theme().MUTED, false);
+        GuiTextLayout.drawCentered(graphics, this.font, (Component)Component.translatable((String)"gui.avecoins.wallet.storage").withStyle(ChatFormatting.BOLD), LEFT_CENTER, 76, this.theme().TEXT, !this.theme().custom);
+        GuiTextLayout.drawCentered(graphics, this.font, this.playerInventoryTitle, LEFT_CENTER, this.inventoryLabelY, this.theme().MUTED, false);
         GuiTextLayout.drawCentered(graphics, this.font, (Component)Component.translatable((String)"gui.avecoins.wallet.summary").withStyle(ChatFormatting.BOLD), 392, 85, this.theme().TEXT, !this.theme().custom);
         GuiTextLayout.drawCentered(graphics, this.font, (Component)Component.translatable((String)"gui.avecoins.wallet.summary_help"), 392, 101, this.theme().MUTED, !this.theme().custom);
         Map<String, Long> totals = this.walletTotals();
