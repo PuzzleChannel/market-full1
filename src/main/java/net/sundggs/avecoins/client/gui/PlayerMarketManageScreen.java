@@ -319,6 +319,12 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
                     Component.translatable("gui.avecoins.player_market.selected_count", listing.quantity),
                     cardX + 30, cardY + 23, this.theme().MUTED, false);
             this.renderListingPrice(graphics, listing.totalPrice, cardX + 8, cardY + 36);
+            if (listing.expiresAt > 0L) {
+                long remaining = listing.expiresAt - System.currentTimeMillis();
+                int remainingColor = remaining <= 0L ? this.theme().DANGER : this.theme().MUTED;
+                graphics.text(this.font, this.remainingTimeLabel(listing.expiresAt),
+                        cardX + 8, cardY + 45, remainingColor, !this.theme().custom);
+            }
             if (BuiltInRegistries.ITEM.containsKey(COIN_ID)) {
                 graphics.item(new ItemStack((Item) BuiltInRegistries.ITEM.getValue(COIN_ID)),
                         cardX + 54, cardY + 54);
@@ -338,6 +344,23 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
     }
 
     
+    private Component remainingTimeLabel(long expiresAt) {
+        long remaining = expiresAt - System.currentTimeMillis();
+        if (remaining <= 0L) {
+            return Component.translatable("gui.avecoins.player_market.listing_expired");
+        }
+        long minutes = Math.max(1L, (remaining + 59_999L) / 60_000L);
+        if (minutes >= 1_440L) {
+            return Component.translatable("gui.avecoins.player_market.listing_remaining_days",
+                    minutes / 1_440L, (minutes % 1_440L) / 60L);
+        }
+        if (minutes >= 60L) {
+            return Component.translatable("gui.avecoins.player_market.listing_remaining_hours",
+                    minutes / 60L, minutes % 60L);
+        }
+        return Component.translatable("gui.avecoins.player_market.listing_remaining_minutes", minutes);
+    }
+
     private void renderTotalValue(GuiGraphicsExtractor graphics, int centerX, int y, long value) {
         Component label = Component.translatable("gui.avecoins.player_market.manage_total_value");
         this.drawCurrencyLine(graphics, label, Long.toString(value), centerX, y, this.theme().TEXT);
