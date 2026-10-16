@@ -212,7 +212,7 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
                         Component.translatable("gui.avecoins.player_market.remove_tooltip")));
                 this.listingControls.add(this.addRenderableWidget(remove));
             } else if (confirming) {
-                PanelButton confirm = new PanelButton(cardX + cardWidth - 111, cardY + 59, 103, 18,
+                PanelButton confirm = new PanelButton(cardX + cardWidth - 111, cardY + CARD_HEIGHT - 20, 103, 18,
                         Component.translatable("gui.avecoins.player_market.confirm_purchase_button"),
                         PanelButton.Variant.SUCCESS, button -> {
                             if (this.snapshot.walletBalance < total) {
@@ -230,7 +230,7 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
                 confirm.setTooltip(net.minecraft.client.gui.components.Tooltip.create(
                         Component.translatable("gui.avecoins.player_market.purchase_tooltip",
                                 total, this.snapshot.walletBalance, listing.deliveryMinutes)));
-                PanelButton cancel = new PanelButton(cardX + cardWidth - 164, cardY + 59, 48, 18,
+                PanelButton cancel = new PanelButton(cardX + cardWidth - 164, cardY + CARD_HEIGHT - 20, 48, 18,
                         Component.translatable("gui.avecoins.player_market.cancel_confirmation"),
                         PanelButton.Variant.SECONDARY, button -> {
                             this.confirmingListingId = "";
@@ -240,7 +240,7 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
                 this.listingControls.add(this.addRenderableWidget(cancel));
                 this.listingControls.add(this.addRenderableWidget(confirm));
             } else {
-                PanelButton buy = new PanelButton(cardX + cardWidth - 72, cardY + 59, 64, 18,
+                PanelButton buy = new PanelButton(cardX + cardWidth - 72, cardY + CARD_HEIGHT - 20, 64, 18,
                         Component.translatable("gui.avecoins.player_market.buy"),
                         PanelButton.Variant.SUCCESS, button -> {
                             if (this.snapshot.walletBalance < total) {
@@ -467,7 +467,7 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
         int listX = this.panelLeft + 120;
         int rowWidth = this.panelWidth - 132;
         int cardWidth = (rowWidth - (COLUMNS - 1) * 8) / COLUMNS;
-        int listTop = this.panelTop + 80;
+        int listTop = this.panelTop + 100;
         int start = this.page * LISTINGS_PER_PAGE;
         int end = Math.min(this.visibleListings.size(), start + LISTINGS_PER_PAGE);
 
