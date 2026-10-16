@@ -148,18 +148,6 @@ public final class PlayerMarketCreateScreen extends AvecoinsScreen {
                         ? "gui.avecoins.player_market.confirm_listing_button"
                         : "gui.avecoins.player_market.create"), PanelButton.Variant.SUCCESS,
                 button -> this.createListing());
-        ItemStack selectedForTooltip = this.minecraft.player == null || this.selectedSlot < 0
-                ? ItemStack.EMPTY : this.minecraft.player.getInventory().getItem(this.selectedSlot);
-        String selectedName = selectedForTooltip.isEmpty() ? "" : selectedForTooltip.getHoverName().getString();
-        int parsedPriceForTooltip = parsePositiveOrDefault(this.priceBox.getValue(), 1);
-        int parsedQuantityForTooltip = parsePositiveOrDefault(this.quantityBox.getValue(), 1);
-        Component createHelp = extensionFee > this.snapshot.walletBalance
-                ? Component.translatable("gui.avecoins.player_market.duration_shortfall_tooltip",
-                        extensionFee - this.snapshot.walletBalance, extensionFee, this.snapshot.walletBalance)
-                : Component.translatable("gui.avecoins.player_market.create_confirm_tooltip",
-                        selectedName, parsedQuantityForTooltip, parsedPriceForTooltip,
-                        this.extraDays + 1, extensionFee, this.snapshot.walletBalance);
-        create.setTooltip(net.minecraft.client.gui.components.Tooltip.create(createHelp));
         this.addRenderableWidget(create);
         if (this.confirmingListing) {
             PanelButton cancelConfirmation = new PanelButton(createX + 236, this.panelTop + 320, 90, 25,

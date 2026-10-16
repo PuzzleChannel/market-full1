@@ -47,14 +47,14 @@ implements ThemedScreen {
     private static final int RIGHT_CENTER = 392;
     private static final int SUMMARY_TITLE_Y = 63;
     private static final int SUMMARY_HELP_Y = 79;
-    private static final int SUMMARY_AREA_TOP = 91;
-    private static final int SUMMARY_AREA_HEIGHT = 83;
+    private static final int SUMMARY_AREA_TOP = 85;
+    private static final int SUMMARY_AREA_HEIGHT = 95;
     private static final int SUMMARY_ROW_STEP = 24;
     private static final int SUMMARY_COLUMN_STEP = 154;
     private static final int SUMMARY_CARD_WIDTH = 140;
     private static final int SUMMARY_CARD_HEIGHT = 22;
     private static final int SECTION_DIVIDER_Y = 186;
-    private static final int DESTINATION_TITLE_Y = 200;
+    private static final int DESTINATION_TITLE_Y = 206;
     private static final int DESTINATION_HELP_Y = 214;
     private static final int DESTINATION_BUTTON_Y = 231;
     private static final int CONFIRM_BUTTON_Y = 268;
@@ -164,14 +164,12 @@ implements ThemedScreen {
         MutableComponent feedback;
         MutableComponent heading = Component.literal((String)("\u00a4 " + this.title.getString().toUpperCase(Locale.ROOT))).withStyle(ChatFormatting.BOLD);
         GuiTextLayout.drawCentered(graphics, this.font, (Component)heading, this.imageWidth / 2, 10, this.theme().TEXT, !this.theme().custom);
-        GuiTextLayout.drawCentered(graphics, this.font, (Component)Component.translatable((String)"gui.avecoins.sell_box.contents").withStyle(ChatFormatting.BOLD), 112, 65, this.theme().TEXT, !this.theme().custom);
-        GuiTextLayout.drawCenteredFitted(graphics, this.font, (Component)Component.translatable((String)"gui.avecoins.sell_box.contents_help"), 112, 79, 180, this.theme().MUTED);
-        graphics.text(this.font, this.playerInventoryTitle, this.inventoryLabelX, this.inventoryLabelY, this.theme().MUTED, false);
+        GuiTextLayout.drawCentered(graphics, this.font, (Component)Component.translatable((String)"gui.avecoins.sell_box.contents").withStyle(ChatFormatting.BOLD), LEFT_CENTER, 65, this.theme().TEXT, !this.theme().custom);
+        GuiTextLayout.drawCentered(graphics, this.font, this.playerInventoryTitle, LEFT_CENTER, this.inventoryLabelY, this.theme().MUTED, false);
         Map<String, Long> totals = this.totals();
         boolean hasSellableProduct = this.hasSellableProduct();
         int summaryTop = this.summaryCardsTop(this.summaryCardCount(totals.size(), hasSellableProduct));
-        GuiTextLayout.drawCentered(graphics, this.font, (Component)Component.translatable((String)"gui.avecoins.sell_box.summary").withStyle(ChatFormatting.BOLD), 392, 63, this.theme().TEXT, !this.theme().custom);
-        GuiTextLayout.drawCentered(graphics, this.font, (Component)Component.translatable((String)"gui.avecoins.sell_box.summary_help"), 392, 79, this.theme().MUTED, !this.theme().custom);
+        GuiTextLayout.drawCentered(graphics, this.font, (Component)Component.translatable((String)"gui.avecoins.sell_box.summary").withStyle(ChatFormatting.BOLD), RIGHT_CENTER, 63, this.theme().TEXT, !this.theme().custom);
         int index = 0;
         for (Map.Entry<String, Long> total : totals.entrySet()) {
             if (index >= 8) break;
@@ -190,13 +188,18 @@ implements ThemedScreen {
             graphics.text(this.font, amount, x + 140 - 12 - this.font.width(amount), y + 4, this.theme().SUCCESS, false);
             ++index;
         }
-        if (!hasSellableProduct) {
-            GuiTextLayout.drawCentered(graphics, this.font, (Component)Component.translatable((String)"gui.avecoins.sell_box.empty"), 392, 128, this.theme().MUTED, !this.theme().custom);
-        }
-        GuiTextLayout.drawCentered(graphics, this.font, (Component)Component.translatable((String)"gui.avecoins.sell_box.destination").withStyle(ChatFormatting.BOLD), 392, 200, this.theme().TEXT, !this.theme().custom);
-        GuiTextLayout.drawCentered(graphics, this.font, (Component)Component.translatable((String)"gui.avecoins.sell_box.destination_help"), 392, 214, this.theme().MUTED, !this.theme().custom);
         int remaining = this.remainingItems();
-        feedback = !this.result.isBlank() ? Component.translatable((String)("message.avecoins." + this.result)) : (remaining > 0 ? Component.translatable((String)"gui.avecoins.sell_box.remaining", (Object[])new Object[]{remaining}) : Component.empty());
+        if (totals.isEmpty()) {
+            Component emptyMessage = Component.translatable(remaining > 0
+                    ? "gui.avecoins.sell_box.remaining_note" : "gui.avecoins.sell_box.empty");
+            GuiTextLayout.drawCenteredFitted(graphics, this.font, emptyMessage,
+                    RIGHT_CENTER, 128, 270, this.theme().MUTED);
+        }
+        GuiTextLayout.drawCentered(graphics, this.font, (Component)Component.translatable((String)"gui.avecoins.sell_box.destination").withStyle(ChatFormatting.BOLD),
+                RIGHT_CENTER, DESTINATION_TITLE_Y, this.theme().TEXT, !this.theme().custom);
+        feedback = !this.result.isBlank() ? Component.translatable((String)("message.avecoins." + this.result))
+                : (remaining > 0 && !totals.isEmpty()
+                    ? Component.translatable((String)"gui.avecoins.sell_box.remaining_note") : Component.empty());
         if (!feedback.getString().isBlank()) {
             int color = !this.result.isBlank() ? this.theme().ERROR : this.theme().WARNING;
             GuiTextLayout.drawCentered(graphics, this.font, this.font.plainSubstrByWidth(feedback.getString(), 294), 392, 296, color, !this.theme().custom);
@@ -211,20 +214,17 @@ implements ThemedScreen {
     private int summaryCardsTop(int totalCount) {
         int rows = (totalCount + 1) / 2;
         if (rows == 0) {
-            return 91;
+            return SUMMARY_AREA_TOP;
         }
-        if (rows == 4) {
-            return 90;
-        }
-        int cardsHeight = (rows - 1) * 24 + 22;
-        return 91 + (83 - cardsHeight) / 2;
+        int cardsHeight = (rows - 1) * SUMMARY_ROW_STEP + SUMMARY_CARD_HEIGHT;
+        return SUMMARY_AREA_TOP + (SUMMARY_AREA_HEIGHT - cardsHeight) / 2;
     }
 
     private int summaryCardCount(int totalCount, boolean hasSellableProduct) {
-        if (!hasSellableProduct) {
+        if (!hasSellableProduct || totalCount <= 0) {
             return 0;
         }
-        return totalCount <= 6 ? 6 : 8;
+        return Math.min(8, totalCount);
     }
 
     private Map<String, Long> totals() {
