@@ -201,7 +201,7 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
 
             if (ownListing) {
                 PanelButton remove = new PanelButton(cardX + cardWidth - 64, cardY + 59, 58, 18,
-                        Component.translatable("gui.avecoins.player_market.cancel"),
+                        Component.translatable("gui.avecoins.player_market.remove_button"),
                         PanelButton.Variant.DANGER,
                         button -> {
                             com.google.gson.JsonObject payload = new com.google.gson.JsonObject();
