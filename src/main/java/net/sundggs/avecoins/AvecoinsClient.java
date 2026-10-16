@@ -114,7 +114,7 @@ implements ClientModInitializer {
         }
         int inventoryLeft = (scaledWidth - 176) / 2;
         int inventoryTop = (scaledHeight - 166) / 2;
-        Screens.getWidgets((Screen)screen).add(new ShopTabButton(inventoryLeft - 24, inventoryTop + 8, () -> ClientNetworking.send(new ServerboundAvecoinsPayload("request_shop", "{}"))));
+        Screens.getWidgets((Screen)screen).add(new ShopTabButton(inventoryLeft - 24, inventoryTop + 8, () -> ClientNetworking.send(new ServerboundAvecoinsPayload("request_player_market", "{}"))));
     }
 
     private record UpgradePath(String fromMaterial, ChatFormatting fromColor, String toMaterial, ChatFormatting toColor) {

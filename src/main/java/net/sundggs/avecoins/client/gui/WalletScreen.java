@@ -22,7 +22,6 @@ import net.sundggs.avecoins.client.gui.GuiPalette;
 import net.sundggs.avecoins.client.gui.GuiTextLayout;
 import net.sundggs.avecoins.client.gui.PanelButton;
 import net.sundggs.avecoins.client.gui.ResponsiveContainerScreen;
-import net.sundggs.avecoins.client.gui.ShopScreen;
 import net.sundggs.avecoins.client.gui.ThemedScreen;
 import net.sundggs.avecoins.network.ClientNetworking;
 import net.sundggs.avecoins.network.ServerboundAvecoinsPayload;
@@ -77,9 +76,8 @@ implements ThemedScreen {
     private void backToShop() {
         if (this.minecraft.player != null) {
             this.minecraft.player.closeContainer();
-            this.minecraft.gui.setScreen((Screen)new ShopScreen(((WalletMenu)this.menu).snapshot()));
+            ClientNetworking.send(new ServerboundAvecoinsPayload("request_player_market", "{}"));
         }
-        ClientNetworking.send(new ServerboundAvecoinsPayload("request_shop", "{}"));
     }
 
     @Override
@@ -91,7 +89,6 @@ implements ThemedScreen {
         graphics.fill(this.leftPos + 1, this.topPos + 312, this.leftPos + this.imageWidth - 1, this.topPos + this.imageHeight - 1, this.theme().HEADER);
         graphics.fill(this.leftPos + 224, this.topPos + 40, this.leftPos + 224 + 1, this.topPos + 312 - 13, this.theme().DIVIDER);
         graphics.fill(this.leftPos + 31, this.topPos + 172, this.leftPos + 31 + 162, this.topPos + 173, this.theme().DIVIDER);
-        GuiTextLayout.drawCentered(graphics, this.font, "SundGGs \u00a9 2026", this.leftPos + this.imageWidth / 2, this.topPos + this.imageHeight + 7, -6183253, !this.theme().custom);
         for (int row = 0; row < 3; ++row) {
             for (int column2 = 0; column2 < 9; ++column2) {
                 this.slotBackground(graphics, 31 + column2 * 18, 102 + row * 18);
@@ -116,9 +113,8 @@ implements ThemedScreen {
     protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         MutableComponent heading = Component.literal((String)("\u00a4 " + this.title.getString().toUpperCase(Locale.ROOT))).withStyle(ChatFormatting.BOLD);
         GuiTextLayout.drawCentered(graphics, this.font, (Component)heading, this.imageWidth / 2, 10, this.theme().TEXT, !this.theme().custom);
-        GuiTextLayout.drawCentered(graphics, this.font, (Component)Component.translatable((String)"gui.avecoins.wallet.storage").withStyle(ChatFormatting.BOLD), 112, 65, this.theme().TEXT, !this.theme().custom);
-        GuiTextLayout.drawCenteredFitted(graphics, this.font, (Component)Component.translatable((String)"gui.avecoins.wallet.storage_help"), 112, 79, 180, this.theme().MUTED);
-        graphics.text(this.font, this.playerInventoryTitle, this.inventoryLabelX, this.inventoryLabelY, this.theme().MUTED, false);
+        GuiTextLayout.drawCentered(graphics, this.font, (Component)Component.translatable((String)"gui.avecoins.wallet.storage").withStyle(ChatFormatting.BOLD), LEFT_CENTER, 76, this.theme().TEXT, !this.theme().custom);
+        GuiTextLayout.drawCentered(graphics, this.font, this.playerInventoryTitle, LEFT_CENTER, this.inventoryLabelY, this.theme().MUTED, false);
         GuiTextLayout.drawCentered(graphics, this.font, (Component)Component.translatable((String)"gui.avecoins.wallet.summary").withStyle(ChatFormatting.BOLD), 392, 85, this.theme().TEXT, !this.theme().custom);
         GuiTextLayout.drawCentered(graphics, this.font, (Component)Component.translatable((String)"gui.avecoins.wallet.summary_help"), 392, 101, this.theme().MUTED, !this.theme().custom);
         Map<String, Long> totals = this.walletTotals();

@@ -13,12 +13,15 @@ import net.sundggs.avecoins.recipe.StartupRecipeService;
 import net.sundggs.avecoins.shop.CoinExchangeService;
 import net.sundggs.avecoins.shop.ShopService;
 import net.sundggs.avecoins.shop.WalletStore;
+import net.sundggs.avecoins.shop.PlayerMarketStore;
+import net.sundggs.avecoins.shop.PlayerMarketService;
 import net.sundggs.avecoins.shop.WalletService;
 
 public final class ModServerEvents {
     public static void register() {
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             WalletStore.initialize(server);
+            PlayerMarketStore.initialize(server);
             CoinExchangeService.initialize();
             StartupRecipeService.initialize(server);
         });
@@ -28,6 +31,7 @@ public final class ModServerEvents {
             ShopService.clearSessions();
             ServerPayloadHandler.clearSessions();
             WalletStore.clear();
+            PlayerMarketStore.clear();
         });
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
             ShopService.removeSession(handler.player.getUUID());

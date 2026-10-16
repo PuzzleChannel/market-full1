@@ -13,11 +13,11 @@ import net.sundggs.avecoins.client.gui.GuiIconRenderer;
 
 public final class ShopTabButton
 extends AbstractButton {
-    private static final Identifier ICON = Identifier.fromNamespaceAndPath((String)"avecoins", (String)"textures/gui/icons/shop.png");
+    private static final Identifier ICON = Identifier.fromNamespaceAndPath((String)"avecoins", (String)"textures/gui/icons/price_tag.png");
     private final Runnable pressed;
 
     public ShopTabButton(int x, int y, Runnable pressed) {
-        super(x, y, 24, 28, (Component)Component.translatable((String)"gui.avecoins.shop.open"));
+        super(x, y, 24, 28, (Component)Component.translatable((String)"gui.avecoins.player_market.tab"));
         this.pressed = pressed;
     }
 
