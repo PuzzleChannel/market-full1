@@ -86,7 +86,7 @@ public final class PlayerMarketOrdersScreen extends AvecoinsScreen {
                 this.addRenderableWidget(collect);
             } else if (confirming) {
                 PanelButton confirm = new PanelButton(cardX + cardWidth - 154, cardY + 56, 104, 18,
-                        Component.translatable("gui.avecoins.player_market.confirm_acceleration_button", order.accelerationCost),
+                        Component.translatable("gui.avecoins.player_market.confirm_acceleration_button"),
                         PanelButton.Variant.SUCCESS, button -> {
                             if (this.snapshot.walletBalance < order.accelerationCost) {
                                 this.confirmingAccelerationId = "";
@@ -99,7 +99,7 @@ public final class PlayerMarketOrdersScreen extends AvecoinsScreen {
                             com.google.gson.JsonObject payload = new com.google.gson.JsonObject();
                             payload.addProperty("id", order.id);
                             ClientNetworking.send(new ServerboundAvecoinsPayload("market_accelerate_delivery", payload.toString()));
-                        });
+                        }).withTrailingItemAmount(COIN_ID, order.accelerationCost);
                 confirm.setTooltip(net.minecraft.client.gui.components.Tooltip.create(
                         Component.translatable("gui.avecoins.player_market.acceleration_tooltip",
                                 order.accelerationCost, this.snapshot.walletBalance)));
@@ -114,7 +114,7 @@ public final class PlayerMarketOrdersScreen extends AvecoinsScreen {
                 this.addRenderableWidget(cancel);
             } else {
                 PanelButton accelerate = new PanelButton(cardX + cardWidth - 108, cardY + 56, 100, 18,
-                        Component.translatable("gui.avecoins.player_market.orders_accelerate", order.accelerationCost),
+                        Component.translatable("gui.avecoins.player_market.orders_accelerate"),
                         PanelButton.Variant.SECONDARY, button -> {
                             if (this.snapshot.walletBalance < order.accelerationCost) {
                                 this.confirmingAccelerationId = "";
@@ -125,7 +125,7 @@ public final class PlayerMarketOrdersScreen extends AvecoinsScreen {
                             this.confirmingAccelerationId = order.id;
                             this.resultCode = "market_confirm_acceleration";
                             this.rebuildWidgets();
-                        });
+                        }).withTrailingItemAmount(COIN_ID, order.accelerationCost);
                 if (this.snapshot.walletBalance < order.accelerationCost) {
                     long shortfall = order.accelerationCost - this.snapshot.walletBalance;
                     accelerate.setTooltip(net.minecraft.client.gui.components.Tooltip.create(
@@ -260,9 +260,17 @@ public final class PlayerMarketOrdersScreen extends AvecoinsScreen {
                     + (order.quantity > 1 ? " ×" + order.quantity : "");
             graphics.text(this.font, Component.literal(this.font.plainSubstrByWidth(title, cardWidth - 42)),
                     cardX + 31, cardY + 8, this.theme().TEXT, !this.theme().custom);
-            graphics.text(this.font,
-                    Component.translatable("gui.avecoins.player_market.orders_price", order.price),
-                    cardX + 8, cardY + 34, this.theme().TEXT, !this.theme().custom);
+            Component priceLabel = Component.translatable("gui.avecoins.player_market.orders_price");
+            graphics.text(this.font, priceLabel, cardX + 8, cardY + 34,
+                    this.theme().TEXT, !this.theme().custom);
+            String priceAmount = Integer.toString(order.price);
+            int priceAmountX = cardX + 8 + this.font.width(priceLabel) + 4;
+            graphics.text(this.font, Component.literal(priceAmount), priceAmountX, cardY + 34,
+                    this.theme().TEXT, !this.theme().custom);
+            if (COIN_ID != null && BuiltInRegistries.ITEM.containsKey(COIN_ID)) {
+                graphics.item(new ItemStack((Item) BuiltInRegistries.ITEM.getValue(COIN_ID)),
+                        priceAmountX + this.font.width(priceAmount) + 3, cardY + 30);
+            }
 
             if (order.deliverAt <= now) {
                 graphics.text(this.font, Component.translatable("gui.avecoins.player_market.orders_ready"),
@@ -276,10 +284,6 @@ public final class PlayerMarketOrdersScreen extends AvecoinsScreen {
                 graphics.text(this.font,
                         Component.translatable("gui.avecoins.player_market.orders_waiting", remaining),
                         cardX + 8, cardY + 46, this.theme().MUTED, !this.theme().custom);
-            }
-            if (COIN_ID != null && BuiltInRegistries.ITEM.containsKey(COIN_ID)) {
-                graphics.item(new ItemStack((Item) BuiltInRegistries.ITEM.getValue(COIN_ID)),
-                        cardX + cardWidth - 22, cardY + 31);
             }
         }
 
