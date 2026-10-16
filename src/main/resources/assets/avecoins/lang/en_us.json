@@ -360,6 +360,7 @@
   "gui.avecoins.player_market.quantity_help": "Number of items in the lot. Items are removed from your inventory after confirmation.",
   "gui.avecoins.player_market.duration": "Duration: %s day(s) · fee: %s VMcoins",
   "gui.avecoins.player_market.duration_help": "The first 24 hours are free. Extra duration costs %s VMcoins. Wallet balance: %s.",
+  "gui.avecoins.player_market.duration_shortfall_tooltip": "You need %s more VMcoins for this duration. Required: %s; balance: %s.",
   "gui.avecoins.player_market.extension_fee_summary": "Duration fee: %s VMcoins · balance after payment: %s.",
   "gui.avecoins.player_market.create_confirm_tooltip": "Review lot: %s × %s for %s VMcoins. Duration: %s day(s); fee: %s VMcoins. Balance: %s.",
   "gui.avecoins.player_market.confirm_listing_button": "Confirm listing",
