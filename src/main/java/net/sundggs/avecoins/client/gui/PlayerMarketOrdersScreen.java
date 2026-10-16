@@ -85,7 +85,7 @@ public final class PlayerMarketOrdersScreen extends AvecoinsScreen {
                         Component.translatable("gui.avecoins.player_market.claim_tooltip")));
                 this.addRenderableWidget(collect);
             } else if (confirming) {
-                PanelButton confirm = new PanelButton(cardX + cardWidth - 154, cardY + 56, 104, 18,
+                PanelButton confirm = new PanelButton(cardX + cardWidth - 170, cardY + 56, 120, 18,
                         Component.translatable("gui.avecoins.player_market.confirm_acceleration_button"),
                         PanelButton.Variant.SUCCESS, button -> {
                             if (this.snapshot.walletBalance < order.accelerationCost) {
