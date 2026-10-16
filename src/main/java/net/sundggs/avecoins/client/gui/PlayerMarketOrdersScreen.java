@@ -28,6 +28,7 @@ public final class PlayerMarketOrdersScreen extends AvecoinsScreen {
     private final Map<String, ItemStack> previewCache = new HashMap<>();
     private String resultCode;
     private int page;
+    private String confirmingAccelerationId = "";
     private String lastReadinessSignature = "";
 
     public PlayerMarketOrdersScreen(PlayerMarketService.MarketSnapshot snapshot, String resultCode) {
@@ -71,23 +72,72 @@ public final class PlayerMarketOrdersScreen extends AvecoinsScreen {
             int cardX = listX + (local % COLUMNS) * (cardWidth + 8);
             int cardY = listTop + (local / COLUMNS) * CARD_STEP;
             boolean ready = order.deliverAt <= System.currentTimeMillis();
-            Component label = ready
-                    ? Component.translatable("gui.avecoins.player_market.orders_claim")
-                    : Component.translatable("gui.avecoins.player_market.orders_accelerate", order.accelerationCost);
-            PanelButton action = new PanelButton(cardX + cardWidth - 108, cardY + 56, 100, 18,
-                    label, ready ? PanelButton.Variant.SUCCESS : PanelButton.Variant.SECONDARY,
-                    button -> {
-                        com.google.gson.JsonObject payload = new com.google.gson.JsonObject();
-                        payload.addProperty("id", order.id);
-                        ClientNetworking.send(new ServerboundAvecoinsPayload(
-                                ready ? "market_claim_delivery" : "market_accelerate_delivery", payload.toString()));
-                    });
-            if (!ready && this.snapshot.walletBalance < order.accelerationCost) {
-                action.active = false;
-                action.setTooltip(net.minecraft.client.gui.components.Tooltip.create(
-                        Component.translatable("gui.avecoins.player_market.need_money")));
+            boolean confirming = order.id.equals(this.confirmingAccelerationId);
+            if (ready) {
+                PanelButton collect = new PanelButton(cardX + cardWidth - 108, cardY + 56, 100, 18,
+                        Component.translatable("gui.avecoins.player_market.orders_claim"),
+                        PanelButton.Variant.SUCCESS, button -> {
+                            com.google.gson.JsonObject payload = new com.google.gson.JsonObject();
+                            payload.addProperty("id", order.id);
+                            ClientNetworking.send(new ServerboundAvecoinsPayload("market_claim_delivery", payload.toString()));
+                        });
+                collect.setTooltip(net.minecraft.client.gui.components.Tooltip.create(
+                        Component.translatable("gui.avecoins.player_market.claim_tooltip")));
+                this.addRenderableWidget(collect);
+            } else if (confirming) {
+                PanelButton confirm = new PanelButton(cardX + cardWidth - 154, cardY + 56, 104, 18,
+                        Component.translatable("gui.avecoins.player_market.confirm_acceleration_button", order.accelerationCost),
+                        PanelButton.Variant.SUCCESS, button -> {
+                            if (this.snapshot.walletBalance < order.accelerationCost) {
+                                this.confirmingAccelerationId = "";
+                                this.resultCode = "market_delivery_acceleration_insufficient";
+                                this.rebuildWidgets();
+                                return;
+                            }
+                            this.confirmingAccelerationId = "";
+                            this.resultCode = "";
+                            com.google.gson.JsonObject payload = new com.google.gson.JsonObject();
+                            payload.addProperty("id", order.id);
+                            ClientNetworking.send(new ServerboundAvecoinsPayload("market_accelerate_delivery", payload.toString()));
+                        });
+                confirm.setTooltip(net.minecraft.client.gui.components.Tooltip.create(
+                        Component.translatable("gui.avecoins.player_market.acceleration_tooltip",
+                                order.accelerationCost, this.snapshot.walletBalance)));
+                PanelButton cancel = new PanelButton(cardX + cardWidth - 46, cardY + 56, 38, 18,
+                        Component.translatable("gui.avecoins.player_market.cancel_confirmation"),
+                        PanelButton.Variant.SECONDARY, button -> {
+                            this.confirmingAccelerationId = "";
+                            this.resultCode = "";
+                            this.rebuildWidgets();
+                        });
+                this.addRenderableWidget(confirm);
+                this.addRenderableWidget(cancel);
+            } else {
+                PanelButton accelerate = new PanelButton(cardX + cardWidth - 108, cardY + 56, 100, 18,
+                        Component.translatable("gui.avecoins.player_market.orders_accelerate", order.accelerationCost),
+                        PanelButton.Variant.SECONDARY, button -> {
+                            if (this.snapshot.walletBalance < order.accelerationCost) {
+                                this.confirmingAccelerationId = "";
+                                this.resultCode = "market_delivery_acceleration_insufficient";
+                                this.rebuildWidgets();
+                                return;
+                            }
+                            this.confirmingAccelerationId = order.id;
+                            this.resultCode = "market_confirm_acceleration";
+                            this.rebuildWidgets();
+                        });
+                if (this.snapshot.walletBalance < order.accelerationCost) {
+                    long shortfall = order.accelerationCost - this.snapshot.walletBalance;
+                    accelerate.setTooltip(net.minecraft.client.gui.components.Tooltip.create(
+                            Component.translatable("gui.avecoins.player_market.acceleration_shortfall_tooltip",
+                                    shortfall, order.accelerationCost, this.snapshot.walletBalance)));
+                } else {
+                    accelerate.setTooltip(net.minecraft.client.gui.components.Tooltip.create(
+                            Component.translatable("gui.avecoins.player_market.acceleration_tooltip",
+                                    order.accelerationCost, this.snapshot.walletBalance)));
+                }
+                this.addRenderableWidget(accelerate);
             }
-            this.addRenderableWidget(action);
         }
 
         if (maxPage > 0) {
