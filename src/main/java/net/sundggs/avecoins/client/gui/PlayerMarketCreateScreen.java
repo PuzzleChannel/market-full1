@@ -116,9 +116,12 @@ public final class PlayerMarketCreateScreen extends AvecoinsScreen {
                     this.resultCode = "";
                     this.rebuildWidgets();
                 });
-        duration.setTooltip(net.minecraft.client.gui.components.Tooltip.create(
-                Component.translatable("gui.avecoins.player_market.duration_help",
-                        extensionFee, this.snapshot.walletBalance)));
+        Component durationHelp = extensionFee > this.snapshot.walletBalance
+                ? Component.translatable("gui.avecoins.player_market.duration_shortfall_tooltip",
+                        extensionFee - this.snapshot.walletBalance, extensionFee, this.snapshot.walletBalance)
+                : Component.translatable("gui.avecoins.player_market.duration_help",
+                        extensionFee, this.snapshot.walletBalance);
+        duration.setTooltip(net.minecraft.client.gui.components.Tooltip.create(durationHelp));
         this.addRenderableWidget(duration);
 
         int createX = this.panelLeft + (this.panelWidth - 230) / 2;
@@ -132,10 +135,13 @@ public final class PlayerMarketCreateScreen extends AvecoinsScreen {
         String selectedName = selectedForTooltip.isEmpty() ? "" : selectedForTooltip.getHoverName().getString();
         int parsedPriceForTooltip = parsePositiveOrDefault(this.priceBox.getValue(), 1);
         int parsedQuantityForTooltip = parsePositiveOrDefault(this.quantityBox.getValue(), 1);
-        create.setTooltip(net.minecraft.client.gui.components.Tooltip.create(
-                Component.translatable("gui.avecoins.player_market.create_confirm_tooltip",
+        Component createHelp = extensionFee > this.snapshot.walletBalance
+                ? Component.translatable("gui.avecoins.player_market.duration_shortfall_tooltip",
+                        extensionFee - this.snapshot.walletBalance, extensionFee, this.snapshot.walletBalance)
+                : Component.translatable("gui.avecoins.player_market.create_confirm_tooltip",
                         selectedName, parsedQuantityForTooltip, parsedPriceForTooltip,
-                        this.extraDays + 1, extensionFee, this.snapshot.walletBalance)));
+                        this.extraDays + 1, extensionFee, this.snapshot.walletBalance);
+        create.setTooltip(net.minecraft.client.gui.components.Tooltip.create(createHelp));
         this.addRenderableWidget(create);
         if (this.confirmingListing) {
             PanelButton cancelConfirmation = new PanelButton(createX + 236, this.panelTop + 309, 90, 25,
