@@ -125,7 +125,7 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
                 button -> ClientNetworking.send(new ServerboundAvecoinsPayload("request_wallet", "{}")))
                 .withIcon(WALLET_ICON, 16);
         wallet.setTooltip(net.minecraft.client.gui.components.Tooltip.create(
-                Component.translatable("gui.avecoins.wallet.open")));
+                Component.translatable("gui.avecoins.player_market.wallet_help")));
         this.addRenderableWidget(wallet);
 
         int controlsWidth = 150 + 8 + 300 + 8 + 150;
@@ -198,27 +198,73 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
             boolean ownListing = listing.sellerId.equals(this.snapshot.viewerId);
             long total = lotPrice(listing);
             boolean confirming = listing.id.equals(this.confirmingListingId);
-            PanelButton action = new PanelButton(cardX + cardWidth - 62, cardY + 59, 56, 18,
-                    Component.literal(ownListing ? "Снять" : confirming ? "Точно?" : "Купить"),
-                    ownListing ? PanelButton.Variant.DANGER : confirming ? PanelButton.Variant.DANGER : PanelButton.Variant.SUCCESS,
-                    button -> {
-                        if (!ownListing && !confirming) {
-                            this.confirmingListingId = listing.id;
+
+            if (ownListing) {
+                PanelButton remove = new PanelButton(cardX + cardWidth - 64, cardY + 59, 58, 18,
+                        Component.translatable("gui.avecoins.player_market.cancel"),
+                        PanelButton.Variant.DANGER,
+                        button -> {
+                            com.google.gson.JsonObject payload = new com.google.gson.JsonObject();
+                            payload.addProperty("id", listing.id);
+                            ClientNetworking.send(new ServerboundAvecoinsPayload("market_cancel", payload.toString()));
+                        });
+                remove.setTooltip(net.minecraft.client.gui.components.Tooltip.create(
+                        Component.translatable("gui.avecoins.player_market.remove_tooltip")));
+                this.listingControls.add(this.addRenderableWidget(remove));
+            } else if (confirming) {
+                PanelButton confirm = new PanelButton(cardX + cardWidth - 111, cardY + 59, 103, 18,
+                        Component.translatable("gui.avecoins.player_market.confirm_purchase_button"),
+                        PanelButton.Variant.SUCCESS, button -> {
+                            if (this.snapshot.walletBalance < total) {
+                                this.confirmingListingId = "";
+                                this.resultCode = "market_wallet_insufficient";
+                                this.rebuildListingControls();
+                                return;
+                            }
+                            this.confirmingListingId = "";
+                            this.resultCode = "";
+                            com.google.gson.JsonObject payload = new com.google.gson.JsonObject();
+                            payload.addProperty("id", listing.id);
+                            ClientNetworking.send(new ServerboundAvecoinsPayload("market_buy", payload.toString()));
+                        });
+                confirm.setTooltip(net.minecraft.client.gui.components.Tooltip.create(
+                        Component.translatable("gui.avecoins.player_market.purchase_tooltip",
+                                total, this.snapshot.walletBalance, listing.deliveryMinutes)));
+                PanelButton cancel = new PanelButton(cardX + cardWidth - 164, cardY + 59, 48, 18,
+                        Component.translatable("gui.avecoins.player_market.cancel_confirmation"),
+                        PanelButton.Variant.SECONDARY, button -> {
+                            this.confirmingListingId = "";
+                            this.resultCode = "";
                             this.rebuildListingControls();
-                            return;
-                        }
-                        if (!ownListing) this.confirmingListingId = "";
-                        com.google.gson.JsonObject payload = new com.google.gson.JsonObject();
-                        payload.addProperty("id", listing.id);
-                        ClientNetworking.send(new ServerboundAvecoinsPayload(
-                                ownListing ? "market_cancel" : "market_buy", payload.toString()));
-                    });
-            if (!ownListing && this.snapshot.walletBalance < total) {
-                action.active = false;
-                action.setTooltip(net.minecraft.client.gui.components.Tooltip.create(
-                        Component.translatable("gui.avecoins.player_market.need_money")));
+                        });
+                this.listingControls.add(this.addRenderableWidget(cancel));
+                this.listingControls.add(this.addRenderableWidget(confirm));
+            } else {
+                PanelButton buy = new PanelButton(cardX + cardWidth - 72, cardY + 59, 64, 18,
+                        Component.translatable("gui.avecoins.player_market.buy"),
+                        PanelButton.Variant.SUCCESS, button -> {
+                            if (this.snapshot.walletBalance < total) {
+                                this.confirmingListingId = "";
+                                this.resultCode = "market_wallet_insufficient";
+                                this.rebuildListingControls();
+                                return;
+                            }
+                            this.confirmingListingId = listing.id;
+                            this.resultCode = "market_confirm_purchase";
+                            this.rebuildListingControls();
+                        });
+                if (this.snapshot.walletBalance < total) {
+                    long shortfall = total - this.snapshot.walletBalance;
+                    buy.setTooltip(net.minecraft.client.gui.components.Tooltip.create(
+                            Component.translatable("gui.avecoins.player_market.purchase_shortfall_tooltip",
+                                    shortfall, total, this.snapshot.walletBalance)));
+                } else {
+                    buy.setTooltip(net.minecraft.client.gui.components.Tooltip.create(
+                            Component.translatable("gui.avecoins.player_market.purchase_tooltip",
+                                    total, this.snapshot.walletBalance, listing.deliveryMinutes)));
+                }
+                this.listingControls.add(this.addRenderableWidget(buy));
             }
-            this.listingControls.add(this.addRenderableWidget(action));
         }
 
         if (maxPage > 0) {
