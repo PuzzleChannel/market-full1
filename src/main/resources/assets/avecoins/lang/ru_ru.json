@@ -46,6 +46,7 @@
   "gui.avecoins.player_market.quantity_help": "Количество предметов в лоте. Предметы будут изъяты из инвентаря после подтверждения.",
   "gui.avecoins.player_market.duration": "Срок: %s дн. · доплата: %s VMcoins",
   "gui.avecoins.player_market.duration_help": "Первые сутки бесплатно. Доплата за дополнительные дни: %s VMcoins. На балансе: %s.",
+  "gui.avecoins.player_market.duration_shortfall_tooltip": "Не хватает %s VMcoins на продление срока. Нужно: %s; баланс: %s.",
   "gui.avecoins.player_market.extension_fee_summary": "Доплата за срок: %s VMcoins · баланс после оплаты: %s.",
   "gui.avecoins.player_market.create_confirm_tooltip": "Проверьте лот: %s × %s за %s VMcoins. Срок: %s дн.; доплата: %s VMcoins. Баланс: %s.",
   "gui.avecoins.player_market.confirm_listing_button": "Подтвердить лот",
