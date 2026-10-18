@@ -84,6 +84,14 @@ implements ThemedScreen {
         this.panelTop = this.responsiveLayout.panelTop();
     }
 
+    @Override
+    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        // A screen can still have a queued background extraction after another screen replaces it.
+        // Do not let an inactive screen clear or redraw the background behind the active GUI.
+        if (Minecraft.getInstance().gui.screen() != this || this.responsiveLayout == null) return;
+        super.extractBackground(graphics, mouseX, mouseY, partialTick);
+    }
+
     public final void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         if (Minecraft.getInstance().gui.screen() != this || this.responsiveLayout == null) return;
         graphics.pose().pushMatrix();
