@@ -34,19 +34,22 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
     private String resultCode;
     private String confirmingListingId;
     private int page;
+    private boolean showExpired;
+    private String listingStateSignature = "";
 
     public PlayerMarketManageScreen(PlayerMarketService.MarketSnapshot snapshot, String resultCode) {
-        this(snapshot, resultCode, 0, Map.of(), "");
+        this(snapshot, resultCode, 0, Map.of(), "", false);
     }
 
     private PlayerMarketManageScreen(PlayerMarketService.MarketSnapshot snapshot, String resultCode,
-                                     int page, Map<String, String> priceDrafts, String confirmingListingId) {
+                                     int page, Map<String, String> priceDrafts, String confirmingListingId, boolean showExpired) {
         super(Component.translatable("gui.avecoins.player_market.manage_title"));
         this.snapshot = snapshot;
         this.resultCode = resultCode == null ? "" : resultCode;
         this.page = Math.max(0, page);
         this.priceDrafts = new HashMap<>(priceDrafts);
         this.confirmingListingId = confirmingListingId == null ? "" : confirmingListingId;
+        this.showExpired = showExpired;
         ShopService.ShopSnapshot themeSnapshot = new ShopService.ShopSnapshot();
         themeSnapshot.shopColor = snapshot.shopColor;
         this.useShopTheme(themeSnapshot);
@@ -69,7 +72,7 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
         if (!activeIds.contains(confirmId) || "market_listing_cancelled".equals(resultCode)) {
             confirmId = "";
         }
-        return new PlayerMarketManageScreen(snapshot, resultCode, this.page, drafts, confirmId);
+        return new PlayerMarketManageScreen(snapshot, resultCode, this.page, drafts, confirmId, this.showExpired);
     }
 
     private Map<String, String> capturePriceDrafts() {
@@ -77,10 +80,57 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
         return new HashMap<>(this.priceDrafts);
     }
 
-    private List<PlayerMarketService.MarketListing> ownListings() {
+    private List<PlayerMarketService.MarketListing> allOwnListings() {
         return this.snapshot.listings.stream()
                 .filter(listing -> listing.sellerId.equals(this.snapshot.viewerId))
                 .toList();
+    }
+
+    private List<PlayerMarketService.MarketListing> activeOwnListings() {
+        long now = System.currentTimeMillis();
+        return this.allOwnListings().stream().filter(listing -> !isExpired(listing, now)).toList();
+    }
+
+    private List<PlayerMarketService.MarketListing> expiredOwnListings() {
+        long now = System.currentTimeMillis();
+        return this.allOwnListings().stream().filter(listing -> isExpired(listing, now)).toList();
+    }
+
+    private List<PlayerMarketService.MarketListing> ownListings() {
+        long now = System.currentTimeMillis();
+        return this.allOwnListings().stream()
+                .filter(listing -> isExpired(listing, now) == this.showExpired)
+                .toList();
+    }
+
+    private static boolean isExpired(PlayerMarketService.MarketListing listing) {
+        return isExpired(listing, System.currentTimeMillis());
+    }
+
+    private static boolean isExpired(PlayerMarketService.MarketListing listing, long now) {
+        return listing.expiresAt > 0L && listing.expiresAt <= now;
+    }
+
+    private String currentExpirySignature() {
+        long now = System.currentTimeMillis();
+        StringBuilder signature = new StringBuilder();
+        for (PlayerMarketService.MarketListing listing : this.allOwnListings()) {
+            signature.append(listing.id).append(':').append(isExpired(listing, now)).append(';');
+        }
+        return signature.toString();
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        String signature = this.currentExpirySignature();
+        if (!signature.equals(this.listingStateSignature)) {
+            this.listingStateSignature = signature;
+            if (this.showExpired && this.expiredOwnListings().isEmpty()) this.showExpired = false;
+            this.page = 0;
+            this.confirmingListingId = "";
+            this.rebuildWidgets();
+        }
     }
 
     private static long totalValue(List<PlayerMarketService.MarketListing> listings) {
@@ -112,6 +162,47 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
         this.addRenderableWidget(new PanelButton(this.panelLeft + this.panelWidth - 28, headerY, 18, 20,
                 Component.literal("×"), PanelButton.Variant.DANGER, button -> this.onClose()));
 
+        List<PlayerMarketService.MarketListing> expiredListings = this.expiredOwnListings();
+        if (this.showExpired && expiredListings.isEmpty()) this.showExpired = false;
+        List<PlayerMarketService.MarketListing> activeListings = this.activeOwnListings();
+        expiredListings = this.expiredOwnListings();
+        int tabCenterX = this.panelLeft + this.panelWidth / 2;
+        int tabY = this.panelTop + 70;
+        if (expiredListings.isEmpty()) {
+            int tabWidth = 176;
+            this.addRenderableWidget(new PanelButton(tabCenterX - tabWidth / 2, tabY, tabWidth, 18,
+                    Component.translatable("gui.avecoins.player_market.manage_active_tab", activeListings.size()),
+                    PanelButton.Variant.HEADER, button -> {
+                        this.capturePriceDrafts();
+                        this.showExpired = false;
+                        this.page = 0;
+                        this.confirmingListingId = "";
+                        this.rebuildWidgets();
+                    }));
+        } else {
+            int tabWidth = 160;
+            this.addRenderableWidget(new PanelButton(tabCenterX - 164, tabY, tabWidth, 18,
+                    Component.translatable("gui.avecoins.player_market.manage_active_tab", activeListings.size()),
+                    this.showExpired ? PanelButton.Variant.SECONDARY : PanelButton.Variant.HEADER,
+                    button -> {
+                        this.capturePriceDrafts();
+                        this.showExpired = false;
+                        this.page = 0;
+                        this.confirmingListingId = "";
+                        this.rebuildWidgets();
+                    }));
+            this.addRenderableWidget(new PanelButton(tabCenterX + 4, tabY, tabWidth, 18,
+                    Component.translatable("gui.avecoins.player_market.manage_expired_tab", expiredListings.size()),
+                    this.showExpired ? PanelButton.Variant.HEADER : PanelButton.Variant.SECONDARY,
+                    button -> {
+                        this.capturePriceDrafts();
+                        this.showExpired = true;
+                        this.page = 0;
+                        this.confirmingListingId = "";
+                        this.rebuildWidgets();
+                    }));
+        }
+
         List<PlayerMarketService.MarketListing> listings = this.ownListings();
         int maxPage = Math.max(0, (listings.size() - 1) / PAGE_SIZE);
         this.page = Math.min(this.page, maxPage);
@@ -119,7 +210,7 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
         int listX = this.panelLeft + 12;
         int rowWidth = this.panelWidth - 24;
         int cardWidth = (rowWidth - (COLUMNS - 1) * 8) / COLUMNS;
-        int listTop = this.panelTop + 86;
+        int listTop = this.panelTop + 94;
         int start = this.page * PAGE_SIZE;
         int end = Math.min(listings.size(), start + PAGE_SIZE);
 
@@ -131,11 +222,10 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
 
             EditBox priceBox = new EditBox(this.font, cardX + 8, cardY + 53, 45, 18,
                     Component.translatable("gui.avecoins.player_market.price"));
-            priceBox.setMaxLength(10);
+            priceBox.setMaxLength(4);
+            priceBox.active = !isExpired(listing);
             priceBox.setValue(this.priceDrafts.getOrDefault(listing.id, Integer.toString(listing.totalPrice)));
             priceBox.setHint(Component.literal(Integer.toString(listing.totalPrice)));
-            priceBox.setTooltip(net.minecraft.client.gui.components.Tooltip.create(
-                    Component.translatable("gui.avecoins.player_market.price_edit_help")));
             this.priceBoxes.put(listing.id, priceBox);
             this.addRenderableWidget(priceBox);
 
@@ -154,7 +244,8 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
             this.addRenderableWidget(new PanelButton(cardX + 132, cardY + 53, 66, 18,
                     Component.translatable(confirming
                             ? "gui.avecoins.player_market.confirm_remove"
-                            : "gui.avecoins.player_market.cancel"),
+                            : (isExpired(listing) ? "gui.avecoins.player_market.manage_return_expired"
+                                                : "gui.avecoins.player_market.cancel")),
                     PanelButton.Variant.DANGER, button -> this.handleRemoveClick(listing)));
             if (confirming) {
                 this.addRenderableWidget(new PanelButton(cardX + 200, cardY + 53, 55, 18,
@@ -166,6 +257,8 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
                         }));
             }
         }
+
+        this.listingStateSignature = this.currentExpirySignature();
 
         if (maxPage > 0) {
             int center = this.panelLeft + this.panelWidth / 2;
@@ -195,7 +288,7 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
     private void updateSaveButton(PlayerMarketService.MarketListing listing, EditBox box, PanelButton button) {
         String value = box.getValue().trim();
         boolean changed = !value.equals(Integer.toString(listing.totalPrice));
-        button.active = changed;
+        button.active = changed && !isExpired(listing);
         boolean valid = false;
         try {
             int parsed = Integer.parseInt(value);
@@ -203,7 +296,7 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
         } catch (NumberFormatException ignored) {
             // Leave the button clickable for a useful validation message.
         }
-        button.setVariant(changed && valid ? PanelButton.Variant.SUCCESS : PanelButton.Variant.SECONDARY);
+        button.setVariant(changed && valid && !isExpired(listing) ? PanelButton.Variant.SUCCESS : PanelButton.Variant.SECONDARY);
     }
 
     private void handleRemoveClick(PlayerMarketService.MarketListing listing) {
@@ -227,6 +320,10 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
             price = Integer.parseInt(raw);
         } catch (NumberFormatException exception) {
             this.resultCode = "market_invalid_price_quantity";
+            return;
+        }
+        if (isExpired(listing)) {
+            this.resultCode = "market_listing_expired";
             return;
         }
         if (price < 1 || price > PlayerMarketService.MAX_WALLET_BALANCE) {
@@ -255,7 +352,7 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
             int listX = this.panelLeft + 12;
             int rowWidth = this.panelWidth - 24;
             int cardWidth = (rowWidth - (COLUMNS - 1) * 8) / COLUMNS;
-            int listTop = this.panelTop + 86;
+            int listTop = this.panelTop + 94;
             int start = this.page * PAGE_SIZE;
             List<PlayerMarketService.MarketListing> listings = this.ownListings();
             int end = Math.min(listings.size(), start + PAGE_SIZE);
@@ -275,21 +372,18 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
     @Override
     protected void renderPanel(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         this.renderHeader(graphics, null);
-        this.drawSectionTitleAt(graphics, Component.translatable("gui.avecoins.player_market.my_listings"),
-                this.panelLeft + this.panelWidth / 2, this.panelTop + 46);
-
         List<PlayerMarketService.MarketListing> listings = this.ownListings();
         Component summary = Component.translatable("gui.avecoins.player_market.manage_summary",
                 listings.size(), totalQuantity(listings));
         GuiTextLayout.drawCenteredFitted(graphics, this.font, summary,
-                this.panelLeft + this.panelWidth / 2, this.panelTop + 61, this.panelWidth - 36, this.theme().MUTED);
-        this.renderTotalValue(graphics, this.panelLeft + this.panelWidth / 2, this.panelTop + 76,
+                this.panelLeft + this.panelWidth / 2, this.panelTop + 42, this.panelWidth - 36, this.theme().MUTED);
+        this.renderTotalValue(graphics, this.panelLeft + this.panelWidth / 2, this.panelTop + 57,
                 totalValue(listings));
 
         int listX = this.panelLeft + 12;
         int rowWidth = this.panelWidth - 24;
         int cardWidth = (rowWidth - (COLUMNS - 1) * 8) / COLUMNS;
-        int listTop = this.panelTop + 86;
+        int listTop = this.panelTop + 94;
         int start = this.page * PAGE_SIZE;
         int end = Math.min(listings.size(), start + PAGE_SIZE);
 
@@ -312,10 +406,6 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
             int groupX = cardX + (cardWidth - groupWidth) / 2;
             if (!preview.isEmpty()) {
                 graphics.item(preview, groupX, cardY + 5);
-                if (mouseX >= groupX - 2 && mouseX < groupX + 18
-                        && mouseY >= cardY + 3 && mouseY < cardY + 23) {
-                    graphics.setTooltipForNextFrame(this.font, preview, mouseX, mouseY);
-                }
             }
             int titleX = groupX + (preview.isEmpty() ? 0 : 24);
             graphics.text(this.font, titleText, titleX, cardY + 8, this.theme().TEXT, !this.theme().custom);
