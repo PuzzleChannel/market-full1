@@ -223,7 +223,7 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
             boolean confirming = listing.id.equals(this.confirmingListingId);
             if (confirming) {
                 // Use the full control row for a clear two-button confirmation on compact cards.
-                this.addRenderableWidget(new PanelButton(cardX + 4, cardY + 47, 78, 16,
+                this.addRenderableWidget(new PanelButton(cardX + 4, cardY + 50, 78, 15,
                         Component.translatable("gui.avecoins.player_market.confirm_remove"), PanelButton.Variant.DANGER,
                         button -> {
                             this.capturePriceDrafts();
@@ -231,7 +231,7 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
                             payload.addProperty("id", listing.id);
                             ClientNetworking.send(new ServerboundAvecoinsPayload("market_cancel", payload.toString()));
                         }));
-                this.addRenderableWidget(new PanelButton(cardX + 86, cardY + 47, 76, 16,
+                this.addRenderableWidget(new PanelButton(cardX + 86, cardY + 50, 76, 15,
                         Component.translatable("gui.avecoins.player_market.keep_listing"), PanelButton.Variant.SECONDARY,
                         button -> {
                             this.capturePriceDrafts();
@@ -239,7 +239,7 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
                             this.rebuildWidgets();
                         }));
             } else {
-                EditBox priceBox = new EditBox(this.font, cardX + 4, cardY + 47, 34, 16,
+                EditBox priceBox = new EditBox(this.font, cardX + 4, cardY + 50, 34, 15,
                         Component.translatable("gui.avecoins.player_market.price"));
                 priceBox.setMaxLength(4);
                 priceBox.active = !isExpired(listing);
@@ -248,7 +248,7 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
                 this.priceBoxes.put(listing.id, priceBox);
                 this.addRenderableWidget(priceBox);
 
-                PanelButton saveButton = new PanelButton(cardX + 42, cardY + 47, 50, 16,
+                PanelButton saveButton = new PanelButton(cardX + 42, cardY + 50, 50, 15,
                         Component.translatable("gui.avecoins.player_market.save_price"), PanelButton.Variant.SECONDARY,
                         button -> this.savePrice(listing));
                 this.saveButtons.put(listing.id, saveButton);
@@ -259,7 +259,7 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
                     this.updateSaveButton(listing, priceBox, saveButton);
                 });
 
-                this.addRenderableWidget(new PanelButton(cardX + 96, cardY + 47, 66, 16,
+                this.addRenderableWidget(new PanelButton(cardX + 96, cardY + 50, 66, 15,
                         Component.translatable(isExpired(listing)
                                 ? "gui.avecoins.player_market.manage_return_expired"
                                 : "gui.avecoins.player_market.cancel"),
@@ -417,12 +417,12 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
             Component titleText = Component.literal(this.font.plainSubstrByWidth(title, cardWidth - 8));
             GuiTextLayout.drawCentered(graphics, this.font, titleText,
                     cardCenterX, cardY + 20, this.theme().TEXT, !this.theme().custom);
-            this.renderListingPrice(graphics, listing.totalPrice, cardCenterX, cardY + 32);
+            this.renderListingPrice(graphics, listing.totalPrice, cardCenterX, cardY + 29);
             if (listing.expiresAt > 0L) {
                 long remaining = listing.expiresAt - System.currentTimeMillis();
                 int remainingColor = remaining <= 0L ? this.theme().DANGER : this.theme().MUTED;
                 GuiTextLayout.drawCentered(graphics, this.font, this.remainingTimeLabel(listing.expiresAt),
-                        cardCenterX, cardY + 41, remainingColor, !this.theme().custom);
+                        cardCenterX, cardY + 42, remainingColor, !this.theme().custom);
             }
         }
 
