@@ -487,6 +487,7 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
             int cardY = listTop + (local / COLUMNS) * CARD_STEP;
             boolean ownListing = listing.sellerId.equals(this.snapshot.viewerId);
 
+            ItemStack preview = this.previewStack(listing);
             int cardCenterX = cardX + cardWidth / 2;
             if (!preview.isEmpty()) {
                 int iconX = cardCenterX - 8;
