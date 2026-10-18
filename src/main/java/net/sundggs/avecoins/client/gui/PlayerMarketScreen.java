@@ -484,7 +484,6 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
             int cardX = listX + (local % COLUMNS) * (cardWidth + 8);
             int cardY = listTop + (local / COLUMNS) * CARD_STEP;
             boolean ownListing = listing.sellerId.equals(this.snapshot.viewerId);
-            long total = lotPrice(listing);
 
             ItemStack preview = this.previewStack(listing);
             if (!preview.isEmpty()) {
