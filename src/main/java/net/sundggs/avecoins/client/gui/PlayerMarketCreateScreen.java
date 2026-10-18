@@ -71,15 +71,13 @@ public final class PlayerMarketCreateScreen extends AvecoinsScreen {
         this.addRenderableWidget(new PanelButton(this.panelLeft + this.panelWidth - 28, headerY, 18, 20,
                 Component.literal("×"), PanelButton.Variant.DANGER, button -> this.onClose()));
 
-        int fieldsX = this.panelLeft + (this.panelWidth - 400) / 2;
-        int fieldsY = this.panelTop + 222;
-        this.priceBox = new net.minecraft.client.gui.components.EditBox(this.font, fieldsX, fieldsY, 190, 20,
+        int fieldsX = this.panelLeft + (this.panelWidth - 280) / 2;
+        int fieldsY = this.panelTop + 190;
+        this.priceBox = new net.minecraft.client.gui.components.EditBox(this.font, fieldsX, fieldsY, 128, 20,
                 Component.translatable("gui.avecoins.player_market.price"));
-        this.priceBox.setMaxLength(6);
+        this.priceBox.setMaxLength(4);
         this.priceBox.setValue(this.savedPrice);
         this.priceBox.setHint(Component.translatable("gui.avecoins.player_market.price_hint"));
-        this.priceBox.setTooltip(net.minecraft.client.gui.components.Tooltip.create(
-                Component.translatable("gui.avecoins.player_market.price_help")));
         this.addRenderableWidget(this.priceBox);
         this.priceBox.setResponder(value -> {
             this.savedPrice = value;
@@ -90,13 +88,11 @@ public final class PlayerMarketCreateScreen extends AvecoinsScreen {
             }
         });
 
-        this.quantityBox = new net.minecraft.client.gui.components.EditBox(this.font, fieldsX + 210, fieldsY, 190, 20,
+        this.quantityBox = new net.minecraft.client.gui.components.EditBox(this.font, fieldsX + 152, fieldsY, 128, 20,
                 Component.translatable("gui.avecoins.player_market.quantity"));
         this.quantityBox.setMaxLength(3);
         this.quantityBox.setValue(this.savedQuantity);
         this.quantityBox.setHint(Component.translatable("gui.avecoins.player_market.quantity_hint"));
-        this.quantityBox.setTooltip(net.minecraft.client.gui.components.Tooltip.create(
-                Component.translatable("gui.avecoins.player_market.quantity_help")));
         this.addRenderableWidget(this.quantityBox);
         this.quantityBox.setResponder(value -> {
             this.savedQuantity = value;
@@ -122,7 +118,7 @@ public final class PlayerMarketCreateScreen extends AvecoinsScreen {
             final int optionExtraDays = durationOptions[i];
             long optionFee = PlayerMarketService.extensionCost(optionExtraDays);
             PanelButton option = new PanelButton(durationStartX + i * (durationButtonWidth + durationGap),
-                    this.panelTop + 256, durationButtonWidth, 20,
+                    this.panelTop + 230, durationButtonWidth, 20,
                     Component.translatable(durationLabels[i]),
                     this.extraDays == optionExtraDays ? PanelButton.Variant.SUCCESS : PanelButton.Variant.SECONDARY,
                     button -> {
@@ -136,13 +132,12 @@ public final class PlayerMarketCreateScreen extends AvecoinsScreen {
                             optionFee - this.snapshot.walletBalance, optionFee, this.snapshot.walletBalance)
                     : Component.translatable("gui.avecoins.player_market.duration_help",
                             optionFee, this.snapshot.walletBalance);
-            option.setTooltip(net.minecraft.client.gui.components.Tooltip.create(durationHelp));
             this.addRenderableWidget(option);
         }
 
         long extensionFee = PlayerMarketService.extensionCost(this.extraDays);
 
-        int createX = this.panelLeft + (this.panelWidth - 326) / 2;
+        int createX = this.panelLeft + (this.panelWidth - 230) / 2;
         PanelButton create = new PanelButton(createX, this.panelTop + 320, 230, 25,
                 Component.translatable(this.confirmingListing
                         ? "gui.avecoins.player_market.confirm_listing_button"
@@ -291,52 +286,28 @@ public final class PlayerMarketCreateScreen extends AvecoinsScreen {
             drawInventorySlot(graphics, column, inventoryX + column * 18, hotbarTop);
         }
 
-        int fieldsX = this.panelLeft + (this.panelWidth - 400) / 2;
-        int selectedPanelX = this.panelLeft + (this.panelWidth - 400) / 2;
-        int selectedPanelY = this.panelTop + 164;
-        graphics.fill(selectedPanelX, selectedPanelY, selectedPanelX + 400, selectedPanelY + 34, this.theme().BORDER);
-        graphics.fill(selectedPanelX + 1, selectedPanelY + 1, selectedPanelX + 399, selectedPanelY + 33, this.theme().SURFACE);
-
-        ItemStack selected = this.minecraft.player == null || this.selectedSlot < 0
-                ? ItemStack.EMPTY : this.minecraft.player.getInventory().getItem(this.selectedSlot);
-        if (!selected.isEmpty()) {
-            Component title = Component.literal(this.font.plainSubstrByWidth(selected.getHoverName().getString(), 352));
-            int titleWidth = this.font.width(title);
-            int groupWidth = 24 + titleWidth;
-            int groupX = selectedPanelX + (400 - groupWidth) / 2;
-            graphics.item(selected, groupX, selectedPanelY + 9);
-            graphics.text(this.font, title, groupX + 24, selectedPanelY + 8,
-                    this.theme().TEXT, !this.theme().custom);
-            GuiTextLayout.drawCentered(graphics, this.font,
-                    Component.translatable("gui.avecoins.player_market.selected_count", selected.getCount()),
-                    groupX + 24 + titleWidth / 2, selectedPanelY + 21,
-                    this.theme().MUTED, !this.theme().custom);
-        } else {
-            this.drawCenteredWrappedAt(graphics, Component.translatable("gui.avecoins.player_market.no_selected_item"),
-                    selectedPanelX + 200, selectedPanelY + 12, 370, this.theme().MUTED);
-        }
-
+        int fieldsX = this.panelLeft + (this.panelWidth - 280) / 2;
         Component priceLabel = Component.translatable("gui.avecoins.player_market.price");
         int priceLabelWidth = this.font.width(priceLabel);
         boolean hasCoin = BuiltInRegistries.ITEM.containsKey(COIN_ID);
         int priceGroupWidth = priceLabelWidth + (hasCoin ? 20 : 0);
-        int priceLabelX = fieldsX + (190 - priceGroupWidth) / 2;
-        graphics.text(this.font, priceLabel, priceLabelX, this.panelTop + 208,
+        int priceLabelX = fieldsX + (128 - priceGroupWidth) / 2;
+        graphics.text(this.font, priceLabel, priceLabelX, this.panelTop + 176,
                 this.theme().TEXT, !this.theme().custom);
         if (hasCoin) {
             graphics.item(new ItemStack((Item) BuiltInRegistries.ITEM.getValue(COIN_ID)),
-                    priceLabelX + priceLabelWidth + 4, this.panelTop + 204);
+                    priceLabelX + priceLabelWidth + 4, this.panelTop + 172);
         }
         GuiTextLayout.drawCentered(graphics, this.font, Component.translatable("gui.avecoins.player_market.quantity"),
-                fieldsX + 210 + 95, this.panelTop + 208, this.theme().TEXT, !this.theme().custom);
+                fieldsX + 152 + 64, this.panelTop + 176, this.theme().TEXT, !this.theme().custom);
 
         this.drawSectionTitleAt(graphics, Component.translatable("gui.avecoins.player_market.duration_heading"),
-                this.panelLeft + this.panelWidth / 2, this.panelTop + 245);
-        this.renderVmcoinBalance(graphics, this.panelLeft + this.panelWidth / 2, this.panelTop + 281);
+                this.panelLeft + this.panelWidth / 2, this.panelTop + 218);
+        this.renderVmcoinBalance(graphics, this.panelLeft + this.panelWidth / 2, this.panelTop + 260);
         long extensionFee = PlayerMarketService.extensionCost(this.extraDays);
         int feeColor = extensionFee > this.snapshot.walletBalance ? this.theme().DANGER : this.theme().SUCCESS;
         this.renderDurationFeeSummary(graphics, this.panelLeft + this.panelWidth / 2,
-                this.panelTop + 301, extensionFee, Math.max(0L, this.snapshot.walletBalance - extensionFee),
+                this.panelTop + 281, extensionFee, Math.max(0L, this.snapshot.walletBalance - extensionFee),
                 feeColor);
 
         this.drawCenteredWrappedAt(graphics, Component.translatable("gui.avecoins.player_market.limit"),
