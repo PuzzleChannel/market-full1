@@ -4,7 +4,7 @@
 package net.sundggs.avecoins.client.gui;
 
 public final class GuiTheme {
-    public static final int BACKGROUND = -1744830464;
+    public static final int BACKGROUND = 0xFF101318;
     public static final int PANEL = -15263203;
     public static final int HEADER = -14407636;
     public static final int SURFACE = -14670808;

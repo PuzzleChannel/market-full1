@@ -28,29 +28,35 @@ extends AbstractContainerScreen<T> {
     }
 
     public final void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        if (net.minecraft.client.Minecraft.getInstance().gui.screen() != this || this.responsiveLayout == null) return;
         this.beforeResponsiveRender();
         graphics.pose().pushMatrix();
-        graphics.pose().translate(this.responsiveLayout.offsetX(), this.responsiveLayout.offsetY());
-        graphics.pose().scale(this.responsiveLayout.scale(), this.responsiveLayout.scale());
-        int virtualMouseX = this.virtualMouseX(mouseX);
-        int virtualMouseY = this.virtualMouseY(mouseY);
-        super.extractRenderState(graphics, virtualMouseX, virtualMouseY, partialTick);
-        graphics.pose().popMatrix();
+        try {
+            graphics.pose().translate(this.responsiveLayout.offsetX(), this.responsiveLayout.offsetY());
+            graphics.pose().scale(this.responsiveLayout.scale(), this.responsiveLayout.scale());
+            int virtualMouseX = this.virtualMouseX(mouseX);
+            int virtualMouseY = this.virtualMouseY(mouseY);
+            super.extractRenderState(graphics, virtualMouseX, virtualMouseY, partialTick);
+        } finally {
+            graphics.pose().popMatrix();
+        }
     }
 
     protected void beforeResponsiveRender() {
     }
 
     public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
-        if (this.responsiveLayout == null) {
-            return;
-        }
+        if (net.minecraft.client.Minecraft.getInstance().gui.screen() != this || this.responsiveLayout == null) return;
+        // Clear the physical viewport before scaling the container panel.
+        graphics.fill(0, 0, this.width, this.height, 0xFF101318);
         graphics.pose().pushMatrix();
-        graphics.pose().translate(this.responsiveLayout.offsetX(), this.responsiveLayout.offsetY());
-        graphics.pose().scale(this.responsiveLayout.scale(), this.responsiveLayout.scale());
-        graphics.fill(0, 0, this.responsiveLayout.virtualWidth(), this.responsiveLayout.virtualHeight(), -1744830464);
-        this.extractPanelBackground(graphics, partialTick, this.virtualMouseX(mouseX), this.virtualMouseY(mouseY));
-        graphics.pose().popMatrix();
+        try {
+            graphics.pose().translate(this.responsiveLayout.offsetX(), this.responsiveLayout.offsetY());
+            graphics.pose().scale(this.responsiveLayout.scale(), this.responsiveLayout.scale());
+            this.extractPanelBackground(graphics, partialTick, this.virtualMouseX(mouseX), this.virtualMouseY(mouseY));
+        } finally {
+            graphics.pose().popMatrix();
+        }
     }
 
     protected abstract void extractPanelBackground(GuiGraphicsExtractor var1, float var2, int var3, int var4);

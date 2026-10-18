@@ -60,7 +60,7 @@ extends AvecoinsScreen {
     private static final Identifier WALLET_ICON = Identifier.fromNamespaceAndPath((String)"avecoins", (String)"textures/gui/icons/coin_wallet.png");
     private static final Identifier ADMIN_ICON = Identifier.fromNamespaceAndPath((String)"avecoins", (String)"textures/gui/icons/admin_button.png");
     private static final Identifier ALL_CATEGORY_ICON = Identifier.withDefaultNamespace((String)"chest");
-    private static final List<String> BALANCE_ORDER = List.of("avecoins:coppercoin", "avecoins:ironcoin", "avecoins:goldcoin", "avecoins:diamondcoin", "avecoins:netheritecoin", "avecoins:goldticket", "avecoins:diamondticket", "avecoins:netheriteticket");
+    private static final List<String> BALANCE_ORDER = List.of("vmtrade:vmcoin", "avecoins:coppercoin", "avecoins:ironcoin", "avecoins:goldcoin", "avecoins:diamondcoin", "avecoins:netheritecoin", "avecoins:goldticket", "avecoins:diamondticket", "avecoins:netheriteticket");
     private final ShopService.ShopSnapshot snapshot;
     private String selectedCategory = "all";
     private String search = "";
@@ -106,11 +106,19 @@ extends AvecoinsScreen {
         this.addRenderableWidget(new PanelButton(cartX, buttonY, 112, 22, (Component)Component.translatable((String)"gui.avecoins.shop.cart", (Object[])new Object[]{cartCount}), PanelButton.Variant.HEADER, button -> this.minecraft.gui.setScreen((Screen)new CartScreen(this.snapshot, 0, "", this.selectedCategory, this.search, this.page, this.categoryPage))).withIcon(CART_ICON, 14));
         PanelButton sell = new PanelButton(cartX - 122, buttonY, 112, 22, (Component)Component.translatable((String)"gui.avecoins.shop.sell_box"), PanelButton.Variant.HEADER, button -> ClientNetworking.send(new ServerboundAvecoinsPayload("request_sell_box", "{}"))).withIcon(SELL_ICON, 14);
         sell.active = this.snapshot.products.stream().anyMatch(product -> product.enabled && product.sellEnabled);
-        sell.setTooltip(Tooltip.create((Component)Component.translatable((String)"gui.avecoins.shop.sell_box_help")));
         this.addRenderableWidget(sell);
+        if (this.minecraft.player != null) {
+            this.addRenderableWidget(new PanelButton(this.panelLeft + 10, buttonY, 124, 22,
+                    Component.translatable("gui.avecoins.player_market.tab"), PanelButton.Variant.HEADER,
+                    button -> ClientNetworking.send(new ServerboundAvecoinsPayload("request_player_market", "{}"))));
+        }
         if (this.snapshot.administrator) {
-            int adminX = this.panelLeft + 14 + this.font.width((FormattedText)this.displayedShopName()) + 12;
-            PanelButton administration = new PanelButton(adminX, buttonY, 28, 22, (Component)Component.empty(), PanelButton.Variant.HEADER, button -> ClientNetworking.send(new ServerboundAvecoinsPayload("request_shop_admin", "{\"history\":false,\"page\":0}"))).withIcon(ADMIN_ICON, 16);
+            int adminX = this.minecraft.player != null ? this.panelLeft + 140
+                    : this.panelLeft + 14 + this.font.width((FormattedText)this.displayedShopName()) + 12;
+            PanelButton administration = new PanelButton(adminX, buttonY, 28, 22,
+                    (Component)Component.empty(), PanelButton.Variant.HEADER,
+                    button -> ClientNetworking.send(new ServerboundAvecoinsPayload("request_shop_admin", "{\"history\":false,\"page\":0}")))
+                    .withIcon(ADMIN_ICON, 16);
             administration.setTooltip(Tooltip.create((Component)Component.translatable((String)"gui.avecoins.shop.admin")));
             this.addRenderableWidget(administration);
         }
@@ -118,7 +126,6 @@ extends AvecoinsScreen {
             int footerTop = this.panelTop + this.panelHeight - 32;
             int walletX = this.panelLeft + this.panelWidth - 12 - 26;
             PanelButton wallet = new PanelButton(walletX, footerTop + 5, 26, 22, (Component)Component.empty(), PanelButton.Variant.HEADER, button -> ClientNetworking.send(new ServerboundAvecoinsPayload("request_wallet", "{}"))).withIcon(WALLET_ICON, 16);
-            wallet.setTooltip(Tooltip.create((Component)Component.translatable((String)"gui.avecoins.wallet.open")));
             this.addRenderableWidget(wallet);
         }
         int searchWidth = 240;
@@ -284,7 +291,11 @@ extends AvecoinsScreen {
     @Override
     protected void renderPanel(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         Component shopName = this.displayedShopName();
-        graphics.text(this.font, shopName, this.panelLeft + 14, this.panelTop + 16, this.theme().TEXT, false);
+        int titleContentLeft = this.panelLeft + 140 + 16;
+        int titleContentWidth = this.panelWidth - 140 - 28;
+        GuiTextLayout.drawCenteredFitted(graphics, this.font, shopName,
+                titleContentLeft + titleContentWidth / 2, this.panelTop + 31,
+                titleContentWidth, this.theme().TEXT);
         GuiIconRenderer.blit(graphics, SEARCH_ICON, this.searchBox.getX() - 20, this.searchBox.getY() + 3, 16, 16, 32, 32);
         graphics.fill(this.panelLeft + 140, this.panelTop + 40, this.panelLeft + 140 + 1, this.panelTop + this.panelHeight - 32, this.theme().DIVIDER);
         MutableComponent categoryHeading = Component.literal((String)"\u2630 ").append((Component)Component.translatable((String)"gui.avecoins.shop.categories")).withStyle(ChatFormatting.BOLD);
@@ -388,7 +399,12 @@ extends AvecoinsScreen {
     }
 
     private Component displayedShopName() {
-        int titleWidth = this.snapshot.administrator ? 178 : 230;
+        int titleWidth;
+        if (this.minecraft.player != null) {
+            titleWidth = this.snapshot.administrator ? 92 : 120;
+        } else {
+            titleWidth = this.snapshot.administrator ? 178 : 230;
+        }
         return Component.literal((String)this.font.plainSubstrByWidth(this.title.getString(), titleWidth)).withStyle(ChatFormatting.BOLD);
     }
 
