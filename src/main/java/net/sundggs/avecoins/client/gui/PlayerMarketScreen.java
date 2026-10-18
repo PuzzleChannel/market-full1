@@ -253,16 +253,6 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
                             this.resultCode = "market_confirm_purchase";
                             this.rebuildListingControls();
                         }).withTrailingItemAmount(COIN_ID, total);
-                if (this.snapshot.walletBalance < total) {
-                    long shortfall = total - this.snapshot.walletBalance;
-                    buy.setTooltip(net.minecraft.client.gui.components.Tooltip.create(
-                            Component.translatable("gui.avecoins.player_market.purchase_shortfall_tooltip",
-                                    shortfall, total, this.snapshot.walletBalance)));
-                } else {
-                    buy.setTooltip(net.minecraft.client.gui.components.Tooltip.create(
-                            Component.translatable("gui.avecoins.player_market.purchase_tooltip",
-                                    total, this.snapshot.walletBalance, listing.deliveryMinutes)));
-                }
                 this.listingControls.add(this.addRenderableWidget(buy));
             }
         }
@@ -288,9 +278,21 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
         }
     }
 
+    @Override
+    public void tick() {
+        super.tick();
+        long now = System.currentTimeMillis();
+        if (this.visibleListings.stream().anyMatch(listing -> listing.expiresAt > 0L && listing.expiresAt <= now)) {
+            this.confirmingListingId = "";
+            this.rebuildListingControls();
+        }
+    }
+
     private List<PlayerMarketService.MarketListing> filteredListings() {
         String query = this.search == null ? "" : this.search.trim().toLowerCase(Locale.ROOT);
+        long now = System.currentTimeMillis();
         return this.snapshot.listings.stream()
+                .filter(listing -> listing.expiresAt <= 0L || listing.expiresAt > now)
                 .filter(listing -> {
                     boolean own = listing.sellerId.equals(this.snapshot.viewerId);
                     boolean matchesFilter = switch (this.filterMode) {
@@ -476,7 +478,8 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
             Component empty = this.search == null || this.search.isBlank()
                     ? Component.translatable("gui.avecoins.player_market.empty")
                     : Component.translatable("gui.avecoins.player_market.search_empty");
-            this.drawCenteredWrappedAt(graphics, empty, this.panelLeft + this.panelWidth / 2,
+            int listingsCenterX = this.panelLeft + 120 + rowWidth / 2;
+            this.drawCenteredWrappedAt(graphics, empty, listingsCenterX,
                     listTop + 64, rowWidth - 60, this.theme().MUTED);
         }
 
@@ -493,10 +496,6 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
                 int iconX = cardCenterX - 8;
                 int iconY = cardY + 2;
                 graphics.item(preview, iconX, iconY);
-                if (mouseX >= iconX - 2 && mouseX < iconX + 18
-                        && mouseY >= iconY - 2 && mouseY < iconY + 18) {
-                    graphics.setTooltipForNextFrame(this.font, preview, mouseX, mouseY);
-                }
             }
 
             String displayName = preview.isEmpty() ? listing.displayName : preview.getHoverName().getString();
