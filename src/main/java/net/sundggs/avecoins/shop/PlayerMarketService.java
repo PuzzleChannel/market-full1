@@ -301,6 +301,9 @@ public final class PlayerMarketService {
         if (!listing.sellerId.equals(seller.getUUID().toString())) {
             return Result.fail("permission_denied");
         }
+        if (listing.expiresAt > 0L && listing.expiresAt <= System.currentTimeMillis()) {
+            return Result.fail("market_listing_expired");
+        }
 
         long total = lotPrice;
         if (total > MAX_WALLET_BALANCE) {
