@@ -81,8 +81,6 @@ public final class PlayerMarketOrdersScreen extends AvecoinsScreen {
                             payload.addProperty("id", order.id);
                             ClientNetworking.send(new ServerboundAvecoinsPayload("market_claim_delivery", payload.toString()));
                         });
-                collect.setTooltip(net.minecraft.client.gui.components.Tooltip.create(
-                        Component.translatable("gui.avecoins.player_market.claim_tooltip")));
                 this.addRenderableWidget(collect);
             } else if (confirming) {
                 int actionGroupX = cardX + (cardWidth - 162) / 2;
@@ -101,9 +99,6 @@ public final class PlayerMarketOrdersScreen extends AvecoinsScreen {
                             payload.addProperty("id", order.id);
                             ClientNetworking.send(new ServerboundAvecoinsPayload("market_accelerate_delivery", payload.toString()));
                         }).withTrailingItemAmount(COIN_ID, order.accelerationCost);
-                confirm.setTooltip(net.minecraft.client.gui.components.Tooltip.create(
-                        Component.translatable("gui.avecoins.player_market.acceleration_tooltip",
-                                order.accelerationCost, this.snapshot.walletBalance)));
                 PanelButton cancel = new PanelButton(actionGroupX + 124, cardY + 56, 38, 18,
                         Component.translatable("gui.avecoins.player_market.cancel_confirmation"),
                         PanelButton.Variant.SECONDARY, button -> {
@@ -129,13 +124,7 @@ public final class PlayerMarketOrdersScreen extends AvecoinsScreen {
                         }).withTrailingItemAmount(COIN_ID, order.accelerationCost);
                 if (this.snapshot.walletBalance < order.accelerationCost) {
                     long shortfall = order.accelerationCost - this.snapshot.walletBalance;
-                    accelerate.setTooltip(net.minecraft.client.gui.components.Tooltip.create(
-                            Component.translatable("gui.avecoins.player_market.acceleration_shortfall_tooltip",
-                                    shortfall, order.accelerationCost, this.snapshot.walletBalance)));
                 } else {
-                    accelerate.setTooltip(net.minecraft.client.gui.components.Tooltip.create(
-                            Component.translatable("gui.avecoins.player_market.acceleration_tooltip",
-                                    order.accelerationCost, this.snapshot.walletBalance)));
                 }
                 this.addRenderableWidget(accelerate);
             }
@@ -227,9 +216,6 @@ public final class PlayerMarketOrdersScreen extends AvecoinsScreen {
     @Override
     protected void renderPanel(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         this.renderHeader(graphics, null);
-        this.drawSectionTitleAt(graphics, Component.translatable("gui.avecoins.player_market.orders_title"),
-                this.panelLeft + this.panelWidth / 2, this.panelTop + 43);
-
         List<PlayerMarketService.MarketDelivery> orders = this.snapshot.deliveries;
         int listX = this.panelLeft + 10;
         int rowWidth = this.panelWidth - 20;
@@ -259,10 +245,6 @@ public final class PlayerMarketOrdersScreen extends AvecoinsScreen {
             int titleGroupX = cardCenterX - titleGroupWidth / 2;
             if (!preview.isEmpty()) {
                 graphics.item(preview, titleGroupX, cardY + 4);
-                if (mouseX >= titleGroupX - 2 && mouseX < titleGroupX + 18
-                        && mouseY >= cardY + 2 && mouseY < cardY + 22) {
-                    graphics.setTooltipForNextFrame(this.font, preview, mouseX, mouseY);
-                }
             }
             graphics.text(this.font, titleText, titleGroupX + (preview.isEmpty() ? 0 : 22),
                     cardY + 8, this.theme().TEXT, !this.theme().custom);
