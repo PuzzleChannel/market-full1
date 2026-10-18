@@ -1,4 +1,4 @@
-name: Build AVECOINS VMcoin
+name: Build vmtrade
 
 on:
   push:
@@ -41,12 +41,18 @@ jobs:
       - name: Build mod
         run: gradle --no-daemon clean build
 
+      - name: Rename distributable JAR
+        shell: bash
+        run: |
+          set -euo pipefail
+          jar_file="$(find build/libs -maxdepth 1 -type f -name 'vmtrade-*.jar' ! -name '*-sources.jar' ! -name '*-dev.jar' -print -quit)"
+          test -n "$jar_file"
+          cp "$jar_file" build/libs/vmtrade.jar
+
       - name: Upload distributable JAR
         uses: actions/upload-artifact@v4
         with:
-          name: avecoins-vmutcoin-fabric-26.2
-          path: |
-            build/libs/*.jar
-            !build/libs/*-sources.jar
+          name: vmtrade-fabric-26.2
+          path: build/libs/vmtrade.jar
           if-no-files-found: error
           retention-days: 14

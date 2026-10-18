@@ -227,9 +227,6 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
                             payload.addProperty("id", listing.id);
                             ClientNetworking.send(new ServerboundAvecoinsPayload("market_buy", payload.toString()));
                         }).withTrailingItemAmount(COIN_ID, total);
-                confirm.setTooltip(net.minecraft.client.gui.components.Tooltip.create(
-                        Component.translatable("gui.avecoins.player_market.purchase_tooltip",
-                                total, this.snapshot.walletBalance, listing.deliveryMinutes)));
                 PanelButton cancel = new PanelButton(actionGroupX, cardY + CARD_HEIGHT - 21, 52, 18,
                         Component.translatable("gui.avecoins.player_market.cancel_confirmation"),
                         PanelButton.Variant.SECONDARY, button -> {
