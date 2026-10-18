@@ -144,11 +144,13 @@ implements ThemedScreen {
 
     public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         if (Minecraft.getInstance().gui.screen() != this || this.responsiveLayout == null) return;
+        // Clear the physical viewport before scaling the panel. This avoids exposing
+        // the world framebuffer if the responsive virtual size rounds down by a pixel.
+        graphics.fill(0, 0, this.width, this.height, 0xFF101318);
         graphics.pose().pushMatrix();
         try {
             graphics.pose().translate(this.responsiveLayout.offsetX(), this.responsiveLayout.offsetY());
             graphics.pose().scale(this.responsiveLayout.scale(), this.responsiveLayout.scale());
-            graphics.fill(0, 0, this.responsiveLayout.virtualWidth(), this.responsiveLayout.virtualHeight(), 0xFF101318);
             graphics.fill(this.panelLeft, this.panelTop, this.panelLeft + this.panelWidth, this.panelTop + this.panelHeight, this.theme().BORDER);
             graphics.fill(this.panelLeft + 1, this.panelTop + 1, this.panelLeft + this.panelWidth - 1, this.panelTop + this.panelHeight - 1, this.theme().PANEL);
             graphics.fill(this.panelLeft + 1, this.panelTop + 1, this.panelLeft + this.panelWidth - 1, this.panelTop + this.panelHeaderHeight(), this.theme().HEADER);
