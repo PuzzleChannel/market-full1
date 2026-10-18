@@ -47,11 +47,12 @@ extends AbstractContainerScreen<T> {
 
     public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         if (net.minecraft.client.Minecraft.getInstance().gui.screen() != this || this.responsiveLayout == null) return;
+        // Clear the physical viewport before scaling the container panel.
+        graphics.fill(0, 0, this.width, this.height, 0xFF101318);
         graphics.pose().pushMatrix();
         try {
             graphics.pose().translate(this.responsiveLayout.offsetX(), this.responsiveLayout.offsetY());
             graphics.pose().scale(this.responsiveLayout.scale(), this.responsiveLayout.scale());
-            graphics.fill(0, 0, this.responsiveLayout.virtualWidth(), this.responsiveLayout.virtualHeight(), 0xFF101318);
             this.extractPanelBackground(graphics, partialTick, this.virtualMouseX(mouseX), this.virtualMouseY(mouseY));
         } finally {
             graphics.pose().popMatrix();
