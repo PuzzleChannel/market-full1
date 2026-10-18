@@ -300,27 +300,35 @@ public final class PlayerMarketCreateScreen extends AvecoinsScreen {
         ItemStack selected = this.minecraft.player == null || this.selectedSlot < 0
                 ? ItemStack.EMPTY : this.minecraft.player.getInventory().getItem(this.selectedSlot);
         if (!selected.isEmpty()) {
-            graphics.item(selected, selectedPanelX + 9, selectedPanelY + 9);
-            graphics.text(this.font,
-                    Component.literal(this.font.plainSubstrByWidth(selected.getHoverName().getString(), 300)),
-                    selectedPanelX + 32, selectedPanelY + 8, this.theme().TEXT, !this.theme().custom);
-            graphics.text(this.font,
+            Component title = Component.literal(this.font.plainSubstrByWidth(selected.getHoverName().getString(), 352));
+            int titleWidth = this.font.width(title);
+            int groupWidth = 24 + titleWidth;
+            int groupX = selectedPanelX + (400 - groupWidth) / 2;
+            graphics.item(selected, groupX, selectedPanelY + 9);
+            graphics.text(this.font, title, groupX + 24, selectedPanelY + 8,
+                    this.theme().TEXT, !this.theme().custom);
+            GuiTextLayout.drawCentered(graphics, this.font,
                     Component.translatable("gui.avecoins.player_market.selected_count", selected.getCount()),
-                    selectedPanelX + 32, selectedPanelY + 21, this.theme().MUTED, !this.theme().custom);
+                    groupX + 24 + titleWidth / 2, selectedPanelY + 21,
+                    this.theme().MUTED, !this.theme().custom);
         } else {
             this.drawCenteredWrappedAt(graphics, Component.translatable("gui.avecoins.player_market.no_selected_item"),
                     selectedPanelX + 200, selectedPanelY + 12, 370, this.theme().MUTED);
         }
 
         Component priceLabel = Component.translatable("gui.avecoins.player_market.price");
-        graphics.text(this.font, priceLabel, fieldsX, this.panelTop + 208,
+        int priceLabelWidth = this.font.width(priceLabel);
+        boolean hasCoin = BuiltInRegistries.ITEM.containsKey(COIN_ID);
+        int priceGroupWidth = priceLabelWidth + (hasCoin ? 20 : 0);
+        int priceLabelX = fieldsX + (190 - priceGroupWidth) / 2;
+        graphics.text(this.font, priceLabel, priceLabelX, this.panelTop + 208,
                 this.theme().TEXT, !this.theme().custom);
-        if (BuiltInRegistries.ITEM.containsKey(COIN_ID)) {
+        if (hasCoin) {
             graphics.item(new ItemStack((Item) BuiltInRegistries.ITEM.getValue(COIN_ID)),
-                    fieldsX + this.font.width(priceLabel) + 4, this.panelTop + 204);
+                    priceLabelX + priceLabelWidth + 4, this.panelTop + 204);
         }
-        graphics.text(this.font, Component.translatable("gui.avecoins.player_market.quantity"),
-                fieldsX + 210, this.panelTop + 208, this.theme().TEXT, !this.theme().custom);
+        GuiTextLayout.drawCentered(graphics, this.font, Component.translatable("gui.avecoins.player_market.quantity"),
+                fieldsX + 210 + 95, this.panelTop + 208, this.theme().TEXT, !this.theme().custom);
 
         this.drawSectionTitleAt(graphics, Component.translatable("gui.avecoins.player_market.duration_heading"),
                 this.panelLeft + this.panelWidth / 2, this.panelTop + 245);

@@ -66,17 +66,26 @@ extends Button {
             int itemGap = 3;
             int itemSize = 16;
             int groupWidth = textWidth + amountGap + amountWidth + itemGap + itemSize;
-            int groupX = this.getX() + (this.getWidth() - groupWidth) / 2;
-            int textY = this.getY() + (this.getHeight() - 8) / 2;
-            if (textWidth > 0) {
-                graphics.text(font, this.getMessage(), groupX, textY, color, false);
+            float fitScale = Math.min(1.0f, (this.getWidth() - 8.0f) / Math.max(1.0f, (float) groupWidth));
+            float groupX = this.getX() + (this.getWidth() - groupWidth * fitScale) / 2.0f;
+            float groupY = this.getY() + (this.getHeight() - this.getHeight() * fitScale) / 2.0f;
+            graphics.pose().pushMatrix();
+            try {
+                graphics.pose().translate(groupX, groupY);
+                graphics.pose().scale(fitScale, fitScale);
+                int textY = (this.getHeight() - 8) / 2;
+                if (textWidth > 0) {
+                    graphics.text(font, this.getMessage(), 0, textY, color, false);
+                }
+                int amountX = textWidth + amountGap;
+                graphics.text(font, Component.literal(amount), amountX, textY, color, false);
+                int itemX = amountX + amountWidth + itemGap;
+                int itemY = (this.getHeight() - itemSize) / 2;
+                Item item = (Item) BuiltInRegistries.ITEM.getValue(this.trailingItem);
+                graphics.item(new ItemStack(item), itemX, itemY);
+            } finally {
+                graphics.pose().popMatrix();
             }
-            int amountX = groupX + textWidth + amountGap;
-            graphics.text(font, Component.literal(amount), amountX, textY, color, false);
-            int itemX = amountX + amountWidth + itemGap;
-            int itemY = this.getY() + (this.getHeight() - itemSize) / 2;
-            Item item = (Item) BuiltInRegistries.ITEM.getValue(this.trailingItem);
-            graphics.item(new ItemStack(item), itemX, itemY);
         } else if (this.icon == null) {
             GuiTextLayout.drawCentered(graphics, Minecraft.getInstance().font, this.getMessage(), this.getX() + this.getWidth() / 2, this.getY() + (this.getHeight() - 8) / 2, color, !ScreenThemes.current().custom);
         } else {

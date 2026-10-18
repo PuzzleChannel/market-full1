@@ -305,29 +305,29 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
             int cardY = listTop + (local / COLUMNS) * CARD_STEP;
 
             ItemStack preview = this.previewStack(listing);
+            String title = this.font.plainSubstrByWidth(listing.displayName, cardWidth - 48);
+            Component titleText = Component.literal(title);
+            int titleWidth = this.font.width(titleText);
+            int groupWidth = titleWidth + (preview.isEmpty() ? 0 : 24);
+            int groupX = cardX + (cardWidth - groupWidth) / 2;
             if (!preview.isEmpty()) {
-                graphics.item(preview, cardX + 8, cardY + 8);
-                if (mouseX >= cardX + 7 && mouseX < cardX + 28
-                        && mouseY >= cardY + 7 && mouseY < cardY + 29) {
+                graphics.item(preview, groupX, cardY + 5);
+                if (mouseX >= groupX - 2 && mouseX < groupX + 18
+                        && mouseY >= cardY + 3 && mouseY < cardY + 23) {
                     graphics.setTooltipForNextFrame(this.font, preview, mouseX, mouseY);
                 }
             }
-            String title = listing.displayName;
-            graphics.text(this.font, Component.literal(this.font.plainSubstrByWidth(title, cardWidth - 44)),
-                    cardX + 30, cardY + 8, this.theme().TEXT, false);
-            graphics.text(this.font,
+            int titleX = groupX + (preview.isEmpty() ? 0 : 24);
+            graphics.text(this.font, titleText, titleX, cardY + 8, this.theme().TEXT, !this.theme().custom);
+            GuiTextLayout.drawCentered(graphics, this.font,
                     Component.translatable("gui.avecoins.player_market.selected_count", listing.quantity),
-                    cardX + 30, cardY + 23, this.theme().MUTED, false);
-            this.renderListingPrice(graphics, listing.totalPrice, cardX + 8, cardY + 36);
+                    cardX + cardWidth / 2, cardY + 23, this.theme().MUTED, !this.theme().custom);
+            this.renderListingPrice(graphics, listing.totalPrice, cardX + cardWidth / 2, cardY + 36);
             if (listing.expiresAt > 0L) {
                 long remaining = listing.expiresAt - System.currentTimeMillis();
                 int remainingColor = remaining <= 0L ? this.theme().DANGER : this.theme().MUTED;
-                graphics.text(this.font, this.remainingTimeLabel(listing.expiresAt),
-                        cardX + 8, cardY + 45, remainingColor, !this.theme().custom);
-            }
-            if (BuiltInRegistries.ITEM.containsKey(COIN_ID)) {
-                graphics.item(new ItemStack((Item) BuiltInRegistries.ITEM.getValue(COIN_ID)),
-                        cardX + 54, cardY + 54);
+                GuiTextLayout.drawCentered(graphics, this.font, this.remainingTimeLabel(listing.expiresAt),
+                        cardX + cardWidth / 2, cardY + 45, remainingColor, !this.theme().custom);
             }
         }
 
@@ -366,14 +366,18 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
         this.drawCurrencyLine(graphics, label, Long.toString(value), centerX, y, this.theme().TEXT);
     }
 
-    private void renderListingPrice(GuiGraphicsExtractor graphics, long value, int x, int y) {
+    private void renderListingPrice(GuiGraphicsExtractor graphics, long value, int centerX, int y) {
         Component label = Component.translatable("gui.avecoins.player_market.current_price");
-        graphics.text(this.font, label, x, y, this.theme().TEXT, false);
+        String amount = Long.toString(value);
+        boolean hasIcon = BuiltInRegistries.ITEM.containsKey(COIN_ID);
+        int groupWidth = this.font.width(label) + 5 + this.font.width(amount) + (hasIcon ? 19 : 0);
+        int x = centerX - groupWidth / 2;
+        graphics.text(this.font, label, x, y, this.theme().TEXT, !this.theme().custom);
         int amountX = x + this.font.width(label) + 5;
-        graphics.text(this.font, Component.literal(Long.toString(value)), amountX, y, this.theme().TEXT, false);
-        int iconX = amountX + this.font.width(Long.toString(value)) + 3;
-        if (BuiltInRegistries.ITEM.containsKey(COIN_ID)) {
-            graphics.item(new ItemStack((Item) BuiltInRegistries.ITEM.getValue(COIN_ID)), iconX, y - 4);
+        graphics.text(this.font, Component.literal(amount), amountX, y, this.theme().TEXT, !this.theme().custom);
+        if (hasIcon) {
+            graphics.item(new ItemStack((Item) BuiltInRegistries.ITEM.getValue(COIN_ID)),
+                    amountX + this.font.width(amount) + 3, y - 4);
         }
     }
 

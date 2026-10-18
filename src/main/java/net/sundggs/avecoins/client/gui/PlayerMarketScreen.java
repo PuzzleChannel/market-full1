@@ -211,7 +211,8 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
                         });
                 this.listingControls.add(this.addRenderableWidget(remove));
             } else if (confirming) {
-                PanelButton confirm = new PanelButton(cardX + cardWidth - 104, cardY + CARD_HEIGHT - 21, 100, 18,
+                int actionGroupX = cardX + (cardWidth - 156) / 2;
+                PanelButton confirm = new PanelButton(actionGroupX + 56, cardY + CARD_HEIGHT - 21, 100, 18,
                         Component.translatable("gui.avecoins.player_market.confirm_purchase_button"),
                         PanelButton.Variant.SUCCESS, button -> {
                             if (this.snapshot.walletBalance < total) {
@@ -229,7 +230,7 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
                 confirm.setTooltip(net.minecraft.client.gui.components.Tooltip.create(
                         Component.translatable("gui.avecoins.player_market.purchase_tooltip",
                                 total, this.snapshot.walletBalance, listing.deliveryMinutes)));
-                PanelButton cancel = new PanelButton(cardX + cardWidth - 160, cardY + CARD_HEIGHT - 21, 52, 18,
+                PanelButton cancel = new PanelButton(actionGroupX, cardY + CARD_HEIGHT - 21, 52, 18,
                         Component.translatable("gui.avecoins.player_market.cancel_confirmation"),
                         PanelButton.Variant.SECONDARY, button -> {
                             this.confirmingListingId = "";
@@ -239,7 +240,7 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
                 this.listingControls.add(this.addRenderableWidget(cancel));
                 this.listingControls.add(this.addRenderableWidget(confirm));
             } else {
-                PanelButton buy = new PanelButton(cardX + cardWidth - 104, cardY + CARD_HEIGHT - 21, 100, 18,
+                PanelButton buy = new PanelButton(cardX + (cardWidth - 100) / 2, cardY + CARD_HEIGHT - 21, 100, 18,
                         Component.translatable("gui.avecoins.player_market.buy"),
                         PanelButton.Variant.SUCCESS, button -> {
                             if (this.snapshot.walletBalance < total) {
@@ -452,13 +453,14 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
             PlayerMarketService.MarketSaleNotice notice = this.snapshot.saleNotices.get(i);
             int noticeX = this.panelLeft + 120 + i * (noticeWidth + noticeGap);
             int noticeY = this.panelTop + 62;
-            graphics.fill(noticeX, noticeY, noticeX + noticeWidth, noticeY + 20, this.theme().SUCCESS);
-            graphics.fill(noticeX + 1, noticeY + 1, noticeX + noticeWidth - 1, noticeY + 19, this.theme().SURFACE);
+            graphics.fill(noticeX, noticeY, noticeX + noticeWidth, noticeY + 26, this.theme().SUCCESS);
+            graphics.fill(noticeX + 1, noticeY + 1, noticeX + noticeWidth - 1, noticeY + 25, this.theme().SURFACE);
             String itemLabel = notice.itemName + (notice.quantity > 1 ? " ×" + notice.quantity : "");
-            String line = this.font.plainSubstrByWidth(itemLabel, Math.max(20, noticeWidth - 60))
-                    + " · " + notice.price + " ВМ";
-            graphics.text(this.font, Component.literal(this.font.plainSubstrByWidth(line, noticeWidth - 8)),
-                    noticeX + 4, noticeY + 6, this.theme().TEXT, !this.theme().custom);
+            Component noticeTitle = Component.literal(this.font.plainSubstrByWidth(itemLabel, noticeWidth - 12));
+            GuiTextLayout.drawCentered(graphics, this.font, noticeTitle,
+                    noticeX + noticeWidth / 2, noticeY + 1, this.theme().TEXT, !this.theme().custom);
+            this.renderCoinAmountCentered(graphics, notice.price,
+                    noticeX + noticeWidth / 2, noticeY + 10, this.theme().TEXT);
         }
         this.drawSectionTitleAt(graphics, Component.translatable("gui.avecoins.player_market.listings"),
                 this.panelLeft + 120 + (this.panelWidth - 132) / 2, this.panelTop + 88);
@@ -485,24 +487,27 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
             int cardY = listTop + (local / COLUMNS) * CARD_STEP;
             boolean ownListing = listing.sellerId.equals(this.snapshot.viewerId);
 
-            ItemStack preview = this.previewStack(listing);
+            int cardCenterX = cardX + cardWidth / 2;
             if (!preview.isEmpty()) {
-                graphics.item(preview, cardX + 7, cardY + 8);
-                if (mouseX >= cardX + 6 && mouseX < cardX + 28
-                        && mouseY >= cardY + 7 && mouseY < cardY + 30) {
+                int iconX = cardCenterX - 8;
+                int iconY = cardY + 2;
+                graphics.item(preview, iconX, iconY);
+                if (mouseX >= iconX - 2 && mouseX < iconX + 18
+                        && mouseY >= iconY - 2 && mouseY < iconY + 18) {
                     graphics.setTooltipForNextFrame(this.font, preview, mouseX, mouseY);
                 }
             }
 
             String displayName = preview.isEmpty() ? listing.displayName : preview.getHoverName().getString();
             String title = displayName + (listing.quantity > 1 ? " ×" + listing.quantity : "");
-            graphics.text(this.font,
-                    Component.literal(this.font.plainSubstrByWidth(title, cardWidth - (ownListing ? 52 : 34))),
-                    cardX + 29, cardY + 8, this.theme().TEXT, !this.theme().custom);
+            Component titleText = Component.literal(this.font.plainSubstrByWidth(title, cardWidth - 12));
+            GuiTextLayout.drawCentered(graphics, this.font, titleText, cardCenterX,
+                    cardY + 21, this.theme().TEXT, !this.theme().custom);
 
             String seller = listing.sellerName + (ownListing ? " · Вы" : "");
-            graphics.text(this.font, Component.literal(this.font.plainSubstrByWidth(seller, cardWidth - 16)),
-                    cardX + 8, cardY + 27, this.theme().MUTED, !this.theme().custom);
+            Component sellerText = Component.literal(this.font.plainSubstrByWidth(seller, cardWidth - 12));
+            GuiTextLayout.drawCentered(graphics, this.font, sellerText, cardCenterX,
+                    cardY + 33, this.theme().MUTED, !this.theme().custom);
         }
 
         int maxPage = Math.max(0, (this.visibleListings.size() - 1) / LISTINGS_PER_PAGE);
@@ -515,6 +520,19 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
         this.renderVmcoinBalance(graphics, this.panelLeft + this.panelWidth / 2, this.panelTop + 383);
         if (!this.resultCode.isBlank()) {
             this.renderStatusBoxAt(graphics, this.resultCode, this.panelTop + this.panelHeight - 24);
+        }
+    }
+
+    private void renderCoinAmountCentered(GuiGraphicsExtractor graphics, long value, int centerX, int iconY, int color) {
+        String amount = Long.toString(value);
+        boolean hasIcon = BuiltInRegistries.ITEM.containsKey(COIN_ID);
+        int textWidth = this.font.width(amount);
+        int groupWidth = textWidth + (hasIcon ? 19 : 0);
+        int x = centerX - groupWidth / 2;
+        graphics.text(this.font, Component.literal(amount), x, iconY + 4, color, !this.theme().custom);
+        if (hasIcon) {
+            graphics.item(new ItemStack((Item) BuiltInRegistries.ITEM.getValue(COIN_ID)),
+                    x + textWidth + 3, iconY);
         }
     }
 
