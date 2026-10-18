@@ -21,10 +21,10 @@ import net.sundggs.avecoins.shop.ShopService;
 
 /** Lists the current player's escrowed items and allows safe price edits or cancellation. */
 public final class PlayerMarketManageScreen extends AvecoinsScreen {
-    private static final int PAGE_SIZE = 9;
-    private static final int COLUMNS = 3;
-    private static final int CARD_HEIGHT = 76;
-    private static final int CARD_STEP = 80;
+    private static final int PAGE_SIZE = 12;
+    private static final int COLUMNS = 4;
+    private static final int CARD_HEIGHT = 66;
+    private static final int CARD_STEP = 73;
     private static final Identifier COIN_ID = Identifier.fromNamespaceAndPath("vmtrade", "vmcoin");
 
     private final PlayerMarketService.MarketSnapshot snapshot;
@@ -207,8 +207,8 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
         int maxPage = Math.max(0, (listings.size() - 1) / PAGE_SIZE);
         this.page = Math.min(this.page, maxPage);
 
-        int listX = this.panelLeft + 12;
-        int rowWidth = this.panelWidth - 24;
+        int listX = this.panelLeft + 120;
+        int rowWidth = this.panelWidth - 132;
         int cardWidth = (rowWidth - (COLUMNS - 1) * 8) / COLUMNS;
         int listTop = this.panelTop + 94;
         int start = this.page * PAGE_SIZE;
@@ -220,41 +220,50 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
             int cardX = listX + (local % COLUMNS) * (cardWidth + 8);
             int cardY = listTop + (local / COLUMNS) * CARD_STEP;
 
-            EditBox priceBox = new EditBox(this.font, cardX + 8, cardY + 53, 45, 18,
-                    Component.translatable("gui.avecoins.player_market.price"));
-            priceBox.setMaxLength(4);
-            priceBox.active = !isExpired(listing);
-            priceBox.setValue(this.priceDrafts.getOrDefault(listing.id, Integer.toString(listing.totalPrice)));
-            priceBox.setHint(Component.literal(Integer.toString(listing.totalPrice)));
-            this.priceBoxes.put(listing.id, priceBox);
-            this.addRenderableWidget(priceBox);
-
-            PanelButton saveButton = new PanelButton(cardX + 72, cardY + 53, 58, 18,
-                    Component.translatable("gui.avecoins.player_market.save_price"), PanelButton.Variant.SECONDARY,
-                    button -> this.savePrice(listing));
-            this.saveButtons.put(listing.id, saveButton);
-            this.updateSaveButton(listing, priceBox, saveButton);
-            this.addRenderableWidget(saveButton);
-            priceBox.setResponder(value -> {
-                this.priceDrafts.put(listing.id, value);
-                this.updateSaveButton(listing, priceBox, saveButton);
-            });
-
             boolean confirming = listing.id.equals(this.confirmingListingId);
-            this.addRenderableWidget(new PanelButton(cardX + 132, cardY + 53, 66, 18,
-                    Component.translatable(confirming
-                            ? "gui.avecoins.player_market.confirm_remove"
-                            : (isExpired(listing) ? "gui.avecoins.player_market.manage_return_expired"
-                                                : "gui.avecoins.player_market.cancel")),
-                    PanelButton.Variant.DANGER, button -> this.handleRemoveClick(listing)));
             if (confirming) {
-                this.addRenderableWidget(new PanelButton(cardX + 200, cardY + 53, 55, 18,
+                // Use the full control row for a clear two-button confirmation on compact cards.
+                this.addRenderableWidget(new PanelButton(cardX + 4, cardY + 47, 78, 16,
+                        Component.translatable("gui.avecoins.player_market.confirm_remove"), PanelButton.Variant.DANGER,
+                        button -> {
+                            this.capturePriceDrafts();
+                            com.google.gson.JsonObject payload = new com.google.gson.JsonObject();
+                            payload.addProperty("id", listing.id);
+                            ClientNetworking.send(new ServerboundAvecoinsPayload("market_cancel", payload.toString()));
+                        }));
+                this.addRenderableWidget(new PanelButton(cardX + 86, cardY + 47, 76, 16,
                         Component.translatable("gui.avecoins.player_market.keep_listing"), PanelButton.Variant.SECONDARY,
                         button -> {
                             this.capturePriceDrafts();
                             this.confirmingListingId = "";
                             this.rebuildWidgets();
                         }));
+            } else {
+                EditBox priceBox = new EditBox(this.font, cardX + 4, cardY + 47, 34, 16,
+                        Component.translatable("gui.avecoins.player_market.price"));
+                priceBox.setMaxLength(4);
+                priceBox.active = !isExpired(listing);
+                priceBox.setValue(this.priceDrafts.getOrDefault(listing.id, Integer.toString(listing.totalPrice)));
+                priceBox.setHint(Component.literal(Integer.toString(listing.totalPrice)));
+                this.priceBoxes.put(listing.id, priceBox);
+                this.addRenderableWidget(priceBox);
+
+                PanelButton saveButton = new PanelButton(cardX + 42, cardY + 47, 50, 16,
+                        Component.translatable("gui.avecoins.player_market.save_price"), PanelButton.Variant.SECONDARY,
+                        button -> this.savePrice(listing));
+                this.saveButtons.put(listing.id, saveButton);
+                this.updateSaveButton(listing, priceBox, saveButton);
+                this.addRenderableWidget(saveButton);
+                priceBox.setResponder(value -> {
+                    this.priceDrafts.put(listing.id, value);
+                    this.updateSaveButton(listing, priceBox, saveButton);
+                });
+
+                this.addRenderableWidget(new PanelButton(cardX + 96, cardY + 47, 66, 16,
+                        Component.translatable(isExpired(listing)
+                                ? "gui.avecoins.player_market.manage_return_expired"
+                                : "gui.avecoins.player_market.cancel"),
+                        PanelButton.Variant.DANGER, button -> this.handleRemoveClick(listing)));
             }
         }
 
@@ -349,8 +358,8 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
         try {
             graphics.pose().translate(this.responsiveLayout.offsetX(), this.responsiveLayout.offsetY());
             graphics.pose().scale(this.responsiveLayout.scale(), this.responsiveLayout.scale());
-            int listX = this.panelLeft + 12;
-            int rowWidth = this.panelWidth - 24;
+            int listX = this.panelLeft + 120;
+            int rowWidth = this.panelWidth - 132;
             int cardWidth = (rowWidth - (COLUMNS - 1) * 8) / COLUMNS;
             int listTop = this.panelTop + 94;
             int start = this.page * PAGE_SIZE;
@@ -380,8 +389,8 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
         this.renderTotalValue(graphics, this.panelLeft + this.panelWidth / 2, this.panelTop + 57,
                 totalValue(listings));
 
-        int listX = this.panelLeft + 12;
-        int rowWidth = this.panelWidth - 24;
+        int listX = this.panelLeft + 120;
+        int rowWidth = this.panelWidth - 132;
         int cardWidth = (rowWidth - (COLUMNS - 1) * 8) / COLUMNS;
         int listTop = this.panelTop + 94;
         int start = this.page * PAGE_SIZE;
@@ -399,25 +408,21 @@ public final class PlayerMarketManageScreen extends AvecoinsScreen {
             int cardY = listTop + (local / COLUMNS) * CARD_STEP;
 
             ItemStack preview = this.previewStack(listing);
-            String title = this.font.plainSubstrByWidth(listing.displayName, cardWidth - 48);
-            Component titleText = Component.literal(title);
-            int titleWidth = this.font.width(titleText);
-            int groupWidth = titleWidth + (preview.isEmpty() ? 0 : 24);
-            int groupX = cardX + (cardWidth - groupWidth) / 2;
+            int cardCenterX = cardX + cardWidth / 2;
             if (!preview.isEmpty()) {
-                graphics.item(preview, groupX, cardY + 5);
+                graphics.item(preview, cardCenterX - 8, cardY + 2);
             }
-            int titleX = groupX + (preview.isEmpty() ? 0 : 24);
-            graphics.text(this.font, titleText, titleX, cardY + 8, this.theme().TEXT, !this.theme().custom);
-            GuiTextLayout.drawCentered(graphics, this.font,
-                    Component.translatable("gui.avecoins.player_market.selected_count", listing.quantity),
-                    cardX + cardWidth / 2, cardY + 23, this.theme().MUTED, !this.theme().custom);
-            this.renderListingPrice(graphics, listing.totalPrice, cardX + cardWidth / 2, cardY + 36);
+            String displayName = preview.isEmpty() ? listing.displayName : preview.getHoverName().getString();
+            String title = displayName + (listing.quantity > 1 ? " х" + listing.quantity : "");
+            Component titleText = Component.literal(this.font.plainSubstrByWidth(title, cardWidth - 8));
+            GuiTextLayout.drawCentered(graphics, this.font, titleText,
+                    cardCenterX, cardY + 20, this.theme().TEXT, !this.theme().custom);
+            this.renderListingPrice(graphics, listing.totalPrice, cardCenterX, cardY + 32);
             if (listing.expiresAt > 0L) {
                 long remaining = listing.expiresAt - System.currentTimeMillis();
                 int remainingColor = remaining <= 0L ? this.theme().DANGER : this.theme().MUTED;
                 GuiTextLayout.drawCentered(graphics, this.font, this.remainingTimeLabel(listing.expiresAt),
-                        cardX + cardWidth / 2, cardY + 45, remainingColor, !this.theme().custom);
+                        cardCenterX, cardY + 41, remainingColor, !this.theme().custom);
             }
         }
 
