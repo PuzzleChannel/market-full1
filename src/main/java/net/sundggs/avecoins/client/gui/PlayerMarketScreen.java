@@ -25,11 +25,12 @@ import net.sundggs.avecoins.shop.ShopService;
 
 /** Компактный рынок игроков с поиском по объявлениям. */
 public final class PlayerMarketScreen extends AvecoinsScreen {
-    private static final int LISTINGS_PER_PAGE = 9;
-    private static final int COLUMNS = 3;
+    private static final int LISTINGS_PER_PAGE = 12;
+    private static final int COLUMNS = 4;
     private static final int CARD_HEIGHT = 66;
     private static final int CARD_STEP = 73;
     private static final Identifier WALLET_ICON = Identifier.fromNamespaceAndPath("avecoins", "textures/gui/icons/coin_wallet.png");
+    private static final Identifier COIN_ID = Identifier.fromNamespaceAndPath("vmtrade", "vmcoin");
     private static final String[] FILTER_KEYS = {
             "gui.avecoins.player_market.filter_all",
             "gui.avecoins.player_market.filter_mine",
@@ -200,19 +201,17 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
             boolean confirming = listing.id.equals(this.confirmingListingId);
 
             if (ownListing) {
-                PanelButton remove = new PanelButton(cardX + cardWidth - 64, cardY + CARD_HEIGHT - 20, 58, 18,
-                        Component.translatable("gui.avecoins.player_market.remove_button"),
-                        PanelButton.Variant.DANGER,
+                // A seller can only remove their own listing; never attach a purchase action to it.
+                PanelButton remove = new PanelButton(cardX + cardWidth - 23, cardY + 4, 18, 18,
+                        Component.literal("×"), PanelButton.Variant.DANGER,
                         button -> {
                             com.google.gson.JsonObject payload = new com.google.gson.JsonObject();
                             payload.addProperty("id", listing.id);
                             ClientNetworking.send(new ServerboundAvecoinsPayload("market_cancel", payload.toString()));
                         });
-                remove.setTooltip(net.minecraft.client.gui.components.Tooltip.create(
-                        Component.translatable("gui.avecoins.player_market.remove_tooltip")));
                 this.listingControls.add(this.addRenderableWidget(remove));
             } else if (confirming) {
-                PanelButton confirm = new PanelButton(cardX + cardWidth - 111, cardY + CARD_HEIGHT - 20, 103, 18,
+                PanelButton confirm = new PanelButton(cardX + cardWidth - 104, cardY + CARD_HEIGHT - 21, 100, 18,
                         Component.translatable("gui.avecoins.player_market.confirm_purchase_button"),
                         PanelButton.Variant.SUCCESS, button -> {
                             if (this.snapshot.walletBalance < total) {
@@ -226,11 +225,11 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
                             com.google.gson.JsonObject payload = new com.google.gson.JsonObject();
                             payload.addProperty("id", listing.id);
                             ClientNetworking.send(new ServerboundAvecoinsPayload("market_buy", payload.toString()));
-                        });
+                        }).withTrailingItemAmount(COIN_ID, total);
                 confirm.setTooltip(net.minecraft.client.gui.components.Tooltip.create(
                         Component.translatable("gui.avecoins.player_market.purchase_tooltip",
                                 total, this.snapshot.walletBalance, listing.deliveryMinutes)));
-                PanelButton cancel = new PanelButton(cardX + cardWidth - 164, cardY + CARD_HEIGHT - 20, 48, 18,
+                PanelButton cancel = new PanelButton(cardX + cardWidth - 160, cardY + CARD_HEIGHT - 21, 52, 18,
                         Component.translatable("gui.avecoins.player_market.cancel_confirmation"),
                         PanelButton.Variant.SECONDARY, button -> {
                             this.confirmingListingId = "";
@@ -240,7 +239,7 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
                 this.listingControls.add(this.addRenderableWidget(cancel));
                 this.listingControls.add(this.addRenderableWidget(confirm));
             } else {
-                PanelButton buy = new PanelButton(cardX + cardWidth - 72, cardY + CARD_HEIGHT - 20, 64, 18,
+                PanelButton buy = new PanelButton(cardX + cardWidth - 104, cardY + CARD_HEIGHT - 21, 100, 18,
                         Component.translatable("gui.avecoins.player_market.buy"),
                         PanelButton.Variant.SUCCESS, button -> {
                             if (this.snapshot.walletBalance < total) {
@@ -252,7 +251,7 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
                             this.confirmingListingId = listing.id;
                             this.resultCode = "market_confirm_purchase";
                             this.rebuildListingControls();
-                        });
+                        }).withTrailingItemAmount(COIN_ID, total);
                 if (this.snapshot.walletBalance < total) {
                     long shortfall = total - this.snapshot.walletBalance;
                     buy.setTooltip(net.minecraft.client.gui.components.Tooltip.create(
@@ -485,7 +484,6 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
             int cardX = listX + (local % COLUMNS) * (cardWidth + 8);
             int cardY = listTop + (local / COLUMNS) * CARD_STEP;
             boolean ownListing = listing.sellerId.equals(this.snapshot.viewerId);
-            long total = lotPrice(listing);
 
             ItemStack preview = this.previewStack(listing);
             if (!preview.isEmpty()) {
@@ -498,24 +496,13 @@ public final class PlayerMarketScreen extends AvecoinsScreen {
 
             String displayName = preview.isEmpty() ? listing.displayName : preview.getHoverName().getString();
             String title = displayName + (listing.quantity > 1 ? " ×" + listing.quantity : "");
-            graphics.text(this.font, Component.literal(this.font.plainSubstrByWidth(title, cardWidth - 34)),
+            graphics.text(this.font,
+                    Component.literal(this.font.plainSubstrByWidth(title, cardWidth - (ownListing ? 52 : 34))),
                     cardX + 29, cardY + 8, this.theme().TEXT, !this.theme().custom);
 
             String seller = listing.sellerName + (ownListing ? " · Вы" : "");
             graphics.text(this.font, Component.literal(this.font.plainSubstrByWidth(seller, cardWidth - 16)),
                     cardX + 8, cardY + 27, this.theme().MUTED, !this.theme().custom);
-            Component priceLabel = Component.translatable("gui.avecoins.player_market.total_price");
-            graphics.text(this.font, priceLabel, cardX + 8, cardY + 44,
-                    this.theme().TEXT, !this.theme().custom);
-            int priceX = cardX + 8 + this.font.width(priceLabel) + 4;
-            String priceText = Long.toString(total);
-            graphics.text(this.font, Component.literal(priceText), priceX, cardY + 44,
-                    this.theme().TEXT, !this.theme().custom);
-            Identifier currencyId = Identifier.tryParse("vmtrade:vmcoin");
-            if (currencyId != null && BuiltInRegistries.ITEM.containsKey(currencyId)) {
-                graphics.item(new ItemStack((Item) BuiltInRegistries.ITEM.getValue(currencyId)),
-                        priceX + this.font.width(priceText) + 3, cardY + 41);
-            }
         }
 
         int maxPage = Math.max(0, (this.visibleListings.size() - 1) / LISTINGS_PER_PAGE);
